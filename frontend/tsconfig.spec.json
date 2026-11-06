@@ -5,10 +5,13 @@
   "compilerOptions": {
     "types": [
       "vitest/globals"
-    ]
+    ],
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*.d.ts",
-    "src/**/*.spec.ts"
+    "src/**/*.spec.ts",
+    "src/test-providers.ts",
+    "src/testing/**/*.ts"
   ]
 }

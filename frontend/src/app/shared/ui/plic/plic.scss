@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  width: var(--plic-size, 180px);
+  aspect-ratio: 1;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+// Proud: the spikes stand up, as described on screen 23.
+:host([data-mood='proud']) .plic__spikes {
+  transform: scale(1.06);
+  transform-origin: 100px 116px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :host([data-mood='happy']) svg {
+    animation: plic-bob 3s ease-in-out infinite;
+  }
+}
+
+@keyframes plic-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}

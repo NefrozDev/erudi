@@ -1,0 +1,77 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" focusable="false">
+  <ellipse cx="100" cy="190" rx="60" ry="7" fill="#17153b" opacity="0.1" />
+
+  <g class="plic__spikes" stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+    @for (spike of spikes; track spike.angle) {
+      <g [attr.transform]="'rotate(' + spike.angle + ' 100 116)'">
+        <rect x="83" y="14" width="34" height="56" rx="7" [attr.fill]="spike.fill" />
+        <path d="M91 28h18M91 38h12" stroke="#17153b" stroke-opacity="0.25" stroke-linecap="round" />
+      </g>
+    }
+  </g>
+
+  <g stroke="#3b2db0" stroke-width="3">
+    <ellipse cx="76" cy="180" rx="18" ry="9" fill="#fff1df" />
+    <ellipse cx="124" cy="180" rx="18" ry="9" fill="#fff1df" />
+    <circle cx="100" cy="118" r="62" fill="#6f52ff" />
+    <ellipse cx="42" cy="130" rx="13" ry="20" fill="#7d63ff" transform="rotate(-12 42 130)" />
+    <ellipse cx="158" cy="130" rx="13" ry="20" fill="#7d63ff" transform="rotate(12 158 130)" />
+  </g>
+  <ellipse cx="76" cy="80" rx="20" ry="10" fill="#ffffff" opacity="0.25" transform="rotate(-22 76 80)" />
+  <ellipse cx="100" cy="132" rx="45" ry="38" fill="#ffe7cc" />
+  <circle cx="68" cy="142" r="8" fill="#ff9aa8" opacity="0.85" />
+  <circle cx="132" cy="142" r="8" fill="#ff9aa8" opacity="0.85" />
+
+  @switch (mood()) {
+    @case ('proud') {
+      <g fill="none" stroke="#17153b" stroke-width="4.5" stroke-linecap="round">
+        <path d="M73 124q11-12 22 0" />
+        <path d="M105 124q11-12 22 0" />
+      </g>
+      <g fill="#ffc93c" stroke="#3b2db0" stroke-width="2" stroke-linejoin="round">
+        <path d="M28 96l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" />
+        <path d="M172 102l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" />
+      </g>
+    }
+    @case ('sleepy') {
+      <g fill="none" stroke="#17153b" stroke-width="4" stroke-linecap="round">
+        <path d="M73 122q11 9 22 0" />
+        <path d="M105 122q11 9 22 0" />
+      </g>
+      <g fill="#17153b" font-family="Outfit, sans-serif" font-weight="800">
+        <text x="150" y="60" font-size="22">z</text>
+        <text x="166" y="42" font-size="15">z</text>
+      </g>
+    }
+    @default {
+      <g stroke="#17153b" stroke-width="3">
+        <circle cx="84" cy="120" r="12" fill="#ffffff" />
+        <circle cx="116" cy="120" r="12" fill="#ffffff" />
+      </g>
+      @if (mood() === 'surprised') {
+        <circle cx="84" cy="121" r="4" fill="#17153b" />
+        <circle cx="116" cy="121" r="4" fill="#17153b" />
+      } @else {
+        <circle cx="85" cy="122" r="7.5" fill="#17153b" />
+        <circle cx="117" cy="122" r="7.5" fill="#17153b" />
+        <circle cx="88" cy="118.5" r="2.6" fill="#ffffff" />
+        <circle cx="120" cy="118.5" r="2.6" fill="#ffffff" />
+      }
+    }
+  }
+
+  <ellipse cx="100" cy="137" rx="6" ry="4.5" fill="#17153b" />
+
+  @switch (mood()) {
+    @case ('surprised') {
+      <ellipse class="plic__mouth" cx="100" cy="153" rx="6" ry="8" fill="#7a1e3a" />
+    }
+    @case ('sleepy') {
+      <path class="plic__mouth" d="M93 150q7 5 14 0" fill="none" stroke="#17153b" stroke-width="3" stroke-linecap="round" />
+    }
+    @default {
+      <path class="plic__mouth" d="M87 146q13 17 26 0z" fill="#7a1e3a" stroke="#17153b" stroke-width="2.5" stroke-linejoin="round" />
+      <ellipse cx="100" cy="154" rx="6" ry="3.5" fill="#ff8fa3" />
+    }
+  }
+</svg>

@@ -1,1 +1,259 @@
-/* You can add global styles to this file, and also import other style files */
+// Design tokens from the mockup (2 November 2026). Components use these variables only.
+:root {
+  --color-violet: #5b3df5;
+  --color-violet-dark: #3b2db0;
+  --color-violet-soft: #ece8ff;
+  --color-yellow: #ffc93c;
+  --color-cream: #fff6ea;
+  --color-night: #17153b;
+  --color-text-secondary: #55587a;
+  --color-coral: #ff8a8a;
+  --color-mint: #9fe8c8;
+  --color-surface: #ffffff;
+  --color-border: #f0e2cf;
+  --color-success: #12805a;
+  --color-danger: #b42318;
+
+  --radius-card: 18px;
+  --radius-control: 14px;
+  --font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --page-max-width: 440px;
+  --page-gutter: 20px;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-cream);
+  color: var(--color-night);
+  font-family: var(--font-family);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-violet);
+  outline-offset: 2px;
+}
+
+// A phone-width column, centred on wide screens. Actions stick to the bottom like the mockup.
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: var(--page-max-width);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 24px var(--page-gutter) calc(24px + env(safe-area-inset-bottom));
+}
+
+// A form filling the rest of the page, so its actions can sit at the bottom.
+.page__form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+}
+
+.back-link {
+  align-self: flex-start;
+  color: var(--color-violet);
+  font-weight: 700;
+  text-decoration: none;
+
+  &::before {
+    content: '← ';
+  }
+}
+
+.text-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--color-violet);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 20px;
+  border: 2px solid var(--color-violet);
+  border-radius: var(--radius-control);
+  background: var(--color-violet);
+  color: var(--color-surface);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--color-violet-dark);
+    border-color: var(--color-violet-dark);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+}
+
+.button--secondary {
+  background: var(--color-surface);
+  color: var(--color-violet);
+
+  &:hover:not(:disabled) {
+    background: var(--color-violet-soft);
+    border-color: var(--color-violet);
+  }
+}
+
+.button--accent {
+  border-color: var(--color-yellow);
+  background: var(--color-yellow);
+  color: var(--color-night);
+
+  &:hover:not(:disabled) {
+    background: #f5b912;
+    border-color: #f5b912;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+// 16px at least: iOS Safari zooms into smaller focused fields.
+.field__input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-night);
+  font-size: 1rem;
+
+  &::placeholder {
+    color: #8a8ca3;
+  }
+
+  &:focus {
+    border-color: var(--color-violet);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-violet-soft);
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--color-danger);
+  }
+}
+
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+
+  input {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin: 1px 0 0;
+    accent-color: var(--color-violet);
+  }
+}
+
+.form-error {
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.alert {
+  padding: 12px 16px;
+  border: 1px solid #f5c2bd;
+  border-radius: var(--radius-control);
+  background: #fff1f0;
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.card {
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,118 @@
+{
+  "titles": {
+    "welcome": "Bienvenue",
+    "signUp": "Créer un compte",
+    "signIn": "Connexion",
+    "forgotPassword": "Mot de passe oublié",
+    "resetPassword": "Nouveau mot de passe",
+    "home": "Accueil",
+    "explore": "Explorer",
+    "progress": "Progrès",
+    "settings": "Réglages"
+  },
+  "intro": {
+    "skip": "Passer",
+    "next": "Suivant",
+    "step": "Étape {{current}} sur {{total}}",
+    "boxes": {
+      "title": "Révise au bon moment",
+      "text": "Tes cartes sont rangées dans 5 boîtes. Plus tu les connais, plus elles reviennent rarement."
+    },
+    "answers": {
+      "title": "Bonne ou mauvaise réponse ?",
+      "text": "Tu dis simplement si tu savais. L'app s'occupe du reste.",
+      "knewTitle": "Je savais",
+      "knewText": "La carte passe dans la boîte suivante.",
+      "didNotKnowTitle": "Je ne savais pas",
+      "didNotKnowText": "La carte retourne en boîte 1 et revient bientôt."
+    },
+    "start": {
+      "title": "On commence ?",
+      "text": "Crée ton compte gratuit en quelques secondes.",
+      "createAccount": "Créer un compte",
+      "haveAccount": "J'ai déjà un compte"
+    }
+  },
+  "auth": {
+    "fields": {
+      "username": "Pseudo",
+      "usernamePlaceholder": "Affiché sur tes paquets publiés",
+      "email": "Email",
+      "emailPlaceholder": "nom@exemple.be",
+      "password": "Mot de passe",
+      "passwordPlaceholder": "8 caractères minimum",
+      "newPassword": "Nouveau mot de passe"
+    },
+    "errors": {
+      "required": "Ce champ est obligatoire.",
+      "email": "Saisis une adresse email valide.",
+      "usernameFormat": "3 à 30 lettres sans accent, chiffres, points, tirets ou _.",
+      "passwordLength": "Au moins 8 caractères.",
+      "passwordTooLong": "128 caractères maximum.",
+      "terms": "Accepte les conditions pour continuer.",
+      "usernameTaken": "Ce pseudo est déjà pris.",
+      "emailTaken": "Cette adresse a déjà un compte.",
+      "invalidCredentials": "Email ou mot de passe incorrect.",
+      "tooManyAttempts": "Trop de tentatives. Réessaie dans une minute.",
+      "generic": "Une erreur est survenue. Réessaie dans un instant."
+    },
+    "signUp": {
+      "back": "Connexion",
+      "title": "Créer un compte",
+      "subtitle": "Gratuit, avec synchronisation sur tous tes appareils.",
+      "terms": "J'accepte les conditions d'utilisation et la politique de confidentialité.",
+      "submit": "Créer mon compte"
+    },
+    "signIn": {
+      "title": "Bienvenue",
+      "subtitle": "Connecte-toi pour retrouver tes cartes sur tous tes appareils.",
+      "forgotPassword": "Mot de passe oublié ?",
+      "submit": "Se connecter",
+      "noAccount": "Pas encore de compte ?",
+      "createAccount": "Créer un compte"
+    },
+    "forgotPassword": {
+      "back": "Connexion",
+      "title": "Mot de passe oublié",
+      "subtitle": "Saisis ton adresse email. Nous t'enverrons un lien pour choisir un nouveau mot de passe.",
+      "submit": "Envoyer le lien",
+      "sentTitle": "Vérifie ta boîte mail",
+      "sentText": "Si un compte existe pour {{email}}, tu vas recevoir un lien valable 30 minutes.",
+      "backToSignIn": "Retour à la connexion"
+    },
+    "resetPassword": {
+      "back": "Connexion",
+      "title": "Nouveau mot de passe",
+      "subtitle": "Choisis ton nouveau mot de passe. Tous tes appareils seront déconnectés.",
+      "submit": "Enregistrer",
+      "doneTitle": "Mot de passe changé",
+      "doneText": "Tu peux maintenant te connecter avec ton nouveau mot de passe.",
+      "signIn": "Se connecter",
+      "invalidTitle": "Lien expiré",
+      "invalidText": "Ce lien n'est plus valable. Demande-en un nouveau.",
+      "requestNew": "Demander un nouveau lien"
+    }
+  },
+  "shell": {
+    "nav": "Navigation principale",
+    "home": "Accueil",
+    "explore": "Explorer",
+    "progress": "Progrès",
+    "settings": "Réglages"
+  },
+  "home": {
+    "greeting": "Bonjour {{username}}",
+    "title": "Envie de réviser ?",
+    "emptyTitle": "Aucun paquet pour l'instant",
+    "emptyText": "Tes paquets et tes cartes arrivent bientôt ici."
+  },
+  "comingSoon": {
+    "title": "Bientôt disponible",
+    "text": "Plic prépare cet écran."
+  },
+  "settings": {
+    "title": "Réglages",
+    "account": "Compte",
+    "signOut": "Se déconnecter"
+  }
+}
