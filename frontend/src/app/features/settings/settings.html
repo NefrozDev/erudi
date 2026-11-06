@@ -1,0 +1,19 @@
+<main class="page settings">
+  <h1 class="title">{{ 'settings.title' | transloco }}</h1>
+
+  <dl class="settings__rows">
+    <div class="settings__row">
+      <dt>{{ 'settings.account' | transloco }}</dt>
+      <dd class="subtitle">{{ auth.user()?.email }}</dd>
+    </div>
+  </dl>
+
+  <button
+    type="button"
+    class="button button--secondary"
+    [disabled]="signingOut()"
+    (click)="signOut()"
+  >
+    {{ 'settings.signOut' | transloco }}
+  </button>
+</main>

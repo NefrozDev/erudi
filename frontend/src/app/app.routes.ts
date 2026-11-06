@@ -36,10 +36,31 @@ export const routes: Routes = [
   },
   {
     path: '',
-    pathMatch: 'full',
-    title: 'titles.home',
     canActivate: [signedInGuard],
-    loadComponent: () => import('./features/home/home').then((m) => m.Home),
+    loadComponent: () => import('./features/shell/tab-shell').then((m) => m.TabShell),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        title: 'titles.home',
+        loadComponent: () => import('./features/home/home').then((m) => m.Home),
+      },
+      {
+        path: 'explore',
+        title: 'titles.explore',
+        loadComponent: () => import('./features/coming-soon/coming-soon').then((m) => m.ComingSoon),
+      },
+      {
+        path: 'progress',
+        title: 'titles.progress',
+        loadComponent: () => import('./features/coming-soon/coming-soon').then((m) => m.ComingSoon),
+      },
+      {
+        path: 'settings',
+        title: 'titles.settings',
+        loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
+      },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];

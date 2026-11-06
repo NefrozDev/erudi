@@ -1,10 +1,12 @@
-<main class="home">
-  <h1>Erudi</h1>
-  <p class="home__status" role="status">
-    @switch (apiStatus()) {
-      @case ('up') { API connected }
-      @case ('down') { API unavailable }
-      @default { Checking the API… }
-    }
-  </p>
+<main class="page home">
+  <header>
+    <p class="subtitle">{{ 'home.greeting' | transloco: { username: username() } }}</p>
+    <h1 class="title">{{ 'home.title' | transloco }}</h1>
+  </header>
+
+  <section class="card home__empty">
+    <app-plic mood="sleepy" />
+    <h2 class="home__empty-title">{{ 'home.emptyTitle' | transloco }}</h2>
+    <p class="subtitle">{{ 'home.emptyText' | transloco }}</p>
+  </section>
 </main>

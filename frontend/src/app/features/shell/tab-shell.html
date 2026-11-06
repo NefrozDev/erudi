@@ -1,0 +1,17 @@
+<div class="tab-shell">
+  <router-outlet />
+
+  <nav class="tab-bar" [attr.aria-label]="'shell.nav' | transloco">
+    @for (tab of tabs; track tab.path) {
+      <a
+        class="tab-bar__link"
+        [routerLink]="tab.path"
+        routerLinkActive="tab-bar__link--active"
+        [routerLinkActiveOptions]="{ exact: tab.exact }"
+        ariaCurrentWhenActive="page"
+      >
+        {{ tab.label | transloco }}
+      </a>
+    }
+  </nav>
+</div>

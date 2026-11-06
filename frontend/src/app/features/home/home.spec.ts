@@ -1,20 +1,15 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
-import { ApiStatus, HealthApi } from '../../core/api/health-api';
+import { textOf } from '../../../testing/dom';
+import { AuthUser } from '../../core/auth/auth-api';
+import { AuthStore } from '../../core/auth/auth-store';
 import { Home } from './home';
 
 describe('Home', () => {
-  let status$: Subject<ApiStatus>;
-  let getStatus: ReturnType<typeof vi.fn>;
+  const user = signal<AuthUser | null>({ id: '1', username: 'chloe', email: 'chloe@example.be' });
 
-  beforeEach(async () => {
-    status$ = new Subject<ApiStatus>();
-    getStatus = vi.fn(() => status$.asObservable());
-
-    await TestBed.configureTestingModule({
-      imports: [Home],
-      providers: [{ provide: HealthApi, useValue: { getStatus } }],
-    }).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [{ provide: AuthStore, useValue: { user } }] });
   });
 
   async function render(): Promise<HTMLElement> {
@@ -23,31 +18,17 @@ describe('Home', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  function statusText(host: HTMLElement): string | undefined {
-    return host.querySelector('[role="status"]')?.textContent?.trim();
-  }
-
-  it('should show a pending status until the API answers, requesting it once', async () => {
+  it('should greet the signed-in user by their username', async () => {
     const host = await render();
 
-    expect(host.querySelector('h1')?.textContent).toBe('Erudi');
-    expect(statusText(host)).toBe('Checking the API…');
-    expect(getStatus).toHaveBeenCalledTimes(1);
+    expect(textOf(host, 'header .subtitle')).toBe('Bonjour chloe');
+    expect(textOf(host, 'h1')).toBe('Envie de réviser ?');
   });
 
-  it('should show that the API is connected', async () => {
-    const fixture = TestBed.createComponent(Home);
-    status$.next('up');
-    await fixture.whenStable();
+  it('should show the empty state with a sleeping Plic until decks exist', async () => {
+    const host = await render();
 
-    expect(statusText(fixture.nativeElement)).toBe('API connected');
-  });
-
-  it('should show that the API is unavailable', async () => {
-    const fixture = TestBed.createComponent(Home);
-    status$.next('down');
-    await fixture.whenStable();
-
-    expect(statusText(fixture.nativeElement)).toBe('API unavailable');
+    expect(textOf(host, 'h2')).toBe("Aucun paquet pour l'instant");
+    expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('sleepy');
   });
 });

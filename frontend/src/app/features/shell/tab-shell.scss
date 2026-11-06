@@ -1,0 +1,36 @@
+// Room for the fixed bar, so the end of a page is never hidden behind it.
+.tab-shell {
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+
+.tab-bar {
+  position: fixed;
+  right: 0;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  left: 0;
+  display: flex;
+  gap: 4px;
+  width: calc(100% - 2 * var(--page-gutter));
+  max-width: calc(var(--page-max-width) - 2 * var(--page-gutter));
+  margin: 0 auto;
+  padding: 6px;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgb(23 21 59 / 0.08);
+}
+
+.tab-bar__link {
+  flex: 1;
+  padding: 12px 4px;
+  border-radius: var(--radius-control);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+
+  &--active {
+    background: var(--color-violet);
+    color: var(--color-surface);
+  }
+}

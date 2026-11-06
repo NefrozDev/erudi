@@ -3,9 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
 import { Router, TitleStrategy, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { of } from 'rxjs';
 import { routes } from './app.routes';
-import { HealthApi } from './core/api/health-api';
 import { AuthUser } from './core/auth/auth-api';
 import { AuthStore } from './core/auth/auth-store';
 import { TranslatedTitleStrategy } from './core/i18n/translated-title-strategy';
@@ -25,7 +23,6 @@ describe('app routes', () => {
         { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
         { provide: AuthStore, useValue: { user, signedIn: () => user() !== null } },
         { provide: OnboardingState, useValue: { hasSeenIntro, markIntroSeen: vi.fn() } },
-        { provide: HealthApi, useValue: { getStatus: () => of('up') } },
       ],
     });
     harness = await RouterTestingHarness.create();
@@ -49,8 +46,12 @@ describe('app routes', () => {
   it('should send a returning signed-out visitor to sign-in', async () => {
     hasSeenIntro.mockReturnValue(true);
 
-    expect(await visit('/')).toBe('/sign-in');
+    expect(await visit('/settings')).toBe('/sign-in');
     expect(TestBed.inject(Title).getTitle()).toBe('Connexion · Erudi');
+  });
+
+  it.each(['/explore', '/progress', '/settings'])('should protect %s', async (url) => {
+    expect(await visit(url)).toBe('/welcome');
   });
 
   it.each(['/welcome', '/sign-up', '/sign-in', '/forgot-password'])(
@@ -68,6 +69,16 @@ describe('app routes', () => {
 
     signIn();
     expect(await visit('/reset-password')).toBe('/reset-password');
+  });
+
+  it('should open the tabs for a signed-in user, inside the shell', async () => {
+    signIn();
+
+    expect(await visit('/settings')).toBe('/settings');
+    expect(
+      harness.fixture.nativeElement.querySelector('app-tab-shell app-settings'),
+    ).not.toBeNull();
+    expect(TestBed.inject(Title).getTitle()).toBe('Réglages · Erudi');
   });
 
   it('should send unknown addresses home', async () => {
