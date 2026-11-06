@@ -1,5 +1,6 @@
 using Erudi.Api.Auth;
 using Erudi.Api.Data;
+using Erudi.Api.Mail;
 using Erudi.Api.Security;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 
@@ -15,6 +16,7 @@ builder.Services.AddHealthChecks();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddErudiDatabase();
 builder.Services.AddErudiSecurity();
+builder.Services.AddErudiMail();
 builder.Services.AddErudiAuth();
 
 var app = builder.Build();

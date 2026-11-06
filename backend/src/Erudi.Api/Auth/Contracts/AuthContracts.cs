@@ -32,6 +32,21 @@ public sealed class LoginRequest
     public string Password { get; init; } = "";
 }
 
+public sealed class PasswordResetRequest
+{
+    [Required, EmailAddress, StringLength(UserRules.EmailMaxLength)]
+    public string Email { get; init; } = "";
+}
+
+public sealed class PasswordResetConfirmation
+{
+    [Required, RegularExpression(SecureTokens.Pattern)]
+    public string Token { get; init; } = "";
+
+    [Required, StringLength(UserRules.PasswordMaxLength, MinimumLength = UserRules.PasswordMinLength)]
+    public string Password { get; init; } = "";
+}
+
 public sealed record AuthUserResponse(Guid Id, string Username, string Email)
 {
     public static AuthUserResponse From(User user) => new(user.Id, user.Username, user.Email);

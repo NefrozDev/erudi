@@ -8,7 +8,10 @@ namespace Erudi.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public sealed class AuthController(AuthService auth, SessionCookie sessionCookie) : ControllerBase
+public sealed class AuthController(
+    AuthService auth,
+    PasswordResetService passwordResets,
+    SessionCookie sessionCookie) : ControllerBase
 {
     [HttpPost("register")]
     [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
@@ -67,5 +70,32 @@ public sealed class AuthController(AuthService auth, SessionCookie sessionCookie
         await auth.LogoutAsync(SessionCookie.Read(Request), cancellationToken);
         sessionCookie.Delete(Response);
         return NoContent();
+    }
+
+    /// <summary>Always 204, so the answer never tells whether the address has an account.</summary>
+    [HttpPost("password-reset")]
+    [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> RequestPasswordReset(PasswordResetRequest request, CancellationToken cancellationToken)
+    {
+        await passwordResets.RequestAsync(request.Email, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("password-reset/confirm")]
+    [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmPasswordReset(PasswordResetConfirmation request, CancellationToken cancellationToken)
+    {
+        if (await passwordResets.ConfirmAsync(request.Token, request.Password, cancellationToken))
+        {
+            return NoContent();
+        }
+
+        return Problem(
+            statusCode: StatusCodes.Status400BadRequest,
+            title: "Invalid reset link",
+            detail: "This link is unknown, expired or already used.");
     }
 }

@@ -22,6 +22,7 @@ public static class AuthSetup
         services.AddSingleton<PasswordService>();
         services.AddSingleton<SessionCookie>();
         services.AddScoped<AuthService>();
+        services.AddScoped<PasswordResetService>();
 
         services.AddAuthentication(SessionAuthenticationHandler.SchemeName)
             .AddScheme<AuthenticationSchemeOptions, SessionAuthenticationHandler>(SessionAuthenticationHandler.SchemeName, null);
