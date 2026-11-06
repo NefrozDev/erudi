@@ -1,0 +1,10 @@
+<main class="home">
+  <h1>Erudi</h1>
+  <p class="home__status" role="status">
+    @switch (apiStatus()) {
+      @case ('up') { API connected }
+      @case ('down') { API unavailable }
+      @default { Checking the API… }
+    }
+  </p>
+</main>
