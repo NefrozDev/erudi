@@ -1,0 +1,55 @@
+<main class="page intro">
+  <div class="intro__top">
+    @if (!isLast()) {
+      <button type="button" class="text-link intro__skip" (click)="leave('/sign-up')">
+        {{ 'intro.skip' | transloco }}
+      </button>
+    }
+  </div>
+
+  <div class="intro__art">
+    <app-plic [mood]="slide().mood" />
+  </div>
+
+  <section class="intro__slide" aria-live="polite">
+    @if (slide().key === 'answers') {
+      <ul class="intro__answers">
+        <li class="card">
+          <strong class="intro__knew">{{ 'intro.answers.knewTitle' | transloco }}</strong>
+          <span>{{ 'intro.answers.knewText' | transloco }}</span>
+        </li>
+        <li class="card">
+          <strong class="intro__did-not-know">{{
+            'intro.answers.didNotKnowTitle' | transloco
+          }}</strong>
+          <span>{{ 'intro.answers.didNotKnowText' | transloco }}</span>
+        </li>
+      </ul>
+    }
+
+    <h1 class="title intro__title">{{ 'intro.' + slide().key + '.title' | transloco }}</h1>
+    <p class="subtitle">{{ 'intro.' + slide().key + '.text' | transloco }}</p>
+    <p class="visually-hidden">
+      {{ 'intro.step' | transloco: { current: index() + 1, total: slides.length } }}
+    </p>
+  </section>
+
+  <div class="intro__dots" aria-hidden="true">
+    @for (item of slides; track item.key; let position = $index) {
+      <span class="intro__dot" [class.intro__dot--active]="position === index()"></span>
+    }
+  </div>
+
+  <div class="page__actions">
+    @if (isLast()) {
+      <button type="button" class="button" (click)="leave('/sign-up')">
+        {{ 'intro.start.createAccount' | transloco }}
+      </button>
+      <button type="button" class="button button--secondary" (click)="leave('/sign-in')">
+        {{ 'intro.start.haveAccount' | transloco }}
+      </button>
+    } @else {
+      <button type="button" class="button" (click)="next()">{{ 'intro.next' | transloco }}</button>
+    }
+  </div>
+</main>

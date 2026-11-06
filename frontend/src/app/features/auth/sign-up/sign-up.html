@@ -1,0 +1,85 @@
+<main class="page">
+  <a class="back-link" routerLink="/sign-in">{{ 'auth.signUp.back' | transloco }}</a>
+  <h1 class="title">{{ 'auth.signUp.title' | transloco }}</h1>
+  <p class="subtitle">{{ 'auth.signUp.subtitle' | transloco }}</p>
+
+  <form class="page__form" [formRoot]="form">
+    <div class="field">
+      <label class="field__label" for="sign-up-username">{{
+        'auth.fields.username' | transloco
+      }}</label>
+      <input
+        id="sign-up-username"
+        class="field__input"
+        autocomplete="username"
+        [formField]="form.username"
+        [placeholder]="'auth.fields.usernamePlaceholder' | transloco"
+        [attr.aria-invalid]="!!visibleError(form.username)"
+        [attr.aria-describedby]="visibleError(form.username) ? 'sign-up-username-error' : null"
+      />
+      @if (visibleError(form.username); as error) {
+        <p class="form-error" id="sign-up-username-error">{{ error | transloco }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="sign-up-email">{{ 'auth.fields.email' | transloco }}</label>
+      <input
+        id="sign-up-email"
+        class="field__input"
+        type="email"
+        autocomplete="email"
+        [formField]="form.email"
+        [placeholder]="'auth.fields.emailPlaceholder' | transloco"
+        [attr.aria-invalid]="!!visibleError(form.email)"
+        [attr.aria-describedby]="visibleError(form.email) ? 'sign-up-email-error' : null"
+      />
+      @if (visibleError(form.email); as error) {
+        <p class="form-error" id="sign-up-email-error">{{ error | transloco }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="sign-up-password">{{
+        'auth.fields.password' | transloco
+      }}</label>
+      <input
+        id="sign-up-password"
+        class="field__input"
+        type="password"
+        autocomplete="new-password"
+        [formField]="form.password"
+        [placeholder]="'auth.fields.passwordPlaceholder' | transloco"
+        [attr.aria-invalid]="!!visibleError(form.password)"
+        [attr.aria-describedby]="visibleError(form.password) ? 'sign-up-password-error' : null"
+      />
+      @if (visibleError(form.password); as error) {
+        <p class="form-error" id="sign-up-password-error">{{ error | transloco }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="checkbox">
+        <input
+          type="checkbox"
+          [formField]="form.acceptedTerms"
+          [attr.aria-invalid]="!!visibleError(form.acceptedTerms)"
+          [attr.aria-describedby]="visibleError(form.acceptedTerms) ? 'sign-up-terms-error' : null"
+        />
+        <span>{{ 'auth.signUp.terms' | transloco }}</span>
+      </label>
+      @if (visibleError(form.acceptedTerms); as error) {
+        <p class="form-error" id="sign-up-terms-error">{{ error | transloco }}</p>
+      }
+    </div>
+
+    <div class="page__actions">
+      @if (formError(); as error) {
+        <p class="alert" role="alert">{{ error | transloco }}</p>
+      }
+      <button class="button" type="submit" [disabled]="form().submitting()">
+        {{ 'auth.signUp.submit' | transloco }}
+      </button>
+    </div>
+  </form>
+</main>

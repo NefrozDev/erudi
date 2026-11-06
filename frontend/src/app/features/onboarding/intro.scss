@@ -1,0 +1,74 @@
+.intro {
+  text-align: center;
+}
+
+.intro__top {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 24px;
+}
+
+.intro__skip {
+  color: var(--color-text-secondary);
+}
+
+.intro__art {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  --plic-size: min(220px, 55vw);
+}
+
+.intro__slide {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.intro__answers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    color: var(--color-text-secondary);
+  }
+}
+
+.intro__knew {
+  color: var(--color-success);
+}
+
+.intro__did-not-know {
+  color: var(--color-danger);
+}
+
+.intro__title {
+  font-size: 2rem;
+}
+
+.intro__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.intro__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-border);
+  transition: width 0.2s;
+
+  &--active {
+    width: 24px;
+    background: var(--color-violet);
+  }
+}
