@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Erudi.Api/Erudi.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Erudi.Api.Tests/Erudi.Api.Tests.csproj" />
+  </Folder>
+</Solution>
