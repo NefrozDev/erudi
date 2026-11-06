@@ -2,6 +2,8 @@
   "name": "erudi",
   "private": true,
   "scripts": {
+    "db:start": "docker compose up -d --wait db",
+    "db:stop": "docker compose stop db",
     "start:front": "npm --prefix frontend start",
     "start:back": "dotnet watch --project backend/src/Erudi.Api --launch-profile http",
     "lint:front": "npm --prefix frontend run lint",

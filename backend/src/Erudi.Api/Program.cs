@@ -1,3 +1,5 @@
+using Erudi.Api.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -5,6 +7,7 @@ builder.Services.AddOpenApi();
 // Errors are returned as RFC 9457 problem details instead of empty bodies or stack traces.
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
+builder.Services.AddErudiDatabase();
 
 var app = builder.Build();
 
@@ -26,4 +29,5 @@ app.UseAuthorization();
 app.MapHealthChecks("/api/health");
 app.MapControllers();
 
-app.Run();
+await app.MigrateDatabaseAsync();
+await app.RunAsync();

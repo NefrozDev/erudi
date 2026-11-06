@@ -1,0 +1,24 @@
+# Local development database. Start it with `npm run db:start`.
+# In production Erudi gets its own database and role inside Plano's Postgres
+# container, so this file only mirrors that server's version.
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: erudi
+      POSTGRES_PASSWORD: erudi
+      POSTGRES_DB: erudi
+    ports:
+      # 5432 is left to Plano's local database; reachable from this machine only.
+      - '127.0.0.1:5433:5432'
+    volumes:
+      # PostgreSQL 18 images keep their data under /var/lib/postgresql.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U erudi -d erudi']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:

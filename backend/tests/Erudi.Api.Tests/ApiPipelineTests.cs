@@ -1,13 +1,12 @@
 using System.Net;
+using Erudi.Api.Tests.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Erudi.Api.Tests;
 
 // IClassFixture shares one in-memory server across the tests of this class,
 // so the app is started once instead of once per test.
-public class ApiPipelineTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public class ApiPipelineTests(ErudiApiFactory factory) : IClassFixture<ErudiApiFactory>
 {
     [Fact]
     public async Task Health_ReturnsHealthyAsPlainText()
