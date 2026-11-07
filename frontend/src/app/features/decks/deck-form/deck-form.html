@@ -1,0 +1,71 @@
+<main class="page">
+  <a class="back-link" [routerLink]="returnLink()">
+    @if (deck.hasValue()) {
+      {{ deck.value().name }}
+    } @else {
+      {{ 'decks.back' | transloco }}
+    }
+  </a>
+
+  @if (notFound()) {
+    <section class="card state-card">
+      <app-plic mood="surprised" />
+      <h1 class="state-card__title">{{ 'decks.notFoundTitle' | transloco }}</h1>
+      <p class="subtitle">{{ 'decks.notFoundText' | transloco }}</p>
+    </section>
+  } @else if (deck.error()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'common.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="deck.reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  } @else if (!editing() || deck.hasValue()) {
+    <h1 class="title">
+      {{ (editing() ? 'decks.form.editTitle' : 'decks.form.newTitle') | transloco }}
+    </h1>
+
+    <form class="page__form" [formRoot]="form">
+      <div class="field">
+        <label class="field__label" for="deck-name">{{ 'decks.form.name' | transloco }}</label>
+        <input
+          id="deck-name"
+          class="field__input"
+          type="text"
+          autocomplete="off"
+          [formField]="form.name"
+          [placeholder]="'decks.form.namePlaceholder' | transloco"
+          [attr.aria-invalid]="!!visibleError(form.name)"
+          [attr.aria-describedby]="visibleError(form.name) ? 'deck-name-error' : null"
+        />
+        @if (visibleError(form.name); as error) {
+          <p class="form-error" id="deck-name-error">{{ error | transloco }}</p>
+        }
+      </div>
+
+      @if (editing() && deck.hasValue()) {
+        <app-delete-confirmation
+          class="deck-form__delete"
+          [label]="'decks.form.delete' | transloco"
+          [question]="'decks.form.deleteConfirm' | transloco: { name: deck.value().name }"
+          [confirmLabel]="'decks.form.deleteConfirmButton' | transloco"
+          [keepLabel]="'decks.form.keep' | transloco"
+          [busy]="deleting()"
+          (confirmed)="delete()"
+        />
+      }
+
+      <div class="page__actions">
+        @if (formError(); as error) {
+          <p class="alert" role="alert">{{ error | transloco }}</p>
+        }
+        <button class="button" type="submit" [disabled]="form().submitting() || deleting()">
+          {{ 'common.save' | transloco }}
+        </button>
+        <a class="button button--secondary" [routerLink]="returnLink()">
+          {{ 'common.cancel' | transloco }}
+        </a>
+      </div>
+    </form>
+  }
+</main>

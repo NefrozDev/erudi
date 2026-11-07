@@ -1,0 +1,95 @@
+<main class="page">
+  <a class="back-link" [routerLink]="deckLink()">
+    @if (deck.hasValue()) {
+      {{ deck.value().name }}
+    } @else {
+      {{ 'decks.back' | transloco }}
+    }
+  </a>
+
+  @if (notFound()) {
+    <section class="card state-card">
+      <app-plic mood="surprised" />
+      <h1 class="state-card__title">
+        {{ (editing() ? 'cards.notFoundTitle' : 'decks.notFoundTitle') | transloco }}
+      </h1>
+      <p class="subtitle">
+        {{ (editing() ? 'cards.notFoundText' : 'decks.notFoundText') | transloco }}
+      </p>
+    </section>
+  } @else if (failed()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'common.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  } @else if (ready()) {
+    <h1 class="title">{{ (editing() ? 'cards.editTitle' : 'cards.newTitle') | transloco }}</h1>
+
+    <form class="page__form" [formRoot]="form">
+      <div class="field">
+        <label class="field__label" for="card-front">{{ 'cards.front' | transloco }}</label>
+        <textarea
+          id="card-front"
+          class="field__input"
+          rows="4"
+          [formField]="form.front"
+          [placeholder]="'cards.frontPlaceholder' | transloco"
+          [attr.aria-invalid]="!!visibleError(form.front)"
+          [attr.aria-describedby]="visibleError(form.front) ? 'card-front-error' : null"
+        ></textarea>
+        @if (visibleError(form.front); as error) {
+          <p class="form-error" id="card-front-error">{{ error | transloco }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="card-back">{{ 'cards.back' | transloco }}</label>
+        <textarea
+          id="card-back"
+          class="field__input"
+          rows="4"
+          [formField]="form.back"
+          [placeholder]="'cards.backPlaceholder' | transloco"
+          [attr.aria-invalid]="!!visibleError(form.back)"
+          [attr.aria-describedby]="visibleError(form.back) ? 'card-back-error' : null"
+        ></textarea>
+        @if (visibleError(form.back); as error) {
+          <p class="form-error" id="card-back-error">{{ error | transloco }}</p>
+        }
+      </div>
+
+      <p class="subtitle card-editor__box">
+        @if (card.hasValue()) {
+          {{ 'cards.keepsItsBox' | transloco: { box: card.value().box } }}
+        } @else {
+          {{ 'cards.startsInBoxOne' | transloco }}
+        }
+      </p>
+
+      @if (editing()) {
+        <app-delete-confirmation
+          [label]="'cards.delete' | transloco"
+          [question]="'cards.deleteConfirm' | transloco"
+          [confirmLabel]="'cards.deleteConfirmButton' | transloco"
+          [keepLabel]="'cards.keep' | transloco"
+          [busy]="deleting()"
+          (confirmed)="delete()"
+        />
+      }
+
+      <div class="page__actions">
+        @if (formError(); as error) {
+          <p class="alert" role="alert">{{ error | transloco }}</p>
+        }
+        <button class="button" type="submit" [disabled]="form().submitting() || deleting()">
+          {{ 'common.save' | transloco }}
+        </button>
+        <a class="button button--secondary" [routerLink]="deckLink()">
+          {{ 'common.cancel' | transloco }}
+        </a>
+      </div>
+    </form>
+  }
+</main>

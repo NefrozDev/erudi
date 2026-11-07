@@ -14,6 +14,12 @@
   --color-success: #12805a;
   --color-danger: #b42318;
 
+  // Deck tiles (screen 7).
+  --color-tile-violet: #d9d2ff;
+  --color-tile-yellow: #ffe08a;
+  --color-tile-mint: #bdf2da;
+  --color-tile-coral: #ffd0d0;
+
   --radius-card: 18px;
   --radius-control: 14px;
   --font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -224,10 +230,31 @@ select {
   }
 }
 
+.text-link--danger {
+  color: var(--color-danger);
+}
+
+// A multi-line field (card sides).
+textarea.field__input {
+  min-height: 120px;
+  padding: 14px 16px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
 .form-error {
   color: var(--color-danger);
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+// An alert offering to try again.
+.alert--retry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .alert {
@@ -244,6 +271,22 @@ select {
   padding: 16px;
   border-radius: var(--radius-card);
   background: var(--color-surface);
+}
+
+// A centred card with Plic: an empty list, a missing page.
+.state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 20px 28px;
+  text-align: center;
+  --plic-size: 130px;
+}
+
+.state-card__title {
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .visually-hidden {

@@ -8,7 +8,12 @@
     "home": "Accueil",
     "explore": "Explorer",
     "progress": "Progrès",
-    "settings": "Réglages"
+    "settings": "Réglages",
+    "newDeck": "Nouveau paquet",
+    "deck": "Paquet",
+    "editDeck": "Modifier le paquet",
+    "newCard": "Nouvelle carte",
+    "editCard": "Modifier la carte"
   },
   "intro": {
     "skip": "Passer",
@@ -100,11 +105,77 @@
     "progress": "Progrès",
     "settings": "Réglages"
   },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "retry": "Réessayer",
+    "required": "Ce champ est obligatoire.",
+    "loadError": "Impossible de charger cette page. Vérifie ta connexion.",
+    "saveError": "L'enregistrement a échoué. Réessaie dans un instant.",
+    "box": "Boîte {{box}}"
+  },
   "home": {
     "greeting": "Bonjour {{username}}",
     "title": "Envie de réviser ?",
+    "decksTitle": "Mes paquets",
+    "newDeck": "+ Nouveau paquet",
+    "deckStatus": {
+      "empty": "Aucune carte",
+      "upToDate": "Rien à réviser aujourd'hui",
+      "due": {
+        "one": "{{count}} carte à réviser",
+        "other": "{{count}} cartes à réviser"
+      }
+    },
+    "mastery": "Maîtrise {{level}} sur 5",
     "emptyTitle": "Aucun paquet pour l'instant",
-    "emptyText": "Tes paquets et tes cartes arrivent bientôt ici."
+    "emptyText": "Crée ton premier paquet, puis ajoute-lui des cartes.",
+    "createFirst": "Créer un paquet",
+    "loadError": "Impossible de charger tes paquets. Vérifie ta connexion."
+  },
+  "decks": {
+    "back": "Paquets",
+    "cards": {
+      "one": "{{count}} carte",
+      "other": "{{count}} cartes"
+    },
+    "due": "{{count}} à réviser",
+    "edit": "Modifier",
+    "addCard": "Ajouter une carte",
+    "emptyTitle": "Ce paquet est vide",
+    "emptyText": "Ajoute ta première carte : un mot ou une question au recto, la réponse au verso.",
+    "notFoundTitle": "Paquet introuvable",
+    "notFoundText": "Ce paquet n'existe plus.",
+    "form": {
+      "newTitle": "Nouveau paquet",
+      "editTitle": "Modifier le paquet",
+      "name": "Nom du paquet",
+      "namePlaceholder": "Anglais, Permis, Histoire…",
+      "nameTooLong": "60 caractères maximum.",
+      "limitReached": "Tu as atteint la limite de 200 paquets.",
+      "delete": "Supprimer le paquet",
+      "deleteConfirm": "Supprimer « {{name}} » et ses cartes ? C'est définitif.",
+      "deleteConfirmButton": "Supprimer définitivement",
+      "keep": "Garder le paquet"
+    }
+  },
+  "cards": {
+    "newTitle": "Nouvelle carte",
+    "editTitle": "Modifier la carte",
+    "front": "Recto",
+    "frontPlaceholder": "Question ou mot",
+    "back": "Verso",
+    "backPlaceholder": "Réponse",
+    "sideTooLong": "1000 caractères maximum.",
+    "startsInBoxOne": "La carte démarre en boîte 1.",
+    "keepsItsBox": "La carte reste en boîte {{box}} : corriger le texte ne la fait pas reculer.",
+    "limitReached": "Ce paquet a atteint la limite de 2000 cartes.",
+    "delete": "Supprimer la carte",
+    "deleteConfirm": "Supprimer cette carte ? C'est définitif.",
+    "deleteConfirmButton": "Supprimer définitivement",
+    "keep": "Garder la carte",
+    "notFoundTitle": "Carte introuvable",
+    "notFoundText": "Cette carte n'existe plus."
   },
   "comingSoon": {
     "title": "Bientôt disponible",

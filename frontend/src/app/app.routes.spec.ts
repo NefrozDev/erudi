@@ -1,16 +1,26 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
-import { Router, TitleStrategy, provideRouter } from '@angular/router';
+import { Router, TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { of } from 'rxjs';
 import { routes } from './app.routes';
 import { AuthUser } from './core/auth/auth-api';
 import { AuthStore } from './core/auth/auth-store';
+import { Deck, DecksApi } from './core/decks/decks-api';
 import { TranslatedTitleStrategy } from './core/i18n/translated-title-strategy';
 import { OnboardingState } from './core/onboarding/onboarding-state';
 
 describe('app routes', () => {
   const user = signal<AuthUser | null>(null);
+  const deck: Deck = { id: 'd1', name: 'Anglais', cardCount: 0, dueCount: 0, level: 0 };
+  const decksApi = {
+    list: () => of([deck]),
+    get: () => of(deck),
+    listCards: () => of([]),
+    getCard: () =>
+      of({ id: 'c1', deckId: 'd1', front: 'a deadline', back: 'une échéance', box: 1 }),
+  };
   const hasSeenIntro = vi.fn(() => false);
   let harness: RouterTestingHarness;
 
@@ -19,10 +29,12 @@ describe('app routes', () => {
     hasSeenIntro.mockReset().mockReturnValue(false);
     TestBed.configureTestingModule({
       providers: [
-        provideRouter(routes),
+        // As in app.config.ts: the screens read the route's ids as inputs.
+        provideRouter(routes, withComponentInputBinding()),
         { provide: TitleStrategy, useClass: TranslatedTitleStrategy },
         { provide: AuthStore, useValue: { user, signedIn: () => user() !== null } },
         { provide: OnboardingState, useValue: { hasSeenIntro, markIntroSeen: vi.fn() } },
+        { provide: DecksApi, useValue: decksApi },
       ],
     });
     harness = await RouterTestingHarness.create();
@@ -50,7 +62,16 @@ describe('app routes', () => {
     expect(TestBed.inject(Title).getTitle()).toBe('Connexion · Erudi');
   });
 
-  it.each(['/explore', '/progress', '/settings'])('should protect %s', async (url) => {
+  it.each([
+    '/explore',
+    '/progress',
+    '/settings',
+    '/decks/new',
+    '/decks/d1',
+    '/decks/d1/edit',
+    '/decks/d1/cards/new',
+    '/decks/d1/cards/c1',
+  ])('should protect %s', async (url) => {
     expect(await visit(url)).toBe('/welcome');
   });
 
@@ -79,6 +100,32 @@ describe('app routes', () => {
       harness.fixture.nativeElement.querySelector('app-tab-shell app-settings'),
     ).not.toBeNull();
     expect(TestBed.inject(Title).getTitle()).toBe('Réglages · Erudi');
+  });
+
+  it.each([
+    ['/decks/new', 'app-deck-form', 'Nouveau paquet · Erudi'],
+    ['/decks/d1', 'app-deck-page', 'Paquet · Erudi'],
+    ['/decks/d1/edit', 'app-deck-form', 'Modifier le paquet · Erudi'],
+    ['/decks/d1/cards/new', 'app-card-editor', 'Nouvelle carte · Erudi'],
+    ['/decks/d1/cards/c1', 'app-card-editor', 'Modifier la carte · Erudi'],
+  ])('should open %s full screen, without the tab bar', async (url, selector, title) => {
+    signIn();
+
+    expect(await visit(url)).toBe(url);
+    const root = harness.fixture.nativeElement as HTMLElement;
+    expect(root.querySelector(selector)).not.toBeNull();
+    expect(root.querySelector('app-tab-shell')).toBeNull();
+    expect(TestBed.inject(Title).getTitle()).toBe(title);
+  });
+
+  it('should hand the route ids to the deck screens', async () => {
+    signIn();
+
+    await visit('/decks/d1/cards/c1');
+
+    const editor = harness.fixture.nativeElement.querySelector('app-card-editor') as HTMLElement;
+    expect(editor.querySelector('a.back-link')?.getAttribute('href')).toBe('/decks/d1');
+    expect(editor.querySelector<HTMLTextAreaElement>('#card-front')?.value).toBe('a deadline');
   });
 
   it('should send unknown addresses home', async () => {

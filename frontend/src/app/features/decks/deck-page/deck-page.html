@@ -1,0 +1,54 @@
+<main class="page deck-page">
+  <a class="back-link" routerLink="/">{{ 'decks.back' | transloco }}</a>
+
+  @if (notFound()) {
+    <section class="card state-card">
+      <app-plic mood="surprised" />
+      <h1 class="state-card__title">{{ 'decks.notFoundTitle' | transloco }}</h1>
+      <p class="subtitle">{{ 'decks.notFoundText' | transloco }}</p>
+    </section>
+  } @else if (deck.hasValue() && cards.hasValue()) {
+    <header class="deck-page__header">
+      <h1 class="title deck-page__title">{{ deck.value().name }}</h1>
+      <a class="text-link" [routerLink]="['/decks', deckId(), 'edit']">
+        {{ 'decks.edit' | transloco }}
+      </a>
+    </header>
+    <p class="subtitle">
+      {{ cardCountKey() | transloco: { count: deck.value().cardCount } }} ·
+      {{ 'decks.due' | transloco: { count: deck.value().dueCount } }}
+    </p>
+
+    <div class="deck-page__actions">
+      <a class="button button--secondary" [routerLink]="['/decks', deckId(), 'cards', 'new']">
+        {{ 'decks.addCard' | transloco }}
+      </a>
+    </div>
+
+    @if (cards.value().length === 0) {
+      <section class="card state-card">
+        <app-plic mood="surprised" />
+        <h2 class="state-card__title">{{ 'decks.emptyTitle' | transloco }}</h2>
+        <p class="subtitle">{{ 'decks.emptyText' | transloco }}</p>
+      </section>
+    } @else {
+      <ul class="deck-page__cards">
+        @for (card of cards.value(); track card.id) {
+          <li>
+            <a class="card-row" [routerLink]="['/decks', deckId(), 'cards', card.id]">
+              <span class="card-row__front">{{ card.front }}</span>
+              <span class="card-row__box">{{ 'common.box' | transloco: { box: card.box } }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  } @else if (failed()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'common.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  }
+</main>

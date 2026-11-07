@@ -4,9 +4,51 @@
     <h1 class="title">{{ 'home.title' | transloco }}</h1>
   </header>
 
-  <section class="card home__empty">
-    <app-plic mood="sleepy" />
-    <h2 class="home__empty-title">{{ 'home.emptyTitle' | transloco }}</h2>
-    <p class="subtitle">{{ 'home.emptyText' | transloco }}</p>
-  </section>
+  @if (decks.hasValue()) {
+    @if (rows().length === 0) {
+      <section class="card home__empty">
+        <app-plic mood="sleepy" />
+        <h2 class="home__empty-title">{{ 'home.emptyTitle' | transloco }}</h2>
+        <p class="subtitle">{{ 'home.emptyText' | transloco }}</p>
+        <a class="button" routerLink="/decks/new">{{ 'home.createFirst' | transloco }}</a>
+      </section>
+    } @else {
+      <section class="home__decks" aria-labelledby="home-decks-title">
+        <h2 class="home__section-title" id="home-decks-title">
+          {{ 'home.decksTitle' | transloco }}
+        </h2>
+        <ul class="home__deck-list">
+          @for (deck of rows(); track deck.id) {
+            <li>
+              <a class="deck-row" [routerLink]="['/decks', deck.id]">
+                <span class="deck-row__tile" [attr.data-tone]="deck.tone" aria-hidden="true">
+                  {{ deck.initial }}
+                </span>
+                <span class="deck-row__text">
+                  <span class="deck-row__name">{{ deck.name }}</span>
+                  <span class="deck-row__status">
+                    {{ deck.statusKey | transloco: { count: deck.dueCount } }}
+                  </span>
+                </span>
+                <app-box-meter [level]="deck.level" />
+                <span class="visually-hidden">
+                  {{ 'home.mastery' | transloco: { level: deck.level } }}
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+        <a class="button button--secondary" routerLink="/decks/new">
+          {{ 'home.newDeck' | transloco }}
+        </a>
+      </section>
+    }
+  } @else if (decks.error()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'home.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="decks.reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  }
 </main>

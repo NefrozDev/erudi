@@ -37,28 +37,63 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [signedInGuard],
-    loadComponent: () => import('./features/shell/tab-shell').then((m) => m.TabShell),
     children: [
       {
         path: '',
-        pathMatch: 'full',
-        title: 'titles.home',
-        loadComponent: () => import('./features/home/home').then((m) => m.Home),
+        loadComponent: () => import('./features/shell/tab-shell').then((m) => m.TabShell),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            title: 'titles.home',
+            loadComponent: () => import('./features/home/home').then((m) => m.Home),
+          },
+          {
+            path: 'explore',
+            title: 'titles.explore',
+            loadComponent: () =>
+              import('./features/coming-soon/coming-soon').then((m) => m.ComingSoon),
+          },
+          {
+            path: 'progress',
+            title: 'titles.progress',
+            loadComponent: () =>
+              import('./features/coming-soon/coming-soon').then((m) => m.ComingSoon),
+          },
+          {
+            path: 'settings',
+            title: 'titles.settings',
+            loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
+          },
+        ],
+      },
+      // Full-screen pages, without the bottom bar (screens 8 and 9).
+      {
+        path: 'decks/new',
+        title: 'titles.newDeck',
+        loadComponent: () => import('./features/decks/deck-form/deck-form').then((m) => m.DeckForm),
       },
       {
-        path: 'explore',
-        title: 'titles.explore',
-        loadComponent: () => import('./features/coming-soon/coming-soon').then((m) => m.ComingSoon),
+        path: 'decks/:deckId',
+        title: 'titles.deck',
+        loadComponent: () => import('./features/decks/deck-page/deck-page').then((m) => m.DeckPage),
       },
       {
-        path: 'progress',
-        title: 'titles.progress',
-        loadComponent: () => import('./features/coming-soon/coming-soon').then((m) => m.ComingSoon),
+        path: 'decks/:deckId/edit',
+        title: 'titles.editDeck',
+        loadComponent: () => import('./features/decks/deck-form/deck-form').then((m) => m.DeckForm),
       },
       {
-        path: 'settings',
-        title: 'titles.settings',
-        loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
+        path: 'decks/:deckId/cards/new',
+        title: 'titles.newCard',
+        loadComponent: () =>
+          import('./features/decks/card-editor/card-editor').then((m) => m.CardEditor),
+      },
+      {
+        path: 'decks/:deckId/cards/:cardId',
+        title: 'titles.editCard',
+        loadComponent: () =>
+          import('./features/decks/card-editor/card-editor').then((m) => m.CardEditor),
       },
     ],
   },
