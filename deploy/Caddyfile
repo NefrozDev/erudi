@@ -1,0 +1,43 @@
+# Plain HTTP inside Docker: Mailcow's nginx terminates HTTPS in front of it.
+{
+	servers {
+		# Keep the X-Forwarded-For chain from Mailcow's nginx, so the API rate
+		# limits by the real client IP (SecuritySetup trusts two private hops)
+		# instead of nginx's container address.
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy erudi-api:8080
+	}
+
+	handle {
+		root * /srv
+
+		# Angular puts a content hash of 8 characters in bundle and font names
+		# (chunk-BBzU_R4Z.js, outfit-latin-wght-normal-5FXBKKJF.woff2), so they
+		# never change in place. Everything else (index.html at any route)
+		# revalidates, so a deploy never leaves browsers on an index pointing to
+		# deleted bundles.
+		@hashed path_regexp -[A-Za-z0-9_-]{8}\.(js|css|woff2)$
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		@unhashed not path_regexp -[A-Za-z0-9_-]{8}\.(js|css|woff2)$
+		header @unhashed Cache-Control "no-cache"
+
+		# Unknown paths are client-side routes.
+		try_files {path} /index.html
+		file_server
+	}
+}

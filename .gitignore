@@ -3,3 +3,6 @@
 Thumbs.db
 .idea/
 *.swp
+
+# Production settings live only on the VPS (template: .env.production.example)
+.env

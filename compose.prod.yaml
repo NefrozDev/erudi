@@ -1,0 +1,72 @@
+# Production stack for the VPS, next to Plano. Images are built by GitHub Actions:
+#   docker compose -f compose.prod.yaml pull && docker compose -f compose.prod.yaml up -d
+# Values come from the root .env (see .env.production.example).
+#
+# Erudi runs no database: its own database and role live in Plano's PostgreSQL
+# (deploy/create-database.sh), reached over Plano's Docker network. Mailcow's
+# nginx terminates HTTPS and reaches erudi-web over the Mailcow network
+# (deploy/mailcow-erudi.conf). Nothing publishes a port.
+# Services are named erudi-*: a service name becomes a host name on every
+# network it joins, so an `api` or `web` here would also answer for Plano's.
+# Memory limits keep Erudi from starving the mail stack.
+name: erudi-prod
+
+# Docker keeps container logs forever by default; cap them so a noisy service
+# can never fill the disk shared with the mail server (30 MB per service).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  erudi-api:
+    image: ghcr.io/nefrozdev/erudi-api:latest
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      ConnectionStrings__Erudi: Host=${DB_HOST:-db};Port=5432;Database=erudi;Username=erudi;Password=${ERUDI_DB_PASSWORD:?Set ERUDI_DB_PASSWORD in .env};Maximum Pool Size=${DATABASE_POOL_SIZE:-5}
+      Frontend__Url: https://${DOMAIN:?Set DOMAIN in .env}
+      Smtp__Host: ${SMTP_HOST:-}
+      Smtp__Port: ${SMTP_PORT:-465}
+      Smtp__User: ${SMTP_USER:-}
+      Smtp__Password: ${SMTP_PASSWORD:-}
+      Smtp__From: ${MAIL_FROM:-}
+    mem_limit: 256m
+    logging: *logging
+    networks:
+      default:
+      plano:
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', '--silent', '--output', '/dev/null', 'http://127.0.0.1:8080/api/health']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  erudi-web:
+    image: ghcr.io/nefrozdev/erudi-web:latest
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    mem_limit: 64m
+    logging: *logging
+    networks:
+      default:
+      mailcow:
+        # The name Mailcow's nginx proxies to.
+        aliases: [erudi-web]
+    depends_on:
+      erudi-api:
+        condition: service_healthy
+
+networks:
+  plano:
+    external: true
+    name: ${PLANO_NETWORK:-plano-prod_default}
+  mailcow:
+    external: true
+    name: ${MAILCOW_NETWORK:-mailcowdockerized_mailcow-network}

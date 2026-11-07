@@ -35,11 +35,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-else
-{
-    app.UseHsts();
-    app.UseHttpsRedirection();
-}
+
+// No HTTPS redirection or HSTS here: in production Mailcow's nginx terminates HTTPS and
+// redirects plain HTTP, and the web container adds HSTS to every answer (deploy/).
 
 app.UseMiddleware<AllowedOriginMiddleware>();
 app.UseAuthentication();
