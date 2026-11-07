@@ -26,10 +26,12 @@ Instructions for AI coding agents working in this repository.
 - Shared UI: `app-box-meter` (the five box bars), `app-delete-confirmation` (asks before deleting), and the global `.state-card` and `.alert--retry` classes.
 - Texts go through Transloco. `src/i18n/fr.json` is the only language for now and loads as a hashed lazy chunk before the first screen. Templates use the `transloco` pipe; validation messages are translation keys. Every TestBed gets the French texts through `src/test-providers.ts` (`providersFile`), so specs assert French strings.
 - Counted texts have `.one` and `.other` forms, picked with `countKey()` (`shared/i18n`); French uses the singular for 0 and 1.
+- Numbers and dates follow the active language: counts that can pass 999 go through `Intl.NumberFormat` ("2 300"), and "il y a 3 jours" comes from `relativeDay()` (`shared/i18n`), which counts the device's calendar days.
 - Auth: the session is an HttpOnly cookie the code never sees. `AuthStore` (`core/auth`) holds the user; `provideAppInitializer` restores it before the first route, so `signedInGuard`/`signedOutGuard` read it synchronously. `sessionExpiryInterceptor` signs out locally on any 401 outside `/api/auth/`.
 - Forms use signal forms (`@angular/forms/signals`, stable in Angular 22) with `[formRoot]` and `[formField]`. Show field errors through `visibleError()` (only once touched) and set `aria-invalid`/`aria-describedby`. Server errors about a field are returned from the submission action; errors about the whole form go in a separate `formError` signal, because a root submission error would block re-sending the same values.
 - An `<input type="email">` already strips surrounding spaces; do not trim again.
-- Signed-in screens sit under one `signedInGuard` route: the tabs are children of `TabShell` (bottom bar), while decks (`decks/...`) and study sessions (`study/quiz`, `study/practice`) are full-screen. Routes give a translation key as `title`.
+- Signed-in screens sit under one `signedInGuard` route: the tabs are children of `TabShell` (bottom bar), while decks (`decks/...`), study sessions (`study/quiz`, `study/practice`), public decks (`explore/:deckId`, `.../test`, `.../report`) and `publish` are full-screen. Routes give a translation key as `title`.
+- Explorer (`features/explore`, `core/explore`): `ExploreApi` covers both the public side (search, sheet, test, copy, report) and the author's publication. The search text and category live in the query string, so "back" finds the same list; the field only follows its own typing, never the address, and the search waits for a pause in typing. `StudySession` runs the public test as a third `mode` (`test`): it posts nothing per card and saves the score at the end.
 - Route params, query params (`?deckId=`) and route data (`mode`) reach components as inputs (`withComponentInputBinding()`); specs that render routes must enable it too. Ids from the address bar are encoded before going into an API URL.
 - `timeZoneInterceptor` sends the device's IANA time zone in `X-Time-Zone` with every `/api/` call.
 
@@ -48,6 +50,8 @@ Instructions for AI coding agents working in this repository.
 - Use `TimeProvider` for the current time, never `DateTime.UtcNow`, so tests can move the clock.
 - Decks and cards (`Decks/`) belong to one user: every query filters on the owner, and someone else's deck or card answers 404, never 403. `DeckRules` holds the lengths and the anti-abuse limits (200 decks, 2000 cards per deck).
 - Leitner (`Study/`): `LeitnerSchedule` holds the five boxes and their intervals (1, 2, 4, 7, 14 days). Due dates are `DateOnly` days of the learner; get "today" from `StudyCalendar`, which reads `X-Time-Zone` and falls back to Europe/Brussels. A quiz answer moves the card with a conditional update (only if it is still where it was read), so it never moves twice; `card_reviews` logs each answer and keeps it when the card is deleted. Practice writes nothing.
+- Explorer (`Explore/`): a publication shows the owner's deck as it is now (never its boxes) under its own title, category and description; a deck that is not published answers 404 to every public endpoint, and the Explorer lists only decks with cards. `deck_uses` counts each learner once per deck (the author never) and keeps their best score; a copy is a new deck of the learner's, in box 1 and due today. Reports are one per learner and deck and are only logged as warnings: there is no moderation screen yet. `Deck.UpdatedAt` dates changes to the name or the cards' text, not box moves.
+- Upserts (`INSERT … ON CONFLICT`) use `Database.ExecuteSqlAsync` with an interpolated string, which EF Core turns into parameters; keep the table and column names in step with the model.
 - Errors returned to the frontend are problem details in English; the frontend picks the French text from the status code and the `errors` keys (JSON names, e.g. `username`).
 
 ## Common Commands
@@ -68,7 +72,7 @@ Run these from the repository root.
 - Keep changes scoped to the requested area and avoid unrelated refactors.
 - When building or changing code, add or update the matching tests in the same change:
   - frontend specs go next to the code as `*.spec.ts`;
-  - backend tests go in `backend/tests/`. They need Docker running: Testcontainers starts one PostgreSQL 18 container per run, and `ErudiApiFactory` gives each test class its own database, a `FakeTimeProvider` clock and a `RecordingMailQueue`. `factory.SignInNewLearnerAsync()`, `CreateDeckAsync()`, `AddCardAsync()` and `factory.Today()` (`TestDecks`) set up a learner.
+  - backend tests go in `backend/tests/`. They need Docker running: Testcontainers starts one PostgreSQL 18 container per run, and `ErudiApiFactory` gives each test class its own database, a `FakeTimeProvider` clock and a `RecordingMailQueue`. `factory.SignInNewLearnerAsync()`, `CreateDeckAsync()`, `AddCardAsync()`, `PublishAsync()` and `factory.Today()` (`TestDecks`) set up a learner and their decks.
 - Tests check the behaviour around the result too: what is sent or stored, what must not be called, and the error cases.
 - Do not edit generated output (`dist/`, `bin/`, `obj/`), dependency folders, or lockfiles unless the task requires it.
 - Never commit secrets:
