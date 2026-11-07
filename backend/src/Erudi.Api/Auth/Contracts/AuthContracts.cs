@@ -47,6 +47,12 @@ public sealed class PasswordResetConfirmation
     public string Password { get; init; } = "";
 }
 
+public sealed class AccountDeletionRequest
+{
+    [Required, StringLength(UserRules.PasswordMaxLength)]
+    public string Password { get; init; } = "";
+}
+
 public sealed record AuthUserResponse(Guid Id, string Username, string Email)
 {
     public static AuthUserResponse From(User user) => new(user.Id, user.Username, user.Email);

@@ -139,6 +139,30 @@ public sealed class AuthService(
         await db.Sessions.Where(s => s.TokenHash == tokenHash).ExecuteDeleteAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Deletes the account and everything it owns: sessions, decks and their cards, answers,
+    /// publications, test scores and reports all go with it through ON DELETE CASCADE.
+    /// Decks other learners copied are theirs and stay.
+    /// </summary>
+    /// <returns><c>false</c> when the password is wrong, and nothing was deleted.</returns>
+    public async Task<bool> DeleteAccountAsync(Guid userId, string password, CancellationToken cancellationToken)
+    {
+        var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        if (user is null)
+        {
+            // Deleted meanwhile, from another tab: the outcome the learner asked for.
+            return true;
+        }
+
+        if (passwords.Verify(user, password) == PasswordVerificationResult.Failed)
+        {
+            return false;
+        }
+
+        await db.Users.Where(u => u.Id == userId).ExecuteDeleteAsync(cancellationToken);
+        return true;
+    }
+
     private IssuedSession AddSession(User user, DateTimeOffset now)
     {
         var token = SecureTokens.Create();
