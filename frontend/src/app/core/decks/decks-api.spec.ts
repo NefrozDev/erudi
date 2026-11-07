@@ -5,7 +5,14 @@ import { Observable, firstValueFrom } from 'rxjs';
 import { Card, Deck, DecksApi } from './decks-api';
 
 describe('DecksApi', () => {
-  const deck: Deck = { id: 'd1', name: 'Anglais', cardCount: 3, dueCount: 1, level: 2 };
+  const deck: Deck = {
+    id: 'd1',
+    name: 'Anglais',
+    cardCount: 3,
+    dueCount: 1,
+    level: 2,
+    published: false,
+  };
   const card: Card = { id: 'c1', deckId: 'd1', front: 'to run out of', back: 'manquer de', box: 1 };
   let api: DecksApi;
   let controller: HttpTestingController;

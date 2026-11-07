@@ -1,0 +1,102 @@
+<main class="page public-deck">
+  <a class="back-link" routerLink="/explore">{{ 'explore.back' | transloco }}</a>
+
+  @if (deck.hasValue() && facts(); as facts) {
+    @let publicDeck = deck.value();
+    <header class="public-deck__header">
+      <h1 class="title public-deck__title">{{ publicDeck.title }}</h1>
+      <p class="subtitle">
+        {{ 'explore.deck.byline' | transloco: { author: publicDeck.author, when: facts.updated } }}
+      </p>
+      <p class="subtitle">
+        {{ facts.cardsKey | transloco: { count: facts.cards } }} ·
+        {{ facts.usesKey | transloco: { count: facts.uses } }}
+      </p>
+    </header>
+
+    @if (publicDeck.description) {
+      <section class="card public-deck__section" aria-labelledby="public-deck-description">
+        <h2 class="public-deck__section-title" id="public-deck-description">
+          {{ 'explore.deck.description' | transloco }}
+        </h2>
+        <p class="public-deck__text">{{ publicDeck.description }}</p>
+      </section>
+    }
+
+    @if (publicDeck.preview; as preview) {
+      <section class="card public-deck__section" aria-labelledby="public-deck-preview">
+        <h2 class="public-deck__section-title" id="public-deck-preview">
+          {{ 'explore.deck.preview' | transloco }}
+        </h2>
+        <p class="public-deck__text public-deck__preview">
+          <!-- Screen readers hear "Réponse :" where the eye sees the arrow. -->
+          {{ preview.front }} <span aria-hidden="true">→</span
+          ><span class="visually-hidden"> {{ 'explore.deck.answer' | transloco }}</span>
+          {{ preview.back }}
+        </p>
+      </section>
+    } @else {
+      <p class="public-deck__notice">{{ 'explore.deck.noCards' | transloco }}</p>
+    }
+
+    <p class="public-deck__notice">{{ 'explore.deck.userContent' | transloco }}</p>
+
+    @if (publicDeck.bestScore !== null) {
+      <p class="public-deck__score">
+        {{ 'explore.deck.bestScore' | transloco: { score: publicDeck.bestScore } }}
+      </p>
+    }
+
+    <div class="page__actions">
+      @if (copyError(); as error) {
+        <p class="alert" role="alert">{{ error | transloco }}</p>
+      }
+      @if (publicDeck.isMine) {
+        <p class="public-deck__mine">{{ 'explore.deck.mine' | transloco }}</p>
+        <a class="button" [routerLink]="['/decks', publicDeck.id]">
+          {{ 'explore.deck.openMine' | transloco }}
+        </a>
+        <a
+          class="button button--secondary"
+          routerLink="/publish"
+          [queryParams]="{ deckId: publicDeck.id }"
+        >
+          {{ 'explore.deck.editPublication' | transloco }}
+        </a>
+      } @else {
+        @if (publicDeck.cardCount > 0) {
+          <a class="button" [routerLink]="['/explore', publicDeck.id, 'test']">
+            {{ 'explore.deck.test' | transloco }}
+          </a>
+          <button
+            type="button"
+            class="button button--secondary"
+            [disabled]="copying()"
+            (click)="copy()"
+          >
+            {{ 'explore.deck.copy' | transloco }}
+          </button>
+        }
+        <a
+          class="text-link public-deck__report"
+          [routerLink]="['/explore', publicDeck.id, 'report']"
+        >
+          {{ 'explore.deck.report' | transloco }}
+        </a>
+      }
+    </div>
+  } @else if (notFound()) {
+    <section class="card state-card">
+      <app-plic mood="surprised" />
+      <h1 class="state-card__title">{{ 'explore.notFoundTitle' | transloco }}</h1>
+      <p class="subtitle">{{ 'explore.notFoundText' | transloco }}</p>
+    </section>
+  } @else if (deck.error()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'common.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="deck.reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  }
+</main>

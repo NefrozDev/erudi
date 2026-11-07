@@ -15,10 +15,10 @@ describe('Home', () => {
   const list = vi.fn<() => Observable<Deck[]>>();
   const summary = vi.fn<() => Observable<StudySummary>>();
   const decks: Deck[] = [
-    { id: 'd1', name: 'anglais', cardCount: 120, dueCount: 12, level: 3 },
-    { id: 'd2', name: 'Permis', cardCount: 8, dueCount: 1, level: 2 },
-    { id: 'd3', name: 'Histoire', cardCount: 4, dueCount: 0, level: 4 },
-    { id: 'd4', name: '🎵 Solfège', cardCount: 0, dueCount: 0, level: 0 },
+    { id: 'd1', name: 'anglais', cardCount: 120, dueCount: 12, level: 3, published: false },
+    { id: 'd2', name: 'Permis', cardCount: 8, dueCount: 1, level: 2, published: false },
+    { id: 'd3', name: 'Histoire', cardCount: 4, dueCount: 0, level: 4, published: false },
+    { id: 'd4', name: '🎵 Solfège', cardCount: 0, dueCount: 0, level: 0, published: false },
   ];
   let fixture: ComponentFixture<Home>;
 

@@ -47,7 +47,12 @@
         <app-delete-confirmation
           class="deck-form__delete"
           [label]="'decks.form.delete' | transloco"
-          [question]="'decks.form.deleteConfirm' | transloco: { name: deck.value().name }"
+          [question]="
+            (deck.value().published
+              ? 'decks.form.deletePublishedConfirm'
+              : 'decks.form.deleteConfirm'
+            ) | transloco: { name: deck.value().name }
+          "
           [confirmLabel]="'decks.form.deleteConfirmButton' | transloco"
           [keepLabel]="'decks.form.keep' | transloco"
           [busy]="deleting()"

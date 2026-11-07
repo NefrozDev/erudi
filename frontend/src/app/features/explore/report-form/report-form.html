@@ -1,0 +1,69 @@
+<main class="page">
+  <a class="back-link" [routerLink]="['/explore', deckId()]">
+    {{ 'explore.report.back' | transloco }}
+  </a>
+
+  @if (sent()) {
+    <section class="card state-card report__sent">
+      <app-plic mood="happy" />
+      <h1 class="state-card__title" tabindex="-1" #sentTitle>
+        {{ 'explore.report.sentTitle' | transloco }}
+      </h1>
+      <p class="subtitle">{{ 'explore.report.sentText' | transloco }}</p>
+    </section>
+    <div class="page__actions">
+      <a class="button" routerLink="/explore" replaceUrl>
+        {{ 'explore.report.backToExplore' | transloco }}
+      </a>
+    </div>
+  } @else {
+    <header class="report__header">
+      <h1 class="title">{{ 'explore.report.title' | transloco }}</h1>
+      <p class="subtitle">{{ 'explore.report.subtitle' | transloco }}</p>
+    </header>
+
+    <form class="page__form" [formRoot]="form">
+      <fieldset
+        class="report__reasons"
+        [attr.aria-describedby]="visibleError(form.reason) ? 'report-reason-error' : null"
+      >
+        <legend class="field__label">{{ 'explore.report.reason' | transloco }}</legend>
+        @for (reason of reasons; track reason) {
+          <label class="report__reason">
+            <input type="radio" [value]="reason" [formField]="form.reason" />
+            {{ 'explore.report.reasons.' + reason | transloco }}
+          </label>
+        }
+        @if (visibleError(form.reason); as error) {
+          <p class="form-error" id="report-reason-error">{{ error | transloco }}</p>
+        }
+      </fieldset>
+
+      <div class="field">
+        <label class="field__label" for="report-details">
+          {{ 'explore.report.details' | transloco }}
+        </label>
+        <textarea
+          id="report-details"
+          class="field__input"
+          [formField]="form.details"
+          [placeholder]="'explore.report.detailsPlaceholder' | transloco"
+          [attr.aria-invalid]="!!visibleError(form.details)"
+          [attr.aria-describedby]="visibleError(form.details) ? 'report-details-error' : null"
+        ></textarea>
+        @if (visibleError(form.details); as error) {
+          <p class="form-error" id="report-details-error">{{ error | transloco }}</p>
+        }
+      </div>
+
+      <div class="page__actions">
+        @if (formError(); as error) {
+          <p class="alert" role="alert">{{ error | transloco }}</p>
+        }
+        <button class="button" type="submit" [disabled]="form().submitting()">
+          {{ 'explore.report.submit' | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+</main>

@@ -35,6 +35,22 @@
   text-align: center;
 }
 
+// Screen 8 planned access to publishing (screen 16).
+.deck-page__publication {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius-control);
+  background: var(--color-violet-soft);
+  font-weight: 500;
+}
+
+.deck-page__publish {
+  align-self: flex-start;
+}
+
 .deck-page__cards {
   display: flex;
   flex-direction: column;

@@ -52,7 +52,7 @@ export const routes: Routes = [
             path: 'explore',
             title: 'titles.explore',
             loadComponent: () =>
-              import('./features/coming-soon/coming-soon').then((m) => m.ComingSoon),
+              import('./features/explore/explore-page/explore-page').then((m) => m.ExplorePage),
           },
           {
             path: 'progress',
@@ -66,7 +66,7 @@ export const routes: Routes = [
           },
         ],
       },
-      // Full-screen pages, without the bottom bar (screens 8 to 12).
+      // Full-screen pages, without the bottom bar (screens 8 to 12, 15 and 16).
       {
         path: 'study/quiz',
         title: 'titles.quiz',
@@ -105,6 +105,30 @@ export const routes: Routes = [
         title: 'titles.editCard',
         loadComponent: () =>
           import('./features/decks/card-editor/card-editor').then((m) => m.CardEditor),
+      },
+      {
+        path: 'explore/:deckId',
+        title: 'titles.publicDeck',
+        loadComponent: () =>
+          import('./features/explore/public-deck/public-deck').then((m) => m.PublicDeckPage),
+      },
+      {
+        path: 'explore/:deckId/test',
+        title: 'titles.test',
+        data: { mode: 'test' },
+        loadComponent: () => import('./features/study/study-session').then((m) => m.StudySession),
+      },
+      {
+        path: 'explore/:deckId/report',
+        title: 'titles.report',
+        loadComponent: () =>
+          import('./features/explore/report-form/report-form').then((m) => m.ReportForm),
+      },
+      {
+        path: 'publish',
+        title: 'titles.publish',
+        loadComponent: () =>
+          import('./features/explore/publish-form/publish-form').then((m) => m.PublishForm),
       },
     ],
   },

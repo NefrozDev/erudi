@@ -8,13 +8,21 @@ import { routes } from './app.routes';
 import { AuthUser } from './core/auth/auth-api';
 import { AuthStore } from './core/auth/auth-store';
 import { Deck, DecksApi } from './core/decks/decks-api';
+import { ExploreApi, PublicDeck } from './core/explore/explore-api';
 import { StudyApi } from './core/study/study-api';
 import { TranslatedTitleStrategy } from './core/i18n/translated-title-strategy';
 import { OnboardingState } from './core/onboarding/onboarding-state';
 
 describe('app routes', () => {
   const user = signal<AuthUser | null>(null);
-  const deck: Deck = { id: 'd1', name: 'Anglais', cardCount: 0, dueCount: 0, level: 0 };
+  const deck: Deck = {
+    id: 'd1',
+    name: 'Anglais',
+    cardCount: 0,
+    dueCount: 0,
+    level: 0,
+    published: false,
+  };
   const decksApi = {
     list: () => of([deck]),
     get: () => of(deck),
@@ -37,6 +45,26 @@ describe('app routes', () => {
       ]),
     ),
   };
+  const publicDeck: PublicDeck = {
+    id: 'p1',
+    title: 'Capitales du monde',
+    category: 'studies',
+    author: 'Sofia',
+    cardCount: 1,
+    useCount: 0,
+    description: '',
+    updatedAt: '2026-11-07T10:00:00Z',
+    preview: { front: 'Belgique', back: 'Bruxelles' },
+    isMine: false,
+    bestScore: null,
+  };
+  const exploreApi = {
+    search: () => of([publicDeck]),
+    get: vi.fn(() => of(publicDeck)),
+    testCards: vi.fn(() =>
+      of([{ id: 't1', deckName: 'Capitales du monde', front: 'Belgique', back: 'Bruxelles' }]),
+    ),
+  };
   const hasSeenIntro = vi.fn(() => false);
   let harness: RouterTestingHarness;
 
@@ -52,6 +80,7 @@ describe('app routes', () => {
         { provide: OnboardingState, useValue: { hasSeenIntro, markIntroSeen: vi.fn() } },
         { provide: DecksApi, useValue: decksApi },
         { provide: StudyApi, useValue: studyApi },
+        { provide: ExploreApi, useValue: exploreApi },
       ],
     });
     harness = await RouterTestingHarness.create();
@@ -90,6 +119,10 @@ describe('app routes', () => {
     '/decks/d1/cards/c1',
     '/study/quiz',
     '/study/practice?deckId=d1',
+    '/explore/p1',
+    '/explore/p1/test',
+    '/explore/p1/report',
+    '/publish?deckId=d1',
   ])('should protect %s', async (url) => {
     expect(await visit(url)).toBe('/welcome');
   });
@@ -127,6 +160,9 @@ describe('app routes', () => {
     ['/decks/d1/edit', 'app-deck-form', 'Modifier le paquet · Erudi'],
     ['/decks/d1/cards/new', 'app-card-editor', 'Nouvelle carte · Erudi'],
     ['/decks/d1/cards/c1', 'app-card-editor', 'Modifier la carte · Erudi'],
+    ['/explore/p1', 'app-public-deck', 'Paquet public · Erudi'],
+    ['/explore/p1/report', 'app-report-form', 'Signaler un paquet · Erudi'],
+    ['/publish?deckId=d1', 'app-publish-form', 'Publier un paquet · Erudi'],
   ])('should open %s full screen, without the tab bar', async (url, selector, title) => {
     signIn();
 
@@ -150,6 +186,41 @@ describe('app routes', () => {
     expect(root.querySelector('app-tab-shell')).toBeNull();
     expect(studyApi.cards).toHaveBeenCalledExactlyOnceWith(mode, deckId);
     expect(TestBed.inject(Title).getTitle()).toBe(title);
+  });
+
+  it('should open a test of a public deck full screen, on that deck', async () => {
+    signIn();
+    exploreApi.testCards.mockClear();
+    studyApi.cards.mockClear();
+
+    expect(await visit('/explore/p1/test')).toBe('/explore/p1/test');
+    const root = harness.fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-study-session .flashcard__chip')?.textContent?.trim()).toBe(
+      'Capitales du monde',
+    );
+    expect(root.querySelector('app-tab-shell')).toBeNull();
+    expect(exploreApi.testCards).toHaveBeenCalledExactlyOnceWith('p1');
+    expect(studyApi.cards).not.toHaveBeenCalled();
+    expect(TestBed.inject(Title).getTitle()).toBe('Test · Erudi');
+  });
+
+  it('should show the public decks in the explore tab', async () => {
+    signIn();
+
+    expect(await visit('/explore?category=studies')).toBe('/explore?category=studies');
+    const root = harness.fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-tab-shell app-explore-page')).not.toBeNull();
+    expect(root.querySelector('.chip[aria-pressed="true"]')?.textContent?.trim()).toBe('Études');
+    expect(TestBed.inject(Title).getTitle()).toBe('Explorer · Erudi');
+  });
+
+  it('should hand the public deck id to its sheet', async () => {
+    signIn();
+    exploreApi.get.mockClear();
+
+    await visit('/explore/p1');
+
+    expect(exploreApi.get).toHaveBeenCalledExactlyOnceWith('p1');
   });
 
   it('should show the boxes in the progress tab', async () => {

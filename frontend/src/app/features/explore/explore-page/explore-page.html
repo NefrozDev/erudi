@@ -1,0 +1,85 @@
+<main class="page explore">
+  <h1 class="title">{{ 'explore.title' | transloco }}</h1>
+
+  <div class="explore__search" role="search">
+    <div class="field">
+      <label class="field__label" for="explore-search">{{ 'explore.search' | transloco }}</label>
+      <input
+        id="explore-search"
+        class="field__input"
+        type="search"
+        autocomplete="off"
+        enterkeyhint="search"
+        [maxLength]="searchMaxLength"
+        [value]="text()"
+        [placeholder]="'explore.searchPlaceholder' | transloco"
+        (input)="onType($event)"
+      />
+    </div>
+
+    <div class="explore__chips" role="group" [attr.aria-label]="'explore.category' | transloco">
+      @for (chip of chips; track chip.label) {
+        <button
+          type="button"
+          class="chip"
+          [attr.aria-pressed]="chip.value === selectedCategory()"
+          (click)="choose(chip.value)"
+        >
+          {{ chip.label | transloco }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (rows(); as rows) {
+    <section
+      class="explore__results"
+      aria-labelledby="explore-results-title"
+      [attr.aria-busy]="decks.isLoading()"
+    >
+      <h2 class="explore__section-title" id="explore-results-title">
+        {{ (filtering() ? 'explore.results' : 'explore.popular') | transloco }}
+      </h2>
+
+      @if (rows.length === 0) {
+        <div class="card state-card">
+          <app-plic mood="surprised" />
+          <p class="state-card__title">
+            {{ (filtering() ? 'explore.noResultsTitle' : 'explore.emptyTitle') | transloco }}
+          </p>
+          <p class="subtitle">
+            {{ (filtering() ? 'explore.noResultsText' : 'explore.emptyText') | transloco }}
+          </p>
+        </div>
+      } @else {
+        <ul class="explore__list">
+          @for (deck of rows; track deck.id) {
+            <li>
+              <a class="public-deck-row" [routerLink]="['/explore', deck.id]">
+                <span class="public-deck-row__title">{{ deck.title }}</span>
+                <span class="public-deck-row__author">
+                  {{ 'explore.by' | transloco: { author: deck.author } }}
+                </span>
+                <span class="public-deck-row__meta">
+                  {{ deck.cardsKey | transloco: { count: deck.cards } }} ·
+                  {{ deck.usesKey | transloco: { count: deck.uses } }}
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  } @else if (decks.error()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'common.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="decks.reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  }
+
+  <a class="button button--secondary explore__publish" routerLink="/publish">
+    {{ 'explore.publishLink' | transloco }}
+  </a>
+</main>

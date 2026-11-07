@@ -10,6 +10,8 @@ export interface Deck {
   dueCount: number;
   /** The average box, rounded: 0 for an empty deck, otherwise 1 to 5. */
   level: number;
+  /** Shared in the Explorer. */
+  published: boolean;
 }
 
 export interface CardSummary {

@@ -3,16 +3,8 @@
     @if (total() === 0) {
       <section class="study__end">
         <app-plic mood="sleepy" />
-        <h1 class="study__end-title">
-          {{
-            (mode() === 'quiz' ? 'study.empty.quizTitle' : 'study.empty.practiceTitle') | transloco
-          }}
-        </h1>
-        <p class="study__end-text">
-          {{
-            (mode() === 'quiz' ? 'study.empty.quizText' : 'study.empty.practiceText') | transloco
-          }}
-        </p>
+        <h1 class="study__end-title">{{ 'study.empty.' + mode() + 'Title' | transloco }}</h1>
+        <p class="study__end-text">{{ 'study.empty.' + mode() + 'Text' | transloco }}</p>
         <div class="study__actions">
           @if (mode() === 'quiz') {
             <a
@@ -38,11 +30,14 @@
           tabindex="-1"
           #doneTitle
         >
-          {{ 'study.done.title' | transloco }}
+          @if (mode() === 'test') {
+            <span class="visually-hidden">{{ 'study.done.score' | transloco }}</span>
+            {{ 'study.done.percent' | transloco: { score: score() } }}
+          } @else {
+            {{ 'study.done.title' | transloco }}
+          }
         </h1>
-        <p class="study__end-text">
-          {{ (mode() === 'quiz' ? 'study.done.quizText' : 'study.done.practiceText') | transloco }}
-        </p>
+        <p class="study__end-text">{{ 'study.done.' + mode() + 'Text' | transloco }}</p>
 
         <dl class="study__stats">
           <div class="study__stat">
@@ -56,6 +51,24 @@
         </dl>
         @if (mode() === 'practice') {
           <p class="study__end-text">{{ 'study.done.practiceNote' | transloco }}</p>
+        }
+        @if (mode() === 'test') {
+          @if (result(); as result) {
+            <p class="study__best">
+              @if (result.score >= result.bestScore) {
+                {{ 'study.done.newBest' | transloco }}
+              } @else {
+                {{ 'study.done.best' | transloco: { score: result.bestScore } }}
+              }
+            </p>
+          } @else if (resultFailed()) {
+            <div class="alert alert--retry" role="alert">
+              <p>{{ 'study.done.resultError' | transloco }}</p>
+              <button type="button" class="text-link" (click)="saveResult()">
+                {{ 'common.retry' | transloco }}
+              </button>
+            </div>
+          }
         }
 
         <div class="study__actions">
@@ -141,9 +154,15 @@
     <section class="study__end">
       <app-plic mood="surprised" />
       <h1 class="study__end-title">{{ 'decks.notFoundTitle' | transloco }}</h1>
-      <p class="study__end-text">{{ 'decks.notFoundText' | transloco }}</p>
+      <p class="study__end-text">
+        {{ (mode() === 'test' ? 'explore.notFoundText' : 'decks.notFoundText') | transloco }}
+      </p>
       <div class="study__actions">
-        <a class="button button--accent" routerLink="/" replaceUrl>
+        <a
+          class="button button--accent"
+          [routerLink]="mode() === 'test' ? '/explore' : '/'"
+          replaceUrl
+        >
           {{ 'study.empty.back' | transloco }}
         </a>
       </div>
@@ -165,16 +184,23 @@
   }
 </main>
 
-<!-- The card's deck (when the session mixes decks) and box, on both faces. -->
+<!--
+  The card's deck (when the session mixes decks, or in a test) and box (the learner's own
+  cards only), on both faces.
+-->
 <ng-template #chip>
   @if (current(); as card) {
     <span class="flashcard__chip">
-      @if (deckId() === undefined) {
+      @if (mode() === 'test' || deckId() === undefined) {
         <span class="flashcard__deck">{{ card.deckName }}</span>
-        <span aria-hidden="true">·</span>
       }
-      <span>{{ 'common.box' | transloco: { box: card.box } }}</span>
-      <app-box-meter [level]="card.box" />
+      @if (card.box !== undefined) {
+        @if (deckId() === undefined) {
+          <span aria-hidden="true">·</span>
+        }
+        <span>{{ 'common.box' | transloco: { box: card.box } }}</span>
+        <app-box-meter [level]="card.box" />
+      }
     </span>
   }
 </ng-template>

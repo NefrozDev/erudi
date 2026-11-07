@@ -1,0 +1,68 @@
+.public-deck__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.public-deck__title {
+  font-size: 2rem;
+  overflow-wrap: anywhere;
+}
+
+.public-deck__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-border);
+}
+
+.public-deck__section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.public-deck__text {
+  color: var(--color-text-secondary);
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+// A long card stays a preview.
+.public-deck__preview {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+// The yellow-bordered note of screen 15.
+.public-deck__notice {
+  padding: 14px 20px;
+  border: 1px solid var(--color-yellow);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-yellow) 8%, var(--color-surface));
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+.public-deck__score {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--color-tile-mint);
+  font-weight: 700;
+}
+
+.public-deck__mine {
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.public-deck__report {
+  align-self: center;
+  padding: 8px;
+}

@@ -7,7 +7,14 @@ import { CardSummary, Deck, DecksApi } from '../../../core/decks/decks-api';
 import { DeckPage } from './deck-page';
 
 describe('DeckPage', () => {
-  const deck: Deck = { id: 'd1', name: 'Anglais', cardCount: 3, dueCount: 1, level: 2 };
+  const deck: Deck = {
+    id: 'd1',
+    name: 'Anglais',
+    cardCount: 3,
+    dueCount: 1,
+    level: 2,
+    published: false,
+  };
   const cards: CardSummary[] = [
     { id: 'c1', front: 'to run out of', box: 2 },
     { id: 'c2', front: 'a deadline', box: 1 },
@@ -71,6 +78,28 @@ describe('DeckPage', () => {
     );
     expect(host.querySelector('a[href^="/study/quiz"]')).toBeNull();
     expect(linkNamed(host, "S'entraîner")).toBeTruthy();
+  });
+
+  it('should offer to publish a deck that has cards', async () => {
+    const host = await render();
+
+    expect(linkNamed(host, "Publier dans l'Explorer").getAttribute('href')).toBe(
+      '/publish?deckId=d1',
+    );
+    expect(host.querySelector('.deck-page__publication')).toBeNull();
+  });
+
+  it('should show that a deck is published, with its public page and publication', async () => {
+    get.mockReturnValue(of({ ...deck, published: true }));
+
+    const host = await render();
+
+    expect(textOf(host, '.deck-page__publication span')).toBe("Publié dans l'Explorer");
+    expect(linkNamed(host, 'Voir').getAttribute('href')).toBe('/explore/d1');
+    expect(linkNamed(host, 'Modifier la publication').getAttribute('href')).toBe(
+      '/publish?deckId=d1',
+    );
+    expect(host.textContent).not.toContain("Publier dans l'Explorer");
   });
 
   it('should list the cards with their box, each opening its editor', async () => {

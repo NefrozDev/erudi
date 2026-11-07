@@ -7,7 +7,14 @@ import { Deck, DecksApi } from '../../../core/decks/decks-api';
 import { DeckForm } from './deck-form';
 
 describe('DeckForm', () => {
-  const deck: Deck = { id: 'd1', name: 'Anglais', cardCount: 3, dueCount: 1, level: 2 };
+  const deck: Deck = {
+    id: 'd1',
+    name: 'Anglais',
+    cardCount: 3,
+    dueCount: 1,
+    level: 2,
+    published: false,
+  };
   const api = {
     get: vi.fn<(deckId: string) => Observable<Deck>>(),
     create: vi.fn<(name: string) => Observable<Deck>>(),
@@ -129,6 +136,17 @@ describe('DeckForm', () => {
       expect(host.querySelector('app-delete-confirmation [role="alert"]')).toBeNull();
       expect(buttonNamed(host, 'Supprimer le paquet')).toBeTruthy();
       expect(api.delete).not.toHaveBeenCalled();
+    });
+
+    it('should warn that deleting a published deck also withdraws it', async () => {
+      api.get.mockReturnValue(of({ ...deck, published: true }));
+      await render('d1');
+
+      await click(buttonNamed(host, 'Supprimer le paquet'));
+
+      expect(textOf(host, 'app-delete-confirmation [role="alert"]')).toBe(
+        "Supprimer « Anglais » et ses cartes ? Il sera aussi retiré de l'Explorer. C'est définitif.",
+      );
     });
 
     it('should delete the deck once confirmed, then go home', async () => {

@@ -43,6 +43,26 @@
       </div>
     </div>
 
+    @if (deck.value().published) {
+      <p class="deck-page__publication">
+        <span>{{ 'decks.published' | transloco }}</span>
+        <a class="text-link" [routerLink]="['/explore', deckId()]">
+          {{ 'decks.viewPublic' | transloco }}
+        </a>
+        <a class="text-link" routerLink="/publish" [queryParams]="{ deckId: deckId() }">
+          {{ 'decks.editPublication' | transloco }}
+        </a>
+      </p>
+    } @else if (deck.value().cardCount > 0) {
+      <a
+        class="text-link deck-page__publish"
+        routerLink="/publish"
+        [queryParams]="{ deckId: deckId() }"
+      >
+        {{ 'decks.publish' | transloco }}
+      </a>
+    }
+
     @if (cards.value().length === 0) {
       <section class="card state-card">
         <app-plic mood="surprised" />

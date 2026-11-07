@@ -3,8 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { buttonNamed, linkNamed, query, settle, textOf } from '../../../testing/dom';
-import { AnswerResult, StudyApi, StudyCard, StudyMode } from '../../core/study/study-api';
-import { StudySession } from './study-session';
+import { ExploreApi, TestCard, TestResult } from '../../core/explore/explore-api';
+import { AnswerResult, StudyApi, StudyCard } from '../../core/study/study-api';
+import { SessionMode, StudySession } from './study-session';
 
 describe('StudySession', () => {
   const cards: StudyCard[] = [
@@ -33,9 +34,18 @@ describe('StudySession', () => {
       box: 4,
     },
   ];
+  const testCards: TestCard[] = [
+    { id: 't1', deckName: 'Capitales', front: 'Belgique', back: 'Bruxelles' },
+    { id: 't2', deckName: 'Capitales', front: 'Pérou', back: 'Lima' },
+    { id: 't3', deckName: 'Capitales', front: 'Canada', back: 'Ottawa' },
+  ];
   const api = {
-    cards: vi.fn<(mode: StudyMode, deckId?: string) => Observable<StudyCard[]>>(),
+    cards: vi.fn<(mode: 'quiz' | 'practice', deckId?: string) => Observable<StudyCard[]>>(),
     answer: vi.fn<(cardId: string, knew: boolean) => Observable<AnswerResult>>(),
+  };
+  const exploreApi = {
+    testCards: vi.fn<(deckId: string) => Observable<TestCard[]>>(),
+    saveResult: vi.fn<(deckId: string, known: number, total: number) => Observable<TestResult>>(),
   };
   let fixture: ComponentFixture<StudySession>;
   let host: HTMLElement;
@@ -43,12 +53,18 @@ describe('StudySession', () => {
   beforeEach(() => {
     api.cards.mockReset().mockReturnValue(of(cards));
     api.answer.mockReset().mockReturnValue(of({ box: 3, dueOn: '2026-11-11' }));
+    exploreApi.testCards.mockReset().mockReturnValue(of(testCards));
+    exploreApi.saveResult.mockReset().mockReturnValue(of({ score: 67, bestScore: 67 }));
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: StudyApi, useValue: api }],
+      providers: [
+        provideRouter([]),
+        { provide: StudyApi, useValue: api },
+        { provide: ExploreApi, useValue: exploreApi },
+      ],
     });
   });
 
-  async function render(mode: StudyMode, deckId?: string): Promise<void> {
+  async function render(mode: SessionMode, deckId?: string): Promise<void> {
     fixture = TestBed.createComponent(StudySession);
     fixture.componentRef.setInput('mode', mode);
     if (deckId !== undefined) {
@@ -265,6 +281,102 @@ describe('StudySession', () => {
       expect(textOf(host, '.study__stat dt')).toBe('bonne réponse');
       expect(textOf(host, '.study__stat dd')).toBe('1');
       expect(linkNamed(host, 'Terminer').getAttribute('href')).toBe('/decks/d1');
+    });
+  });
+
+  describe('a test of a public deck', () => {
+    function stats(): string[][] {
+      return [...host.querySelectorAll('.study__stat')].map((stat) => [
+        textOf(stat, 'dd'),
+        textOf(stat, 'dt'),
+      ]);
+    }
+
+    async function answerAll(): Promise<void> {
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je ne savais pas');
+      await flipAndAnswer('Je savais');
+    }
+
+    it("should ask the deck's cards with its name, without any box", async () => {
+      await render('test', 'p1');
+
+      expect(exploreApi.testCards).toHaveBeenCalledExactlyOnceWith('p1');
+      expect(api.cards).not.toHaveBeenCalled();
+      expect(cardText()).toBe('Belgique');
+      expect(textOf(host, '.flashcard__chip')).toBe('Capitales');
+      expect(host.querySelector('.flashcard__chip app-box-meter')).toBeNull();
+      expect(query(host, 'a.study__close').getAttribute('href')).toBe('/explore/p1');
+    });
+
+    it('should send no answer, then save the score once, at the end', async () => {
+      await render('test', 'p1');
+
+      await answerAll();
+
+      expect(api.answer).not.toHaveBeenCalled();
+      expect(exploreApi.saveResult).toHaveBeenCalledExactlyOnceWith('p1', 2, 3);
+      expect(textOf(host, 'h1').replace(/\s+/g, ' ')).toBe('Score : 67 %');
+      expect(textOf(host, '.study__end-text')).toBe('Test terminé');
+      expect(stats()).toEqual([
+        ['2', 'bonnes réponses'],
+        ['1', 'à revoir'],
+      ]);
+      expect(textOf(host, '.study__best')).toBe("C'est ton meilleur score !");
+      expect(linkNamed(host, 'Terminer').getAttribute('href')).toBe('/explore/p1');
+      expect(document.activeElement).toBe(query(host, 'h1'));
+    });
+
+    it('should recall a better score from an earlier test', async () => {
+      exploreApi.saveResult.mockReturnValue(of({ score: 67, bestScore: 80 }));
+      await render('test', 'p1');
+
+      await answerAll();
+
+      expect(textOf(host, '.study__best')).toBe('Ton meilleur score : 80 %');
+    });
+
+    it('should keep the score when it is not saved, and allow trying again', async () => {
+      exploreApi.saveResult.mockReturnValueOnce(
+        throwError(() => new HttpErrorResponse({ status: 0 })),
+      );
+      await render('test', 'p1');
+
+      await answerAll();
+
+      expect(textOf(host, 'h1').replace(/\s+/g, ' ')).toBe('Score : 67 %');
+      expect(textOf(host, '[role="alert"] p')).toBe("Ton score n'a pas été enregistré.");
+      expect(host.querySelector('.study__best')).toBeNull();
+
+      await click(buttonNamed(host, 'Réessayer'));
+
+      expect(exploreApi.saveResult).toHaveBeenCalledTimes(2);
+      expect(exploreApi.saveResult).toHaveBeenLastCalledWith('p1', 2, 3);
+      expect(host.querySelector('[role="alert"]')).toBeNull();
+      expect(textOf(host, '.study__best')).toBe("C'est ton meilleur score !");
+    });
+
+    it('should say when the deck has no card left', async () => {
+      exploreApi.testCards.mockReturnValue(of([]));
+
+      await render('test', 'p1');
+
+      expect(textOf(host, 'h1')).toBe('Ce paquet est vide');
+      expect(host.querySelector('a[href^="/study/practice"]')).toBeNull();
+      expect(linkNamed(host, 'Retour').getAttribute('href')).toBe('/explore/p1');
+      expect(exploreApi.saveResult).not.toHaveBeenCalled();
+    });
+
+    it('should say when the deck is no longer published', async () => {
+      exploreApi.testCards.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 404 })),
+      );
+
+      await render('test', 'p1');
+
+      expect(textOf(host, 'h1')).toBe('Paquet introuvable');
+      expect(textOf(host, '.study__end-text')).toBe("Ce paquet n'est plus publié.");
+      expect(linkNamed(host, 'Retour').getAttribute('href')).toBe('/explore');
     });
   });
 

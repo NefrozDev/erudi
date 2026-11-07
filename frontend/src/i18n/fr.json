@@ -15,7 +15,11 @@
     "newCard": "Nouvelle carte",
     "editCard": "Modifier la carte",
     "quiz": "Révision",
-    "practice": "Entraînement"
+    "practice": "Entraînement",
+    "publicDeck": "Paquet public",
+    "test": "Test",
+    "report": "Signaler un paquet",
+    "publish": "Publier un paquet"
   },
   "intro": {
     "skip": "Passer",
@@ -169,12 +173,17 @@
       "limitReached": "Tu as atteint la limite de 200 paquets.",
       "delete": "Supprimer le paquet",
       "deleteConfirm": "Supprimer « {{name}} » et ses cartes ? C'est définitif.",
+      "deletePublishedConfirm": "Supprimer « {{name}} » et ses cartes ? Il sera aussi retiré de l'Explorer. C'est définitif.",
       "deleteConfirmButton": "Supprimer définitivement",
       "keep": "Garder le paquet"
     },
     "quiz": "Réviser ({{count}})",
     "practice": "S'entraîner",
-    "upToDate": "Rien à réviser aujourd'hui dans ce paquet."
+    "upToDate": "Rien à réviser aujourd'hui dans ce paquet.",
+    "published": "Publié dans l'Explorer",
+    "viewPublic": "Voir",
+    "editPublication": "Modifier la publication",
+    "publish": "Publier dans l'Explorer"
   },
   "cards": {
     "newTitle": "Nouvelle carte",
@@ -217,7 +226,13 @@
       },
       "again": "à revoir",
       "practiceNote": "Les cartes n'ont pas changé de boîte.",
-      "finish": "Terminer"
+      "finish": "Terminer",
+      "testText": "Test terminé",
+      "score": "Score :",
+      "percent": "{{score}} %",
+      "newBest": "C'est ton meilleur score !",
+      "best": "Ton meilleur score : {{score}} %",
+      "resultError": "Ton score n'a pas été enregistré."
     },
     "empty": {
       "quizTitle": "Rien à réviser pour l'instant",
@@ -225,7 +240,9 @@
       "practiceTitle": "Aucune carte pour s'entraîner",
       "practiceText": "Ajoute d'abord des cartes à un paquet.",
       "practice": "S'entraîner",
-      "back": "Retour"
+      "back": "Retour",
+      "testTitle": "Ce paquet est vide",
+      "testText": "Il n'a plus de cartes à tester pour l'instant."
     }
   },
   "progress": {
@@ -246,9 +263,101 @@
       "other": "cartes"
     }
   },
-  "comingSoon": {
-    "title": "Bientôt disponible",
-    "text": "Plic prépare cet écran."
+  "explore": {
+    "title": "Explorer",
+    "search": "Recherche",
+    "searchPlaceholder": "Un sujet, une langue…",
+    "category": "Catégorie",
+    "all": "Tous",
+    "categories": {
+      "languages": "Langues",
+      "driving": "Permis",
+      "studies": "Études",
+      "other": "Autres"
+    },
+    "popular": "Populaires",
+    "results": "Résultats",
+    "by": "par {{author}}",
+    "uses": {
+      "one": "{{count}} utilisation",
+      "other": "{{count}} utilisations"
+    },
+    "emptyTitle": "La bibliothèque est encore vide",
+    "emptyText": "Publie un de tes paquets pour la lancer !",
+    "noResultsTitle": "Aucun paquet trouvé",
+    "noResultsText": "Essaie un autre mot ou une autre catégorie.",
+    "publishLink": "Publier un de mes paquets",
+    "back": "Explorer",
+    "notFoundTitle": "Paquet introuvable",
+    "notFoundText": "Ce paquet n'est plus publié.",
+    "deck": {
+      "byline": "par {{author}} · mis à jour {{when}}",
+      "description": "Description",
+      "preview": "Aperçu",
+      "answer": "Réponse :",
+      "noCards": "Ce paquet n'a plus de cartes pour l'instant.",
+      "userContent": "Contenu créé par un utilisateur, à vérifier.",
+      "bestScore": "Ton meilleur score : {{score}} %",
+      "test": "Me tester",
+      "copy": "Ajouter à mes paquets",
+      "copyLimit": "Tu as atteint la limite de 200 paquets.",
+      "copyError": "La copie a échoué. Réessaie dans un instant.",
+      "report": "Signaler ce paquet",
+      "mine": "C'est ton paquet : tout le monde peut le voir dans l'Explorer.",
+      "openMine": "Ouvrir mon paquet",
+      "editPublication": "Modifier la publication"
+    },
+    "publish": {
+      "back": "Mes paquets",
+      "title": "Publier un paquet",
+      "editTitle": "Modifier la publication",
+      "deck": "Paquet",
+      "deckPlaceholder": "Choisir un paquet",
+      "deckRequired": "Choisis un paquet.",
+      "emptyDeckOption": "{{name}} (vide)",
+      "titleLabel": "Titre",
+      "titlePlaceholder": "Titre public",
+      "titleTooLong": "60 caractères maximum.",
+      "category": "Catégorie",
+      "categoryPlaceholder": "Langues, Permis, Études…",
+      "categoryRequired": "Choisis une catégorie.",
+      "description": "Description",
+      "descriptionPlaceholder": "En quelques mots",
+      "descriptionTooLong": "300 caractères maximum.",
+      "terms": "En publiant, tu confirmes que ce contenu t'appartient et respecte les conditions d'utilisation. Ton pseudo sera visible comme auteur.",
+      "submit": "Publier",
+      "update": "Mettre à jour",
+      "emptyDeck": "Ajoute au moins une carte à ce paquet avant de le publier.",
+      "unpublish": "Retirer de l'Explorer",
+      "unpublishConfirm": "Retirer « {{title}} » de l'Explorer ? Les copies déjà ajoutées restent chez leurs propriétaires.",
+      "unpublishConfirmButton": "Oui, retirer",
+      "keep": "Le laisser publié",
+      "noDecksTitle": "Aucun paquet à publier",
+      "noDecksText": "Crée d'abord un paquet et ajoute-lui des cartes.",
+      "createDeck": "Créer un paquet"
+    },
+    "report": {
+      "back": "Retour au paquet",
+      "title": "Signaler ce paquet",
+      "subtitle": "Dis-nous ce qui ne va pas. L'auteur ne saura pas qui l'a signalé.",
+      "reason": "Motif",
+      "reasons": {
+        "offensive": "Contenu choquant ou haineux",
+        "incorrect": "Réponses fausses",
+        "spam": "Spam ou publicité",
+        "copyright": "Contenu copié sans autorisation",
+        "other": "Autre chose"
+      },
+      "reasonRequired": "Choisis un motif.",
+      "details": "Précisions (facultatif)",
+      "detailsPlaceholder": "Par exemple : la réponse de la carte 3 est fausse",
+      "detailsTooLong": "500 caractères maximum.",
+      "submit": "Envoyer le signalement",
+      "error": "Le signalement n'a pas été envoyé. Réessaie dans un instant.",
+      "sentTitle": "Merci pour ton signalement",
+      "sentText": "Nous allons vérifier ce paquet.",
+      "backToExplore": "Retour à l'Explorer"
+    }
   },
   "settings": {
     "title": "Réglages",

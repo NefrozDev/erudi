@@ -1,0 +1,169 @@
+<main class="page">
+  <a class="back-link" routerLink="/">{{ 'explore.publish.back' | transloco }}</a>
+  <h1 class="title">
+    {{ (chosen()?.published ? 'explore.publish.editTitle' : 'explore.publish.title') | transloco }}
+  </h1>
+
+  @if (decks.hasValue()) {
+    @if (decks.value().length === 0) {
+      <section class="card state-card">
+        <app-plic mood="sleepy" />
+        <h2 class="state-card__title">{{ 'explore.publish.noDecksTitle' | transloco }}</h2>
+        <p class="subtitle">{{ 'explore.publish.noDecksText' | transloco }}</p>
+        <a class="button" routerLink="/decks/new">{{ 'explore.publish.createDeck' | transloco }}</a>
+      </section>
+    } @else {
+      <form class="page__form" [formRoot]="form">
+        <div class="field">
+          <label class="field__label" for="publish-deck">
+            {{ 'explore.publish.deck' | transloco }}
+          </label>
+          <select
+            id="publish-deck"
+            class="field__input"
+            #deckSelect
+            [attr.aria-invalid]="!!visibleError(form.deckId)"
+            [attr.aria-describedby]="visibleError(form.deckId) ? 'publish-deck-error' : null"
+            (change)="chosenId.set(deckSelect.value)"
+          >
+            <option value="" disabled [selected]="!chosen()">
+              {{ 'explore.publish.deckPlaceholder' | transloco }}
+            </option>
+            @for (deck of decks.value(); track deck.id) {
+              <!-- An empty deck would not show in the Explorer. -->
+              <option
+                [value]="deck.id"
+                [selected]="deck.id === chosen()?.id"
+                [disabled]="deck.cardCount === 0"
+              >
+                @if (deck.cardCount === 0) {
+                  {{ 'explore.publish.emptyDeckOption' | transloco: { name: deck.name } }}
+                } @else {
+                  {{ deck.name }}
+                }
+              </option>
+            }
+          </select>
+          @if (visibleError(form.deckId); as error) {
+            <p class="form-error" id="publish-deck-error">{{ error | transloco }}</p>
+          }
+        </div>
+
+        @if (ready()) {
+          <div class="field">
+            <label class="field__label" for="publish-title">
+              {{ 'explore.publish.titleLabel' | transloco }}
+            </label>
+            <input
+              id="publish-title"
+              class="field__input"
+              type="text"
+              autocomplete="off"
+              [formField]="form.title"
+              [placeholder]="'explore.publish.titlePlaceholder' | transloco"
+              [attr.aria-invalid]="!!visibleError(form.title)"
+              [attr.aria-describedby]="visibleError(form.title) ? 'publish-title-error' : null"
+            />
+            @if (visibleError(form.title); as error) {
+              <p class="form-error" id="publish-title-error">{{ error | transloco }}</p>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="publish-category">
+              {{ 'explore.publish.category' | transloco }}
+            </label>
+            <select
+              id="publish-category"
+              class="field__input"
+              [formField]="form.category"
+              [attr.aria-invalid]="!!visibleError(form.category)"
+              [attr.aria-describedby]="
+                visibleError(form.category) ? 'publish-category-error' : null
+              "
+            >
+              <option value="" disabled>
+                {{ 'explore.publish.categoryPlaceholder' | transloco }}
+              </option>
+              @for (category of categories; track category) {
+                <option [value]="category">
+                  {{ 'explore.categories.' + category | transloco }}
+                </option>
+              }
+            </select>
+            @if (visibleError(form.category); as error) {
+              <p class="form-error" id="publish-category-error">{{ error | transloco }}</p>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="publish-description">
+              {{ 'explore.publish.description' | transloco }}
+            </label>
+            <textarea
+              id="publish-description"
+              class="field__input"
+              [formField]="form.description"
+              [placeholder]="'explore.publish.descriptionPlaceholder' | transloco"
+              [attr.aria-invalid]="!!visibleError(form.description)"
+              [attr.aria-describedby]="
+                visibleError(form.description) ? 'publish-description-error' : null
+              "
+            ></textarea>
+            @if (visibleError(form.description); as error) {
+              <p class="form-error" id="publish-description-error">{{ error | transloco }}</p>
+            }
+          </div>
+
+          <p class="subtitle">{{ 'explore.publish.terms' | transloco }}</p>
+
+          @if (chosen(); as deck) {
+            @if (deck.published && publication.hasValue()) {
+              <app-delete-confirmation
+                [label]="'explore.publish.unpublish' | transloco"
+                [question]="
+                  'explore.publish.unpublishConfirm'
+                    | transloco: { title: publication.value().title }
+                "
+                [confirmLabel]="'explore.publish.unpublishConfirmButton' | transloco"
+                [keepLabel]="'explore.publish.keep' | transloco"
+                [busy]="unpublishing()"
+                (confirmed)="unpublish()"
+              />
+            }
+          }
+        } @else if (publication.error()) {
+          <div class="alert alert--retry" role="alert">
+            <p>{{ 'common.loadError' | transloco }}</p>
+            <button type="button" class="text-link" (click)="publication.reload()">
+              {{ 'common.retry' | transloco }}
+            </button>
+          </div>
+        }
+
+        <div class="page__actions">
+          @if (formError(); as error) {
+            <p class="alert" role="alert">{{ error | transloco }}</p>
+          }
+          <button
+            class="button"
+            type="submit"
+            [disabled]="form().submitting() || unpublishing() || !ready()"
+          >
+            {{
+              (chosen()?.published ? 'explore.publish.update' : 'explore.publish.submit')
+                | transloco
+            }}
+          </button>
+        </div>
+      </form>
+    }
+  } @else if (decks.error()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'common.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="decks.reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  }
+</main>

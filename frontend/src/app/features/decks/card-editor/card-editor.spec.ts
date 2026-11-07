@@ -7,7 +7,14 @@ import { Card, CardContent, Deck, DecksApi } from '../../../core/decks/decks-api
 import { CardEditor } from './card-editor';
 
 describe('CardEditor', () => {
-  const deck: Deck = { id: 'd1', name: 'Anglais', cardCount: 3, dueCount: 1, level: 2 };
+  const deck: Deck = {
+    id: 'd1',
+    name: 'Anglais',
+    cardCount: 3,
+    dueCount: 1,
+    level: 2,
+    published: false,
+  };
   const card: Card = { id: 'c1', deckId: 'd1', front: 'to run ot of', back: 'manquer de', box: 3 };
   const api = {
     get: vi.fn<(deckId: string) => Observable<Deck>>(),

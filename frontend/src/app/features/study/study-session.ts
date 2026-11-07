@@ -17,15 +17,29 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { httpStatus } from '../../core/api/api-errors';
+import { ExploreApi, TestResult } from '../../core/explore/explore-api';
 import { StudyApi, StudyMode } from '../../core/study/study-api';
 import { countKey } from '../../shared/i18n/count-key';
 import { BoxMeter } from '../../shared/ui/box-meter/box-meter';
 import { Plic } from '../../shared/ui/plic/plic';
 
+/** `test` asks 20 cards of a public deck (`explore/:deckId/test`) and saves the score. */
+export type SessionMode = StudyMode | 'test';
+
+/** A card of any session: a public deck's cards have no box. */
+interface SessionCard {
+  id: string;
+  deckName: string;
+  front: string;
+  back: string;
+  box?: number;
+}
+
 /**
  * Screens 10 to 12: one card at a time, question then answer, then the session's results.
  * A quiz answer is saved before the next card shows, so leaving midway keeps the progress.
- * Practice keeps its answers in the page and moves no card.
+ * Practice keeps its answers in the page and moves no card. A test does the same, then saves
+ * its score.
  */
 @Component({
   selector: 'app-study-session',
@@ -36,16 +50,23 @@ import { Plic } from '../../shared/ui/plic/plic';
 })
 export class StudySession {
   private readonly api = inject(StudyApi);
+  private readonly exploreApi = inject(ExploreApi);
   private readonly injector = inject(Injector);
 
   /** From the route's data. */
-  readonly mode = input.required<StudyMode>();
-  /** From the query string (`?deckId=`); absent for a session over every deck. */
+  readonly mode = input.required<SessionMode>();
+  /**
+   * From the query string (`?deckId=`), absent for a session over every deck; for a test, the
+   * public deck from the route.
+   */
   readonly deckId = input<string>();
 
-  protected readonly cards = rxResource({
+  protected readonly cards = rxResource<SessionCard[], { mode: SessionMode; deckId?: string }>({
     params: () => ({ mode: this.mode(), deckId: this.deckId() }),
-    stream: ({ params }) => this.api.cards(params.mode, params.deckId),
+    stream: ({ params }) =>
+      params.mode === 'test'
+        ? this.exploreApi.testCards(params.deckId ?? '')
+        : this.api.cards(params.mode, params.deckId),
   });
 
   protected readonly index = signal(0);
@@ -54,6 +75,9 @@ export class StudySession {
   protected readonly toReview = signal(0);
   protected readonly answering = signal(false);
   protected readonly answerFailed = signal(false);
+  /** A test's saved score, with the learner's best one. */
+  protected readonly result = signal<TestResult | null>(null);
+  protected readonly resultFailed = signal(false);
 
   protected readonly total = computed(() =>
     this.cards.hasValue() ? this.cards.value().length : 0,
@@ -66,8 +90,15 @@ export class StudySession {
     this.total() === 0 ? 0 : (100 * this.index()) / this.total(),
   );
   protected readonly notFound = computed(() => httpStatus(this.cards.error()) === 404);
+  /** Shown as soon as the test ends, before it is saved. */
+  protected readonly score = computed(() =>
+    this.total() === 0 ? 0 : Math.round((100 * this.knew()) / this.total()),
+  );
   protected readonly exitLink = computed(() => {
     const deckId = this.deckId();
+    if (this.mode() === 'test') {
+      return deckId === undefined ? ['/explore'] : ['/explore', deckId];
+    }
     return deckId === undefined ? ['/'] : ['/decks', deckId];
   });
   protected readonly knewKey = computed(() =>
@@ -110,6 +141,26 @@ export class StudySession {
     this.index.update((index) => index + 1);
     this.flipped.set(false);
     this.focusAfterRender(this.finished() ? this.doneTitle : this.frontFace);
+
+    if (this.finished() && this.mode() === 'test') {
+      await this.saveResult();
+    }
+  }
+
+  protected async saveResult(): Promise<void> {
+    const deckId = this.deckId();
+    if (deckId === undefined) {
+      return;
+    }
+
+    this.resultFailed.set(false);
+    try {
+      this.result.set(
+        await firstValueFrom(this.exploreApi.saveResult(deckId, this.knew(), this.total())),
+      );
+    } catch {
+      this.resultFailed.set(true);
+    }
   }
 
   private focusAfterRender(target: Signal<ElementRef<HTMLElement> | undefined>): void {
