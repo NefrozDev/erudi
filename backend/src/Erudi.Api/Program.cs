@@ -1,6 +1,7 @@
 using Erudi.Api.Auth;
 using Erudi.Api.Data;
 using Erudi.Api.Decks;
+using Erudi.Api.Explore;
 using Erudi.Api.Mail;
 using Erudi.Api.Security;
 using Erudi.Api.Study;
@@ -22,6 +23,7 @@ builder.Services.AddErudiMail();
 builder.Services.AddErudiAuth();
 builder.Services.AddErudiStudy();
 builder.Services.AddErudiDecks();
+builder.Services.AddErudiExplore();
 
 var app = builder.Build();
 

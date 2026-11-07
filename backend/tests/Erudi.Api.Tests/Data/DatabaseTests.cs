@@ -15,6 +15,7 @@ public sealed class DatabaseTests(ErudiApiFactory factory) : IClassFixture<Erudi
         Assert.Contains(applied, name => name.EndsWith("_CreateAuthTables", StringComparison.Ordinal));
         Assert.Contains(applied, name => name.EndsWith("_AddDecksAndCards", StringComparison.Ordinal));
         Assert.Contains(applied, name => name.EndsWith("_AddCardReviews", StringComparison.Ordinal));
+        Assert.Contains(applied, name => name.EndsWith("_AddPublicLibrary", StringComparison.Ordinal));
     }
 
     [Fact]

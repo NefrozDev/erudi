@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using Erudi.Api.Decks.Contracts;
+using Erudi.Api.Explore;
+using Erudi.Api.Explore.Contracts;
 
 namespace Erudi.Api.Tests.Infrastructure;
 
@@ -33,6 +35,21 @@ internal static class TestDecks
             Cancellation);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<CardResponse>(Cancellation))!;
+    }
+
+    public static async Task<PublicationResponse> PublishAsync(
+        this HttpClient client,
+        Guid deckId,
+        string title = "Code de la route",
+        DeckCategory category = DeckCategory.Driving,
+        string description = "Panneaux et priorités")
+    {
+        using var response = await client.PutAsJsonAsync(
+            $"/api/decks/{deckId}/publication",
+            new PublicationRequest { Title = title, Category = category, Description = description },
+            Cancellation);
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<PublicationResponse>(Cancellation))!;
     }
 
     /// <summary>The default learner's day (Brussels) at the factory's current time.</summary>

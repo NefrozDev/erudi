@@ -57,18 +57,19 @@ public sealed class DeckService(ErudiDbContext db, StudyCalendar calendar, TimeP
         }
 
         var now = clock.GetUtcNow();
-        var deck = new Deck { Id = Guid.CreateVersion7(now), OwnerId = ownerId, Name = name.Trim(), CreatedAt = now };
+        var deck = new Deck { Id = Guid.CreateVersion7(now), OwnerId = ownerId, Name = name.Trim(), CreatedAt = now, UpdatedAt = now };
         db.Decks.Add(deck);
         await db.SaveChangesAsync(cancellationToken);
 
-        return new DeckCreation.Created(new DeckResponse(deck.Id, deck.Name, CardCount: 0, DueCount: 0, Level: 0));
+        return new DeckCreation.Created(new DeckResponse(deck.Id, deck.Name, CardCount: 0, DueCount: 0, Level: 0, Published: false));
     }
 
     public async Task<DeckResponse?> RenameAsync(Guid ownerId, Guid deckId, string name, CancellationToken cancellationToken)
     {
         var trimmed = name.Trim();
+        var now = clock.GetUtcNow();
         var renamed = await OwnedDeck(ownerId, deckId)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(d => d.Name, trimmed), cancellationToken);
+            .ExecuteUpdateAsync(setters => setters.SetProperty(d => d.Name, trimmed).SetProperty(d => d.UpdatedAt, now), cancellationToken);
 
         return renamed == 0 ? null : await FindAsync(ownerId, deckId, cancellationToken);
     }
@@ -122,6 +123,7 @@ public sealed class DeckService(ErudiDbContext db, StudyCalendar calendar, TimeP
         };
         db.Cards.Add(card);
         await db.SaveChangesAsync(cancellationToken);
+        await TouchAsync(deckId, now, cancellationToken);
 
         return new CardCreation.Created(ToResponse(card));
     }
@@ -143,12 +145,26 @@ public sealed class DeckService(ErudiDbContext db, StudyCalendar calendar, TimeP
         card.Front = request.Front.Trim();
         card.Back = request.Back.Trim();
         await db.SaveChangesAsync(cancellationToken);
+        await TouchAsync(card.DeckId, clock.GetUtcNow(), cancellationToken);
 
         return ToResponse(card);
     }
 
-    public async Task<bool> DeleteCardAsync(Guid ownerId, Guid cardId, CancellationToken cancellationToken) =>
-        await OwnedCard(ownerId, cardId).ExecuteDeleteAsync(cancellationToken) > 0;
+    public async Task<bool> DeleteCardAsync(Guid ownerId, Guid cardId, CancellationToken cancellationToken)
+    {
+        var deckId = await OwnedCard(ownerId, cardId).Select(c => (Guid?)c.DeckId).SingleOrDefaultAsync(cancellationToken);
+        if (deckId is not { } id || await OwnedCard(ownerId, cardId).ExecuteDeleteAsync(cancellationToken) == 0)
+        {
+            return false;
+        }
+
+        await TouchAsync(id, clock.GetUtcNow(), cancellationToken);
+        return true;
+    }
+
+    /// <summary>Dates the change of a deck's cards for the Explorer ("mis à jour il y a 3 jours").</summary>
+    private Task<int> TouchAsync(Guid deckId, DateTimeOffset now, CancellationToken cancellationToken) =>
+        db.Decks.Where(d => d.Id == deckId).ExecuteUpdateAsync(setters => setters.SetProperty(d => d.UpdatedAt, now), cancellationToken);
 
     private IQueryable<Deck> OwnedDeck(Guid ownerId, Guid deckId) =>
         db.Decks.Where(d => d.OwnerId == ownerId && d.Id == deckId);
@@ -166,7 +182,8 @@ public sealed class DeckService(ErudiDbContext db, StudyCalendar calendar, TimeP
                 d.Name,
                 d.Cards.Count,
                 d.Cards.Count(c => c.DueOn <= today),
-                d.Cards.Average(c => (double?)c.Box)));
+                d.Cards.Average(c => (double?)c.Box),
+                d.Publication != null));
     }
 
     private static DeckResponse ToResponse(DeckRow row) => new(
@@ -174,9 +191,10 @@ public sealed class DeckService(ErudiDbContext db, StudyCalendar calendar, TimeP
         row.Name,
         row.CardCount,
         row.DueCount,
-        row.AverageBox is { } average ? (int)Math.Round(average, MidpointRounding.AwayFromZero) : 0);
+        row.AverageBox is { } average ? (int)Math.Round(average, MidpointRounding.AwayFromZero) : 0,
+        row.Published);
 
     private static CardResponse ToResponse(Card card) => new(card.Id, card.DeckId, card.Front, card.Back, card.Box);
 
-    private sealed record DeckRow(Guid Id, string Name, int CardCount, int DueCount, double? AverageBox);
+    private sealed record DeckRow(Guid Id, string Name, int CardCount, int DueCount, double? AverageBox, bool Published);
 }

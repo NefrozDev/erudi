@@ -21,7 +21,8 @@ public sealed class CardRequest
 
 /// <param name="DueCount">Cards the quiz asks today.</param>
 /// <param name="Level">The average box, rounded: 0 for an empty deck, otherwise 1 to 5.</param>
-public sealed record DeckResponse(Guid Id, string Name, int CardCount, int DueCount, int Level);
+/// <param name="Published">Shared in the Explorer.</param>
+public sealed record DeckResponse(Guid Id, string Name, int CardCount, int DueCount, int Level, bool Published);
 
 public sealed record CardSummaryResponse(Guid Id, string Front, int Box);
 

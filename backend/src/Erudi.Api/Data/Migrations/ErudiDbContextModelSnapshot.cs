@@ -165,6 +165,10 @@ namespace Erudi.Api.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("owner_id");
 
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
                     b.HasKey("Id")
                         .HasName("pk_decks");
 
@@ -172,6 +176,117 @@ namespace Erudi.Api.Data.Migrations
                         .HasDatabaseName("ix_decks_owner_id");
 
                     b.ToTable("decks", (string)null);
+                });
+
+            modelBuilder.Entity("Erudi.Api.Explore.DeckPublication", b =>
+                {
+                    b.Property<Guid>("DeckId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deck_id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("description");
+
+                    b.Property<DateTimeOffset>("PublishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("published_at");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("DeckId")
+                        .HasName("pk_deck_publications");
+
+                    b.ToTable("deck_publications", (string)null);
+                });
+
+            modelBuilder.Entity("Erudi.Api.Explore.DeckReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("DeckId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deck_id");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("details");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("ReportedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reported_at");
+
+                    b.Property<Guid>("ReporterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reporter_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_deck_reports");
+
+                    b.HasIndex("ReporterId")
+                        .HasDatabaseName("ix_deck_reports_reporter_id");
+
+                    b.HasIndex("DeckId", "ReporterId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_deck_reports_deck_id_reporter_id");
+
+                    b.ToTable("deck_reports", (string)null);
+                });
+
+            modelBuilder.Entity("Erudi.Api.Explore.DeckUse", b =>
+                {
+                    b.Property<Guid>("DeckId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deck_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<int?>("BestScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("best_score");
+
+                    b.Property<DateTimeOffset>("FirstUsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_used_at");
+
+                    b.HasKey("DeckId", "UserId")
+                        .HasName("pk_deck_uses");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_deck_uses_user_id");
+
+                    b.ToTable("deck_uses", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_deck_uses_best_score", "best_score BETWEEN 0 AND 100");
+                        });
                 });
 
             modelBuilder.Entity("Erudi.Api.Study.CardReview", b =>
@@ -329,6 +444,52 @@ namespace Erudi.Api.Data.Migrations
                         .HasConstraintName("fk_decks_users_owner_id");
                 });
 
+            modelBuilder.Entity("Erudi.Api.Explore.DeckPublication", b =>
+                {
+                    b.HasOne("Erudi.Api.Decks.Deck", "Deck")
+                        .WithOne("Publication")
+                        .HasForeignKey("Erudi.Api.Explore.DeckPublication", "DeckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_deck_publications_decks_deck_id");
+
+                    b.Navigation("Deck");
+                });
+
+            modelBuilder.Entity("Erudi.Api.Explore.DeckReport", b =>
+                {
+                    b.HasOne("Erudi.Api.Decks.Deck", null)
+                        .WithMany()
+                        .HasForeignKey("DeckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_deck_reports_decks_deck_id");
+
+                    b.HasOne("Erudi.Api.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_deck_reports_users_reporter_id");
+                });
+
+            modelBuilder.Entity("Erudi.Api.Explore.DeckUse", b =>
+                {
+                    b.HasOne("Erudi.Api.Decks.Deck", null)
+                        .WithMany()
+                        .HasForeignKey("DeckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_deck_uses_decks_deck_id");
+
+                    b.HasOne("Erudi.Api.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_deck_uses_users_user_id");
+                });
+
             modelBuilder.Entity("Erudi.Api.Study.CardReview", b =>
                 {
                     b.HasOne("Erudi.Api.Decks.Card", null)
@@ -348,6 +509,8 @@ namespace Erudi.Api.Data.Migrations
             modelBuilder.Entity("Erudi.Api.Decks.Deck", b =>
                 {
                     b.Navigation("Cards");
+
+                    b.Navigation("Publication");
                 });
 #pragma warning restore 612, 618
         }

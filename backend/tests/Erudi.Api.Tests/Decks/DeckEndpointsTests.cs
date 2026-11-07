@@ -31,13 +31,14 @@ public sealed class DeckEndpointsTests(ErudiApiFactory factory) : IClassFixture<
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var deck = await response.Content.ReadFromJsonAsync<DeckResponse>(Cancellation);
-        Assert.Equal(new DeckResponse(deck!.Id, "Anglais", CardCount: 0, DueCount: 0, Level: 0), deck);
+        Assert.Equal(new DeckResponse(deck!.Id, "Anglais", CardCount: 0, DueCount: 0, Level: 0, Published: false), deck);
         Assert.EndsWith($"/api/decks/{deck.Id}", response.Headers.Location?.ToString(), StringComparison.OrdinalIgnoreCase);
 
         var stored = await factory.QueryAsync(db => db.Decks.SingleAsync(d => d.Id == deck.Id, Cancellation));
         Assert.Equal(learner.Id, stored.OwnerId);
         Assert.Equal("Anglais", stored.Name);
         Assert.Equal(factory.Clock.GetUtcNow(), stored.CreatedAt);
+        Assert.Equal(stored.CreatedAt, stored.UpdatedAt);
     }
 
     [Theory]
@@ -103,8 +104,8 @@ public sealed class DeckEndpointsTests(ErudiApiFactory factory) : IClassFixture<
         // Boxes 1, 3 and 4 average 2.67: the deck shows level 3.
         Assert.Equal(
             [
-                new DeckResponse(english.Id, "Anglais", CardCount: 3, DueCount: 1, Level: 3),
-                new DeckResponse(history.Id, "Histoire", CardCount: 0, DueCount: 0, Level: 0),
+                new DeckResponse(english.Id, "Anglais", CardCount: 3, DueCount: 1, Level: 3, Published: false),
+                new DeckResponse(history.Id, "Histoire", CardCount: 0, DueCount: 0, Level: 0, Published: false),
             ],
             decks);
     }
@@ -122,7 +123,7 @@ public sealed class DeckEndpointsTests(ErudiApiFactory factory) : IClassFixture<
         var own = await client.GetFromJsonAsync<DeckResponse>($"/api/decks/{deck.Id}", Cancellation);
         using var foreign = await stranger.GetAsync($"/api/decks/{deck.Id}", Cancellation);
 
-        Assert.Equal(new DeckResponse(deck.Id, "Anglais", CardCount: 1, DueCount: 1, Level: 1), own);
+        Assert.Equal(new DeckResponse(deck.Id, "Anglais", CardCount: 1, DueCount: 1, Level: 1, Published: false), own);
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
     }
 
@@ -219,6 +220,50 @@ public sealed class DeckEndpointsTests(ErudiApiFactory factory) : IClassFixture<
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
     }
 
+    [Fact]
+    public async Task Changes_ToTheNameOrTheCards_DateTheDeck_ButAnswersDoNot()
+    {
+        using var learner = await factory.SignInNewLearnerAsync();
+        using var stranger = await factory.SignInNewLearnerAsync();
+        var client = learner.Client;
+        var deck = await client.CreateDeckAsync("Anglais");
+
+        factory.Clock.Advance(TimeSpan.FromHours(1));
+        var card = await client.AddCardAsync(deck.Id);
+        var added = factory.Clock.GetUtcNow();
+        Assert.Equal(added, await UpdatedAtAsync(deck.Id));
+
+        factory.Clock.Advance(TimeSpan.FromHours(1));
+        using var edit = await client.PutAsJsonAsync($"/api/cards/{card.Id}", new CardRequest { Front = "to run out", Back = "manquer" }, Cancellation);
+        edit.EnsureSuccessStatusCode();
+        var edited = factory.Clock.GetUtcNow();
+        Assert.Equal(edited, await UpdatedAtAsync(deck.Id));
+
+        // Studying moves the card, but the deck's content stays the same.
+        factory.Clock.Advance(TimeSpan.FromHours(1));
+        using var answer = await client.PostAsJsonAsync("/api/study/answers", new { cardId = card.Id, knew = true }, Cancellation);
+        answer.EnsureSuccessStatusCode();
+        Assert.Equal(edited, await UpdatedAtAsync(deck.Id));
+
+        // Someone else's attempts change nothing either.
+        using var foreignRename = await stranger.Client.PutAsJsonAsync($"/api/decks/{deck.Id}", new DeckRequest { Name = "Hacked" }, Cancellation);
+        using var foreignDelete = await stranger.Client.DeleteAsync($"/api/cards/{card.Id}", Cancellation);
+        Assert.Equal(HttpStatusCode.NotFound, foreignRename.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, foreignDelete.StatusCode);
+        Assert.Equal(edited, await UpdatedAtAsync(deck.Id));
+
+        factory.Clock.Advance(TimeSpan.FromHours(1));
+        using var delete = await client.DeleteAsync($"/api/cards/{card.Id}", Cancellation);
+        Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+        var deleted = factory.Clock.GetUtcNow();
+        Assert.Equal(deleted, await UpdatedAtAsync(deck.Id));
+
+        factory.Clock.Advance(TimeSpan.FromHours(1));
+        using var rename = await client.PutAsJsonAsync($"/api/decks/{deck.Id}", new DeckRequest { Name = "English" }, Cancellation);
+        rename.EnsureSuccessStatusCode();
+        Assert.Equal(factory.Clock.GetUtcNow(), await UpdatedAtAsync(deck.Id));
+    }
+
     [Theory]
     [InlineData("GET", "/api/decks")]
     [InlineData("POST", "/api/decks")]
@@ -238,6 +283,9 @@ public sealed class DeckEndpointsTests(ErudiApiFactory factory) : IClassFixture<
         factory.QueryAsync(db => db.Cards
             .Where(c => c.Id == cardId)
             .ExecuteUpdateAsync(setters => setters.SetProperty(c => c.Box, box).SetProperty(c => c.DueOn, dueOn), Cancellation));
+
+    private Task<DateTimeOffset> UpdatedAtAsync(Guid deckId) =>
+        factory.QueryAsync(db => db.Decks.Where(d => d.Id == deckId).Select(d => d.UpdatedAt).SingleAsync(Cancellation));
 
     private Task<string> StoredNameAsync(Guid deckId) =>
         factory.QueryAsync(db => db.Decks.Where(d => d.Id == deckId).Select(d => d.Name).SingleAsync(Cancellation));
