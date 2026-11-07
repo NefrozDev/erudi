@@ -38,7 +38,7 @@
         <path d="M73 122q11 9 22 0" />
         <path d="M105 122q11 9 22 0" />
       </g>
-      <g fill="#17153b" font-family="Outfit, sans-serif" font-weight="800">
+      <g fill="#17153b" font-family="'Outfit Variable', sans-serif" font-weight="800">
         <text x="150" y="60" font-size="22">z</text>
         <text x="166" y="42" font-size="15">z</text>
       </g>

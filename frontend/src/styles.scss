@@ -22,7 +22,8 @@
 
   --radius-card: 18px;
   --radius-control: 14px;
-  --font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  // Served with the app (angular.json), so no visitor's address reaches a font provider.
+  --font-family: 'Outfit Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --page-max-width: 440px;
   --page-gutter: 20px;
 
