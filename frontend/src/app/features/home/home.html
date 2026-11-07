@@ -4,6 +4,32 @@
     <h1 class="title">{{ 'home.title' | transloco }}</h1>
   </header>
 
+  @if (goal(); as goal) {
+    <section class="goal" aria-labelledby="goal-title">
+      <div class="goal__summary">
+        <span class="goal__ring" aria-hidden="true" [style.--goal-percent]="goal.percent">
+          {{ goal.reviewed }}
+        </span>
+        <div>
+          <h2 class="goal__title" id="goal-title">{{ 'home.goal.title' | transloco }}</h2>
+          <p class="goal__progress">
+            {{ goal.progressKey | transloco: { reviewed: goal.reviewed, goal: goal.goal } }}
+          </p>
+        </div>
+      </div>
+      @if (goal.due > 0) {
+        <a class="button button--accent" routerLink="/study/quiz">
+          {{ goal.startKey | transloco }}
+        </a>
+      } @else {
+        <p class="goal__rest">{{ goal.restKey | transloco }}</p>
+      }
+      <a class="goal__practice" routerLink="/study/practice">
+        {{ 'home.goal.practice' | transloco }}
+      </a>
+    </section>
+  }
+
   @if (decks.hasValue()) {
     @if (rows().length === 0) {
       <section class="card home__empty">

@@ -8,6 +8,7 @@ import { routes } from './app.routes';
 import { AuthUser } from './core/auth/auth-api';
 import { AuthStore } from './core/auth/auth-store';
 import { Deck, DecksApi } from './core/decks/decks-api';
+import { StudyApi } from './core/study/study-api';
 import { TranslatedTitleStrategy } from './core/i18n/translated-title-strategy';
 import { OnboardingState } from './core/onboarding/onboarding-state';
 
@@ -20,6 +21,21 @@ describe('app routes', () => {
     listCards: () => of([]),
     getCard: () =>
       of({ id: 'c1', deckId: 'd1', front: 'a deadline', back: 'une échéance', box: 1 }),
+  };
+  const studyApi = {
+    summary: () => of({ reviewedToday: 0, dueCount: 1, boxes: [1, 0, 0, 0, 0] }),
+    cards: vi.fn(() =>
+      of([
+        {
+          id: 'c1',
+          deckId: 'd1',
+          deckName: 'Anglais',
+          front: 'a deadline',
+          back: 'une échéance',
+          box: 1,
+        },
+      ]),
+    ),
   };
   const hasSeenIntro = vi.fn(() => false);
   let harness: RouterTestingHarness;
@@ -35,6 +51,7 @@ describe('app routes', () => {
         { provide: AuthStore, useValue: { user, signedIn: () => user() !== null } },
         { provide: OnboardingState, useValue: { hasSeenIntro, markIntroSeen: vi.fn() } },
         { provide: DecksApi, useValue: decksApi },
+        { provide: StudyApi, useValue: studyApi },
       ],
     });
     harness = await RouterTestingHarness.create();
@@ -71,6 +88,8 @@ describe('app routes', () => {
     '/decks/d1/edit',
     '/decks/d1/cards/new',
     '/decks/d1/cards/c1',
+    '/study/quiz',
+    '/study/practice?deckId=d1',
   ])('should protect %s', async (url) => {
     expect(await visit(url)).toBe('/welcome');
   });
@@ -116,6 +135,31 @@ describe('app routes', () => {
     expect(root.querySelector(selector)).not.toBeNull();
     expect(root.querySelector('app-tab-shell')).toBeNull();
     expect(TestBed.inject(Title).getTitle()).toBe(title);
+  });
+
+  it.each([
+    ['/study/quiz', 'quiz', undefined, 'Révision · Erudi'],
+    ['/study/practice?deckId=d1', 'practice', 'd1', 'Entraînement · Erudi'],
+  ])('should open %s full screen, in the right mode', async (url, mode, deckId, title) => {
+    signIn();
+    studyApi.cards.mockClear();
+
+    expect(await visit(url)).toBe(url);
+    const root = harness.fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-study-session .flashcard')).not.toBeNull();
+    expect(root.querySelector('app-tab-shell')).toBeNull();
+    expect(studyApi.cards).toHaveBeenCalledExactlyOnceWith(mode, deckId);
+    expect(TestBed.inject(Title).getTitle()).toBe(title);
+  });
+
+  it('should show the boxes in the progress tab', async () => {
+    signIn();
+
+    expect(await visit('/progress')).toBe('/progress');
+    expect(
+      harness.fixture.nativeElement.querySelector('app-tab-shell app-progress'),
+    ).not.toBeNull();
+    expect(TestBed.inject(Title).getTitle()).toBe('Progrès · Erudi');
   });
 
   it('should hand the route ids to the deck screens', async () => {

@@ -53,6 +53,26 @@ describe('DeckPage', () => {
     expect(linkNamed(host, 'Ajouter une carte').getAttribute('href')).toBe('/decks/d1/cards/new');
   });
 
+  it("should start a quiz on the deck's due cards, or practice on any of them", async () => {
+    const host = await render();
+
+    expect(linkNamed(host, 'Réviser (1)').getAttribute('href')).toBe('/study/quiz?deckId=d1');
+    expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe('/study/practice?deckId=d1');
+    expect(host.querySelector('.deck-page__up-to-date')).toBeNull();
+  });
+
+  it('should say when nothing is due, still offering practice', async () => {
+    get.mockReturnValue(of({ ...deck, dueCount: 0 }));
+
+    const host = await render();
+
+    expect(textOf(host, '.deck-page__up-to-date')).toBe(
+      "Rien à réviser aujourd'hui dans ce paquet.",
+    );
+    expect(host.querySelector('a[href^="/study/quiz"]')).toBeNull();
+    expect(linkNamed(host, "S'entraîner")).toBeTruthy();
+  });
+
   it('should list the cards with their box, each opening its editor', async () => {
     const host = await render();
 
@@ -85,6 +105,8 @@ describe('DeckPage', () => {
     const host = await render();
 
     expect(textOf(host, 'h2')).toBe('Ce paquet est vide');
+    expect(host.querySelector('a[href^="/study/"]')).toBeNull();
+    expect(host.querySelector('.deck-page__up-to-date')).toBeNull();
     expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('surprised');
     expect(linkNamed(host, 'Ajouter une carte')).toBeTruthy();
     expect(cardLinks(host)).toHaveLength(0);

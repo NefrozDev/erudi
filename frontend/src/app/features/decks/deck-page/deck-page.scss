@@ -17,6 +17,24 @@
   gap: 12px;
 }
 
+.deck-page__pair {
+  display: flex;
+  gap: 12px;
+
+  .button {
+    flex: 1;
+    padding: 0 12px;
+  }
+}
+
+.deck-page__up-to-date {
+  padding: 12px 16px;
+  border-radius: var(--radius-control);
+  background: var(--color-tile-mint);
+  font-weight: 500;
+  text-align: center;
+}
+
 .deck-page__cards {
   display: flex;
   flex-direction: column;

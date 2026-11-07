@@ -1,0 +1,33 @@
+<main class="page progress">
+  <h1 class="title">{{ 'progress.title' | transloco }}</h1>
+
+  @if (summary.hasValue()) {
+    <p class="subtitle">{{ subtitleKey() | transloco: { count: total() } }}</p>
+
+    <ol class="progress__boxes">
+      @for (box of boxes(); track box.number) {
+        <li class="progress__box">
+          <span class="progress__box-text">
+            <span class="progress__box-name">{{
+              'common.box' | transloco: { box: box.number }
+            }}</span>
+            <span class="progress__box-interval">
+              {{ 'progress.intervals.' + box.number | transloco }}
+            </span>
+          </span>
+          <span class="progress__count">
+            {{ box.count }}
+            <span class="visually-hidden">{{ box.countKey | transloco }}</span>
+          </span>
+        </li>
+      }
+    </ol>
+  } @else if (summary.error()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'common.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="summary.reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  }
+</main>

@@ -1,0 +1,180 @@
+<main class="study">
+  @if (cards.hasValue()) {
+    @if (total() === 0) {
+      <section class="study__end">
+        <app-plic mood="sleepy" />
+        <h1 class="study__end-title">
+          {{
+            (mode() === 'quiz' ? 'study.empty.quizTitle' : 'study.empty.practiceTitle') | transloco
+          }}
+        </h1>
+        <p class="study__end-text">
+          {{
+            (mode() === 'quiz' ? 'study.empty.quizText' : 'study.empty.practiceText') | transloco
+          }}
+        </p>
+        <div class="study__actions">
+          @if (mode() === 'quiz') {
+            <a
+              class="button button--accent"
+              routerLink="/study/practice"
+              [queryParams]="{ deckId: deckId() }"
+              replaceUrl
+            >
+              {{ 'study.empty.practice' | transloco }}
+            </a>
+          }
+          <a class="button study__ghost" [routerLink]="exitLink()" replaceUrl>
+            {{ 'study.empty.back' | transloco }}
+          </a>
+        </div>
+      </section>
+    } @else if (finished()) {
+      <section class="study__end" aria-labelledby="study-done-title">
+        <app-plic mood="proud" />
+        <h1
+          class="study__end-title study__end-title--big"
+          id="study-done-title"
+          tabindex="-1"
+          #doneTitle
+        >
+          {{ 'study.done.title' | transloco }}
+        </h1>
+        <p class="study__end-text">
+          {{ (mode() === 'quiz' ? 'study.done.quizText' : 'study.done.practiceText') | transloco }}
+        </p>
+
+        <dl class="study__stats">
+          <div class="study__stat">
+            <dt class="study__stat-label">{{ knewKey() | transloco }}</dt>
+            <dd class="study__stat-value study__stat-value--knew">{{ knew() }}</dd>
+          </div>
+          <div class="study__stat">
+            <dt class="study__stat-label">{{ 'study.done.again' | transloco }}</dt>
+            <dd class="study__stat-value study__stat-value--again">{{ toReview() }}</dd>
+          </div>
+        </dl>
+        @if (mode() === 'practice') {
+          <p class="study__end-text">{{ 'study.done.practiceNote' | transloco }}</p>
+        }
+
+        <div class="study__actions">
+          <a class="button button--accent" [routerLink]="exitLink()" replaceUrl>
+            {{ 'study.done.finish' | transloco }}
+          </a>
+        </div>
+      </section>
+    } @else if (current(); as card) {
+      <header class="study__bar">
+        <a
+          class="study__close"
+          [routerLink]="exitLink()"
+          replaceUrl
+          [attr.aria-label]="'study.quit' | transloco"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </a>
+        <div
+          class="study__progress"
+          role="progressbar"
+          aria-valuemin="0"
+          [attr.aria-valuemax]="total()"
+          [attr.aria-valuenow]="index()"
+          [attr.aria-valuetext]="
+            'study.progress' | transloco: { current: index() + 1, total: total() }
+          "
+        >
+          <span class="study__progress-fill" [style.width.%]="progress()"></span>
+        </div>
+        <span class="study__count" aria-hidden="true">{{ index() + 1 }}/{{ total() }}</span>
+      </header>
+
+      @if (!flipped()) {
+        <button type="button" class="flashcard" #frontFace (click)="flip()">
+          <ng-container *ngTemplateOutlet="chip" />
+          <span class="flashcard__text">{{ card.front }}</span>
+          <span class="flashcard__hint">{{ 'study.tapToFlip' | transloco }}</span>
+        </button>
+        <div class="study__actions">
+          <button type="button" class="button button--accent" (click)="flip()">
+            {{ 'study.flip' | transloco }}
+          </button>
+        </div>
+      } @else {
+        <section
+          class="flashcard flashcard--back"
+          tabindex="-1"
+          #backFace
+          [attr.aria-label]="'study.answer' | transloco"
+        >
+          <ng-container *ngTemplateOutlet="chip" />
+          <p class="flashcard__text">{{ card.back }}</p>
+          <p class="flashcard__hint">{{ card.front }}</p>
+        </section>
+
+        @if (answerFailed()) {
+          <p class="alert" role="alert">{{ 'study.answerError' | transloco }}</p>
+        }
+        <div class="study__actions study__actions--pair">
+          <button
+            type="button"
+            class="button study__ghost"
+            [disabled]="answering()"
+            (click)="answer(false)"
+          >
+            {{ 'study.didNotKnow' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="button button--accent"
+            [disabled]="answering()"
+            (click)="answer(true)"
+          >
+            {{ 'study.knew' | transloco }}
+          </button>
+        </div>
+      }
+    }
+  } @else if (notFound()) {
+    <section class="study__end">
+      <app-plic mood="surprised" />
+      <h1 class="study__end-title">{{ 'decks.notFoundTitle' | transloco }}</h1>
+      <p class="study__end-text">{{ 'decks.notFoundText' | transloco }}</p>
+      <div class="study__actions">
+        <a class="button button--accent" routerLink="/" replaceUrl>
+          {{ 'study.empty.back' | transloco }}
+        </a>
+      </div>
+    </section>
+  } @else if (cards.error()) {
+    <section class="study__end">
+      <div class="alert alert--retry" role="alert">
+        <p>{{ 'common.loadError' | transloco }}</p>
+        <button type="button" class="text-link" (click)="cards.reload()">
+          {{ 'common.retry' | transloco }}
+        </button>
+      </div>
+      <div class="study__actions">
+        <a class="button study__ghost" [routerLink]="exitLink()" replaceUrl>
+          {{ 'study.empty.back' | transloco }}
+        </a>
+      </div>
+    </section>
+  }
+</main>
+
+<!-- The card's deck (when the session mixes decks) and box, on both faces. -->
+<ng-template #chip>
+  @if (current(); as card) {
+    <span class="flashcard__chip">
+      @if (deckId() === undefined) {
+        <span class="flashcard__deck">{{ card.deckName }}</span>
+        <span aria-hidden="true">·</span>
+      }
+      <span>{{ 'common.box' | transloco: { box: card.box } }}</span>
+      <app-box-meter [level]="card.box" />
+    </span>
+  }
+</ng-template>

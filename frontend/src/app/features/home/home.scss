@@ -3,6 +3,69 @@
   min-height: auto;
 }
 
+// The violet card of screen 7.
+.goal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 20px 20px;
+  border-radius: 28px;
+  background: var(--color-violet);
+  color: var(--color-surface);
+}
+
+.goal__summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+// A ring filled up to --goal-percent, around today's count.
+.goal__ring {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  font-size: 1.6rem;
+  font-weight: 700;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--color-yellow) calc(var(--goal-percent) * 1%),
+      rgb(255 255 255 / 0.2) 0
+    );
+    content: '';
+    mask: radial-gradient(farthest-side, transparent calc(100% - 10px), black calc(100% - 9px));
+  }
+}
+
+.goal__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.goal__progress,
+.goal__rest {
+  color: var(--color-violet-soft);
+}
+
+.goal__rest {
+  font-weight: 700;
+}
+
+.goal__practice {
+  align-self: center;
+  color: var(--color-surface);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
 .home__empty {
   display: flex;
   flex-direction: column;

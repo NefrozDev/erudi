@@ -7,11 +7,13 @@ import { buttonNamed, linkNamed, settle, textOf } from '../../../testing/dom';
 import { AuthUser } from '../../core/auth/auth-api';
 import { AuthStore } from '../../core/auth/auth-store';
 import { Deck, DecksApi } from '../../core/decks/decks-api';
+import { StudyApi, StudySummary } from '../../core/study/study-api';
 import { Home } from './home';
 
 describe('Home', () => {
   const user = signal<AuthUser | null>({ id: '1', username: 'chloe', email: 'chloe@example.be' });
   const list = vi.fn<() => Observable<Deck[]>>();
+  const summary = vi.fn<() => Observable<StudySummary>>();
   const decks: Deck[] = [
     { id: 'd1', name: 'anglais', cardCount: 120, dueCount: 12, level: 3 },
     { id: 'd2', name: 'Permis', cardCount: 8, dueCount: 1, level: 2 },
@@ -22,11 +24,13 @@ describe('Home', () => {
 
   beforeEach(() => {
     list.mockReset().mockReturnValue(of(decks));
+    summary.mockReset().mockReturnValue(of(summaryOf(12, 12)));
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         { provide: AuthStore, useValue: { user } },
         { provide: DecksApi, useValue: { list } },
+        { provide: StudyApi, useValue: { summary } },
       ],
     });
   });
@@ -35,6 +39,10 @@ describe('Home', () => {
     fixture = TestBed.createComponent(Home);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
+  }
+
+  function summaryOf(reviewedToday: number, dueCount: number, cards = 132): StudySummary {
+    return { reviewedToday, dueCount, boxes: [cards, 0, 0, 0, 0] };
   }
 
   function rows(host: HTMLElement): HTMLAnchorElement[] {
@@ -52,7 +60,7 @@ describe('Home', () => {
     const host = await render();
 
     expect(list).toHaveBeenCalledTimes(1);
-    expect(textOf(host, 'h2')).toBe('Mes paquets');
+    expect(textOf(host, '#home-decks-title')).toBe('Mes paquets');
     expect(rows(host).map((row) => row.getAttribute('href'))).toEqual([
       '/decks/d1',
       '/decks/d2',
@@ -111,10 +119,12 @@ describe('Home', () => {
 
   it('should invite a new learner to create a first deck', async () => {
     list.mockReturnValue(of([]));
+    summary.mockReturnValue(of(summaryOf(0, 0, 0)));
 
     const host = await render();
 
     expect(textOf(host, 'h2')).toBe("Aucun paquet pour l'instant");
+    expect(host.querySelector('.goal')).toBeNull();
     expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('sleepy');
     expect(linkNamed(host, 'Créer un paquet').getAttribute('href')).toBe('/decks/new');
     expect(rows(host)).toHaveLength(0);
@@ -135,5 +145,61 @@ describe('Home', () => {
     expect(list).toHaveBeenCalledTimes(2);
     expect(host.querySelector('[role="alert"]')).toBeNull();
     expect(rows(host)).toHaveLength(4);
+  });
+
+  describe('daily goal', () => {
+    it('should show today’s answers out of the goal, and continue the session', async () => {
+      const host = await render();
+
+      expect(summary).toHaveBeenCalledTimes(1);
+      expect(textOf(host, '#goal-title')).toBe('Objectif du jour');
+      expect(textOf(host, '.goal__progress')).toBe('12 sur 24 cartes révisées');
+      expect(textOf(host, '.goal__ring')).toBe('12');
+      expect(
+        host.querySelector<HTMLElement>('.goal__ring')?.style.getPropertyValue('--goal-percent'),
+      ).toBe('50');
+      expect(linkNamed(host, 'Continuer la session').getAttribute('href')).toBe('/study/quiz');
+      expect(linkNamed(host, "S'entraîner sans changer les boîtes").getAttribute('href')).toBe(
+        '/study/practice',
+      );
+    });
+
+    it('should start the session when nothing is answered yet', async () => {
+      summary.mockReturnValue(of(summaryOf(0, 1)));
+
+      const host = await render();
+
+      expect(textOf(host, '.goal__progress')).toBe('0 sur 1 carte révisée');
+      expect(linkNamed(host, 'Commencer la session').getAttribute('href')).toBe('/study/quiz');
+    });
+
+    it('should congratulate once everything due is answered', async () => {
+      summary.mockReturnValue(of(summaryOf(5, 0)));
+
+      const host = await render();
+
+      expect(textOf(host, '.goal__rest')).toBe("Tout est révisé pour aujourd'hui. Bravo !");
+      expect(host.querySelector('a[href="/study/quiz"]')).toBeNull();
+      expect(host.querySelector('a[href="/study/practice"]')).not.toBeNull();
+    });
+
+    it('should say when nothing is due today', async () => {
+      summary.mockReturnValue(of(summaryOf(0, 0)));
+
+      const host = await render();
+
+      expect(textOf(host, '.goal__rest')).toBe("Rien à réviser aujourd'hui. Reviens demain !");
+      expect(host.querySelector('a[href="/study/quiz"]')).toBeNull();
+    });
+
+    it('should stay hidden when the summary cannot be loaded, leaving the decks', async () => {
+      summary.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+
+      const host = await render();
+
+      expect(host.querySelector('.goal')).toBeNull();
+      expect(host.querySelector('[role="alert"]')).toBeNull();
+      expect(rows(host)).toHaveLength(4);
+    });
   });
 });

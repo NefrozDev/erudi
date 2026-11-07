@@ -1,0 +1,243 @@
+// Screens 10 to 12: full-screen violet, the card in white.
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--color-violet);
+  color: var(--color-surface);
+}
+
+.study {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: var(--page-max-width);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 20px var(--page-gutter) calc(24px + env(safe-area-inset-bottom));
+}
+
+:focus-visible {
+  outline-color: var(--color-yellow);
+}
+
+.study__bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.study__close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: -8px;
+  border-radius: 50%;
+  color: var(--color-surface);
+
+  svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 3;
+  }
+
+  &:hover {
+    background: rgb(255 255 255 / 0.12);
+  }
+}
+
+.study__progress {
+  flex: 1;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgb(255 255 255 / 0.25);
+}
+
+.study__progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-yellow);
+  transition: width 0.3s ease-out;
+}
+
+.study__count {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.flashcard {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 360px;
+  margin: 0;
+  padding: 24px 20px;
+  border: 0;
+  border-radius: 32px;
+  background: var(--color-surface);
+  color: var(--color-night);
+  font: inherit;
+  text-align: center;
+  animation: flashcard-turn 0.25s ease-out;
+
+  &:is(button) {
+    cursor: pointer;
+  }
+}
+
+// The card turns into view; skipped for people who asked for less motion.
+@keyframes flashcard-turn {
+  from {
+    transform: perspective(900px) rotateY(80deg);
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flashcard {
+    animation: none;
+  }
+
+  .study__progress-fill {
+    transition: none;
+  }
+}
+
+.flashcard__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--color-violet-soft);
+  font-weight: 700;
+}
+
+.flashcard__deck {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flashcard__text {
+  margin: 0;
+  font-size: clamp(1.6rem, 7vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.flashcard__hint {
+  margin: 0;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.study__actions {
+  display: grid;
+  gap: 12px;
+}
+
+.study__actions--pair {
+  grid-template-columns: 1fr 1fr;
+}
+
+// White outline on violet, as "Je ne savais pas" on screen 11.
+.study__ghost {
+  border-color: var(--color-surface);
+  background: transparent;
+  color: var(--color-surface);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-surface);
+    background: rgb(255 255 255 / 0.12);
+  }
+}
+
+.study__end {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 32px;
+  text-align: center;
+  --plic-size: 180px;
+
+  .study__actions {
+    align-self: stretch;
+    margin-top: auto;
+    padding-top: 24px;
+  }
+
+  .alert {
+    align-self: stretch;
+    text-align: left;
+  }
+}
+
+.study__end-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+  outline: none;
+}
+
+.study__end-title--big {
+  font-size: 3rem;
+}
+
+.study__end-text {
+  color: var(--color-violet-soft);
+  font-size: 1.1rem;
+}
+
+.study__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-self: stretch;
+  margin: 16px 0 0;
+}
+
+// The number reads first, as on screen 12; the label stays first in the markup.
+.study__stat {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 12px;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+.study__stat-value {
+  margin: 0;
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.study__stat-value--knew {
+  color: var(--color-success);
+}
+
+.study__stat-value--again {
+  color: var(--color-danger);
+}

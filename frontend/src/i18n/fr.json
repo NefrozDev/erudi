@@ -13,7 +13,9 @@
     "deck": "Paquet",
     "editDeck": "Modifier le paquet",
     "newCard": "Nouvelle carte",
-    "editCard": "Modifier la carte"
+    "editCard": "Modifier la carte",
+    "quiz": "Révision",
+    "practice": "Entraînement"
   },
   "intro": {
     "skip": "Passer",
@@ -131,7 +133,19 @@
     "emptyTitle": "Aucun paquet pour l'instant",
     "emptyText": "Crée ton premier paquet, puis ajoute-lui des cartes.",
     "createFirst": "Créer un paquet",
-    "loadError": "Impossible de charger tes paquets. Vérifie ta connexion."
+    "loadError": "Impossible de charger tes paquets. Vérifie ta connexion.",
+    "goal": {
+      "title": "Objectif du jour",
+      "progress": {
+        "one": "{{reviewed}} sur {{goal}} carte révisée",
+        "other": "{{reviewed}} sur {{goal}} cartes révisées"
+      },
+      "start": "Commencer la session",
+      "continue": "Continuer la session",
+      "allDone": "Tout est révisé pour aujourd'hui. Bravo !",
+      "nothingDue": "Rien à réviser aujourd'hui. Reviens demain !",
+      "practice": "S'entraîner sans changer les boîtes"
+    }
   },
   "decks": {
     "back": "Paquets",
@@ -157,7 +171,10 @@
       "deleteConfirm": "Supprimer « {{name}} » et ses cartes ? C'est définitif.",
       "deleteConfirmButton": "Supprimer définitivement",
       "keep": "Garder le paquet"
-    }
+    },
+    "quiz": "Réviser ({{count}})",
+    "practice": "S'entraîner",
+    "upToDate": "Rien à réviser aujourd'hui dans ce paquet."
   },
   "cards": {
     "newTitle": "Nouvelle carte",
@@ -176,6 +193,58 @@
     "keep": "Garder la carte",
     "notFoundTitle": "Carte introuvable",
     "notFoundText": "Cette carte n'existe plus."
+  },
+  "study": {
+    "quit": "Quitter la session",
+    "progress": "Carte {{current}} sur {{total}}",
+    "tapToFlip": "Touche pour retourner",
+    "flip": "Retourner la carte",
+    "answer": "Réponse",
+    "knew": "Je savais",
+    "didNotKnow": "Je ne savais pas",
+    "answerError": "Ta réponse n'a pas été enregistrée. Réessaie.",
+    "done": {
+      "title": "Bravo !",
+      "quizText": "Session terminée",
+      "practiceText": "Entraînement terminé",
+      "movedUp": {
+        "one": "carte monte",
+        "other": "cartes montent"
+      },
+      "knew": {
+        "one": "bonne réponse",
+        "other": "bonnes réponses"
+      },
+      "again": "à revoir",
+      "practiceNote": "Les cartes n'ont pas changé de boîte.",
+      "finish": "Terminer"
+    },
+    "empty": {
+      "quizTitle": "Rien à réviser pour l'instant",
+      "quizText": "Tes cartes reviendront quand ce sera leur tour. Tu peux t'entraîner en attendant.",
+      "practiceTitle": "Aucune carte pour s'entraîner",
+      "practiceText": "Ajoute d'abord des cartes à un paquet.",
+      "practice": "S'entraîner",
+      "back": "Retour"
+    }
+  },
+  "progress": {
+    "title": "Progression",
+    "subtitle": {
+      "one": "{{count}} carte répartie dans 5 boîtes",
+      "other": "{{count}} cartes réparties dans 5 boîtes"
+    },
+    "intervals": {
+      "1": "Chaque jour",
+      "2": "Tous les 2 jours",
+      "3": "Tous les 4 jours",
+      "4": "Chaque semaine",
+      "5": "Toutes les 2 semaines"
+    },
+    "cards": {
+      "one": "carte",
+      "other": "cartes"
+    }
   },
   "comingSoon": {
     "title": "Bientôt disponible",

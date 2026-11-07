@@ -57,8 +57,7 @@ export const routes: Routes = [
           {
             path: 'progress',
             title: 'titles.progress',
-            loadComponent: () =>
-              import('./features/coming-soon/coming-soon').then((m) => m.ComingSoon),
+            loadComponent: () => import('./features/progress/progress').then((m) => m.Progress),
           },
           {
             path: 'settings',
@@ -67,7 +66,19 @@ export const routes: Routes = [
           },
         ],
       },
-      // Full-screen pages, without the bottom bar (screens 8 and 9).
+      // Full-screen pages, without the bottom bar (screens 8 to 12).
+      {
+        path: 'study/quiz',
+        title: 'titles.quiz',
+        data: { mode: 'quiz' },
+        loadComponent: () => import('./features/study/study-session').then((m) => m.StudySession),
+      },
+      {
+        path: 'study/practice',
+        title: 'titles.practice',
+        data: { mode: 'practice' },
+        loadComponent: () => import('./features/study/study-session').then((m) => m.StudySession),
+      },
       {
         path: 'decks/new',
         title: 'titles.newDeck',

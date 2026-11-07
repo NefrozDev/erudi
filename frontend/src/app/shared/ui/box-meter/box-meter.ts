@@ -23,7 +23,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     .box-meter__bar {
       width: 8px;
       border-radius: 4px;
-      background: var(--color-violet-soft);
+      background: var(--color-tile-violet);
 
       @for $i from 1 through 5 {
         &:nth-child(#{$i}) {

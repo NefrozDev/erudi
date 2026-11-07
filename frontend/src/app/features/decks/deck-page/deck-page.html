@@ -20,9 +20,27 @@
     </p>
 
     <div class="deck-page__actions">
-      <a class="button button--secondary" [routerLink]="['/decks', deckId(), 'cards', 'new']">
-        {{ 'decks.addCard' | transloco }}
-      </a>
+      @if (deck.value().dueCount > 0) {
+        <a class="button" routerLink="/study/quiz" [queryParams]="{ deckId: deckId() }">
+          {{ 'decks.quiz' | transloco: { count: deck.value().dueCount } }}
+        </a>
+      } @else if (deck.value().cardCount > 0) {
+        <p class="deck-page__up-to-date">{{ 'decks.upToDate' | transloco }}</p>
+      }
+      <div class="deck-page__pair">
+        @if (deck.value().cardCount > 0) {
+          <a
+            class="button button--secondary"
+            routerLink="/study/practice"
+            [queryParams]="{ deckId: deckId() }"
+          >
+            {{ 'decks.practice' | transloco }}
+          </a>
+        }
+        <a class="button button--secondary" [routerLink]="['/decks', deckId(), 'cards', 'new']">
+          {{ 'decks.addCard' | transloco }}
+        </a>
+      </div>
     </div>
 
     @if (cards.value().length === 0) {
