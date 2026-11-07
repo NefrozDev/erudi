@@ -174,6 +174,52 @@ namespace Erudi.Api.Data.Migrations
                     b.ToTable("decks", (string)null);
                 });
 
+            modelBuilder.Entity("Erudi.Api.Study.CardReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("CardId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("card_id");
+
+                    b.Property<int>("FromBox")
+                        .HasColumnType("integer")
+                        .HasColumnName("from_box");
+
+                    b.Property<bool>("Knew")
+                        .HasColumnType("boolean")
+                        .HasColumnName("knew");
+
+                    b.Property<DateTimeOffset>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<DateOnly>("StudyDay")
+                        .HasColumnType("date")
+                        .HasColumnName("study_day");
+
+                    b.Property<int>("ToBox")
+                        .HasColumnType("integer")
+                        .HasColumnName("to_box");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_card_reviews");
+
+                    b.HasIndex("CardId")
+                        .HasDatabaseName("ix_card_reviews_card_id");
+
+                    b.HasIndex("UserId", "StudyDay")
+                        .HasDatabaseName("ix_card_reviews_user_id_study_day");
+
+                    b.ToTable("card_reviews", (string)null);
+                });
+
             modelBuilder.Entity("Erudi.Api.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -281,6 +327,22 @@ namespace Erudi.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_decks_users_owner_id");
+                });
+
+            modelBuilder.Entity("Erudi.Api.Study.CardReview", b =>
+                {
+                    b.HasOne("Erudi.Api.Decks.Card", null)
+                        .WithMany()
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_card_reviews_cards_card_id");
+
+                    b.HasOne("Erudi.Api.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_card_reviews_users_user_id");
                 });
 
             modelBuilder.Entity("Erudi.Api.Decks.Deck", b =>

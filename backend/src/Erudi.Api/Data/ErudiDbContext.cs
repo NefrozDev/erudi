@@ -1,5 +1,6 @@
 using Erudi.Api.Auth;
 using Erudi.Api.Decks;
+using Erudi.Api.Study;
 using Erudi.Api.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,8 @@ public sealed class ErudiDbContext(DbContextOptions<ErudiDbContext> options) : D
     public DbSet<Deck> Decks => Set<Deck>();
 
     public DbSet<Card> Cards => Set<Card>();
+
+    public DbSet<CardReview> CardReviews => Set<CardReview>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ErudiDbContext).Assembly);

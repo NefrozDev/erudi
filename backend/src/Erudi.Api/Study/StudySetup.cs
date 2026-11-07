@@ -7,6 +7,7 @@ public static class StudySetup
         // StudyCalendar reads the learner's time zone from the current request.
         services.AddHttpContextAccessor();
         services.AddScoped<StudyCalendar>();
+        services.AddScoped<StudyService>();
 
         return services;
     }
