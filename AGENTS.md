@@ -9,6 +9,7 @@ Instructions for AI coding agents working in this repository.
   - `backend/src/Erudi.Api/` hosts the API.
   - `backend/tests/Erudi.Api.Tests/` holds the xUnit v3 tests, run through Microsoft.Testing.Platform.
 - The root `package.json` provides convenience scripts for both sides.
+- Production: `compose.prod.yaml` is the VPS stack, `deploy/` holds its Caddyfile, Mailcow nginx block and database scripts, and `.github/workflows/ci.yml` checks both apps and publishes the images (see Deployment).
 
 ## Architecture
 
@@ -22,7 +23,7 @@ Instructions for AI coding agents working in this repository.
 - Components use `ChangeDetectionStrategy.OnPush`, signals, `inject()` and the built-in control flow.
 - Pages load data with `rxResource` over the API services in `core/` (stable in Angular 22). `value()` throws while a resource is in error, so templates check `hasValue()` first; a 404 shows a "not found" `.state-card`, any other error an `.alert--retry` with a retry button.
 - API calls use relative `/api/...` URLs. In development, `proxy.conf.json` forwards them to the backend on `http://localhost:5080`.
-- The design follows the mockup (`Maquette-Boite-de-Leitner.pdf`, screen numbers in component docs). Colors, radii and the Outfit font are CSS variables in `src/styles.scss`, with shared `.page`, `.button`, `.field` and `.card` classes; components use the variables, never raw hex values. Plic, the mascot, is `app-plic` with a `mood` (`happy`, `surprised`, `proud`, `sleepy`); it is decorative, so the screen text must say what it means.
+- The design follows the mockup (`Maquette-Boite-de-Leitner.pdf`, screen numbers in component docs). Colors, radii and the Outfit font (`'Outfit Variable'`, bundled from `@fontsource-variable/outfit`) are CSS variables in `src/styles.scss`, with shared `.page`, `.button`, `.field` and `.card` classes; components use the variables, never raw hex values. Plic, the mascot, is `app-plic` with a `mood` (`happy`, `surprised`, `proud`, `sleepy`); it is decorative, so the screen text must say what it means.
 - Shared UI: `app-box-meter` (the five box bars), `app-delete-confirmation` (asks before deleting), and the global `.state-card` and `.alert--retry` classes.
 - Texts go through Transloco. `src/i18n/fr.json` is the only language for now and loads as a hashed lazy chunk before the first screen. Templates use the `transloco` pipe; validation messages are translation keys. Every TestBed gets the French texts through `src/test-providers.ts` (`providersFile`), so specs assert French strings.
 - Counted texts have `.one` and `.other` forms, picked with `countKey()` (`shared/i18n`); French uses the singular for 0 and 1.
@@ -30,14 +31,17 @@ Instructions for AI coding agents working in this repository.
 - Auth: the session is an HttpOnly cookie the code never sees. `AuthStore` (`core/auth`) holds the user; `provideAppInitializer` restores it before the first route, so `signedInGuard`/`signedOutGuard` read it synchronously. `sessionExpiryInterceptor` signs out locally on any 401 outside `/api/auth/`.
 - Forms use signal forms (`@angular/forms/signals`, stable in Angular 22) with `[formRoot]` and `[formField]`. Show field errors through `visibleError()` (only once touched) and set `aria-invalid`/`aria-describedby`. Server errors about a field are returned from the submission action; errors about the whole form go in a separate `formError` signal, because a root submission error would block re-sending the same values.
 - An `<input type="email">` already strips surrounding spaces; do not trim again.
-- Signed-in screens sit under one `signedInGuard` route: the tabs are children of `TabShell` (bottom bar), while decks (`decks/...`), study sessions (`study/quiz`, `study/practice`), public decks (`explore/:deckId`, `.../test`, `.../report`) and `publish` are full-screen. Routes give a translation key as `title`.
+- Signed-in screens sit under one `signedInGuard` route: the tabs are children of `TabShell` (bottom bar), while decks (`decks/...`), study sessions (`study/quiz`, `study/practice`), public decks (`explore/:deckId`, `.../test`, `.../report`), `publish` and `settings/delete-account` are full-screen. Routes give a translation key as `title`.
+- `/terms` (`features/legal`) is public and holds the terms of use and the privacy policy. They state facts: 30-day session cookie, 30-minute reset links, 14-day backups, no third-party service, OVHcloud hosting, what deleting an account erases. Keep them true when the app or its deployment changes, and move `TERMS_UPDATED_ON` with any change to the `terms` texts. Forms in progress (sign-up, publish) open them in a new tab.
+- Nothing loads from another origin, which the privacy policy promises: no CDN, font service or analytics without changing the terms first.
+- Settings (screen 17) has the account, the terms and account deletion (`settings/delete-account`, confirmed with the password); the reminder, notifications, theme, language and Premium rows of the mockup are not built yet.
 - Explorer (`features/explore`, `core/explore`): `ExploreApi` covers both the public side (search, sheet, test, copy, report) and the author's publication. The search text and category live in the query string, so "back" finds the same list; the field only follows its own typing, never the address, and the search waits for a pause in typing. `StudySession` runs the public test as a third `mode` (`test`): it posts nothing per card and saves the score at the end.
 - Route params, query params (`?deckId=`) and route data (`mode`) reach components as inputs (`withComponentInputBinding()`); specs that render routes must enable it too. Ids from the address bar are encoded before going into an API URL.
 - `timeZoneInterceptor` sends the device's IANA time zone in `X-Time-Zone` with every `/api/` call.
 
 ### Backend
 
-- `Program.cs` configures the pipeline: problem details for errors, health checks on `/api/health`, and OpenAPI at `/openapi/v1.json` in Development only.
+- `Program.cs` configures the pipeline: problem details for errors, health checks on `/api/health`, and OpenAPI at `/openapi/v1.json` in Development only. No HTTPS redirection or HSTS: the proxies in front handle both (see Deployment).
 - Expose every endpoint under `/api/*`. Controllers go in `src/Erudi.Api/Controllers/`.
 - Keep controllers thin and move business logic into injectable services.
 - `Directory.Build.props` enables nullable reference types and treats warnings as errors for every project.
@@ -47,6 +51,7 @@ Instructions for AI coding agents working in this repository.
 - `AllowedOriginMiddleware` refuses state-changing requests whose Origin or Referer is not `Frontend:Url` (CSRF). Running the Angular app on another port or domain means setting `Frontend__Url`.
 - `[EnableRateLimiting(AuthSetup.RateLimitPolicy)]` limits auth endpoints per client IP (`Auth:RateLimitPerMinute`). The IP comes from `X-Forwarded-For` of private-network proxies only (`SecuritySetup`).
 - Password recovery always answers 204. The link puts a single-use, 30-minute token in the URL fragment; using it ends every session. E-mails go through `IMailQueue` (a background channel drained by `MailDispatcher`, sent with MailKit) so requests never wait on SMTP. Without `Smtp:Host`, Development logs the reset link instead.
+- `DELETE /api/account` (`AccountController`) deletes the account once the password matches. It sits outside `api/auth` so the app reads its 401 as an ended session, and it shares the auth rate limit. Everything a learner owns goes with them through ON DELETE CASCADE, as the terms promise: a new table holding a learner's data must cascade from `users`, or from a table that does.
 - Use `TimeProvider` for the current time, never `DateTime.UtcNow`, so tests can move the clock.
 - Decks and cards (`Decks/`) belong to one user: every query filters on the owner, and someone else's deck or card answers 404, never 403. `DeckRules` holds the lengths and the anti-abuse limits (200 decks, 2000 cards per deck).
 - Leitner (`Study/`): `LeitnerSchedule` holds the five boxes and their intervals (1, 2, 4, 7, 14 days). Due dates are `DateOnly` days of the learner; get "today" from `StudyCalendar`, which reads `X-Time-Zone` and falls back to Europe/Brussels. A quiz answer moves the card with a conditional update (only if it is still where it was read), so it never moves twice; `card_reviews` logs each answer and keeps it when the card is deleted. Practice writes nothing.
@@ -67,6 +72,15 @@ Run these from the repository root.
 | Tests (Vitest + xUnit) | `npm test` |
 | Builds | `npm run build` |
 
+## Deployment
+
+- Target: the OVH VPS shared with Mailcow and Plano (see Plano's AGENTS.md), at `erudi.synapseengineering.dev`. Its Cloudflare record is the owner's to set (DNS only, like Plano's). Never change DNS, the firewall, Mailcow's ports or its certificate flow: a mistake breaks e-mail. The README has the first-deployment steps.
+- Flow: CI (`.github/workflows/ci.yml`) lints, tests and builds both apps, then, only on `main`, pushes `ghcr.io/nefrozdev/erudi-api` and `erudi-web`. Keep its commands in step with the package scripts. Never build images on the VPS; there: `git pull`, then `docker compose -f compose.prod.yaml pull && docker compose -f compose.prod.yaml up -d --wait`.
+- Stack: `erudi-web` (Caddy, `frontend/Dockerfile`, `deploy/Caddyfile`) serves Angular and proxies `/api` to `erudi-api` (`backend/Dockerfile`, port 8080). Both images build from the repository root and run unprivileged; keep `mem_limit` on both. Service names stay `erudi-*`: a service name becomes a host name on Plano's and Mailcow's networks, where `api` or `web` would also answer for Plano's.
+- Database: Erudi's own role and database in Plano's PostgreSQL, created once by `deploy/create-database.sh`. The API joins Plano's network (`PLANO_NETWORK`) and reaches it as `db`. `deploy/backup.sh` dumps it nightly and keeps 14 days, as the terms say.
+- HTTPS: Mailcow's nginx terminates it (`deploy/mailcow-erudi.conf`, domain in Mailcow's `ADDITIONAL_SAN`) and reaches `erudi-web` over the Mailcow network. Caddy keeps nginx's `X-Forwarded-For` (`trusted_proxies`) and `SecuritySetup` trusts two private hops: keep both, or every user shares one rate-limit bucket.
+- Settings come from the VPS `.env` only (template: `.env.production.example`), passed as `ConnectionStrings__Erudi`, `Frontend__Url` and `Smtp__*`. The database password is hex: it sits in the connection string.
+
 ## Coding Guidelines
 
 - Keep changes scoped to the requested area and avoid unrelated refactors.
@@ -77,7 +91,7 @@ Run these from the repository root.
 - Do not edit generated output (`dist/`, `bin/`, `obj/`), dependency folders, or lockfiles unless the task requires it.
 - Never commit secrets:
   - in development, use `dotnet user-secrets` for local backend settings; the only exception is the throwaway `erudi/erudi` login of the local compose database in `appsettings.Development.json`;
-  - in production, use environment variables.
+  - in production, use the VPS `.env` (environment variables of `compose.prod.yaml`).
 
 ## Commits
 
