@@ -99,6 +99,81 @@ namespace Erudi.Api.Data.Migrations
                     b.ToTable("sessions", (string)null);
                 });
 
+            modelBuilder.Entity("Erudi.Api.Decks.Card", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Back")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("back");
+
+                    b.Property<int>("Box")
+                        .HasColumnType("integer")
+                        .HasColumnName("box");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DeckId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deck_id");
+
+                    b.Property<DateOnly>("DueOn")
+                        .HasColumnType("date")
+                        .HasColumnName("due_on");
+
+                    b.Property<string>("Front")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("front");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cards");
+
+                    b.HasIndex("DeckId", "DueOn")
+                        .HasDatabaseName("ix_cards_deck_id_due_on");
+
+                    b.ToTable("cards", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_cards_box", "box BETWEEN 1 AND 5");
+                        });
+                });
+
+            modelBuilder.Entity("Erudi.Api.Decks.Deck", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_decks");
+
+                    b.HasIndex("OwnerId")
+                        .HasDatabaseName("ix_decks_owner_id");
+
+                    b.ToTable("decks", (string)null);
+                });
+
             modelBuilder.Entity("Erudi.Api.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -184,6 +259,33 @@ namespace Erudi.Api.Data.Migrations
                         .HasConstraintName("fk_sessions_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Erudi.Api.Decks.Card", b =>
+                {
+                    b.HasOne("Erudi.Api.Decks.Deck", "Deck")
+                        .WithMany("Cards")
+                        .HasForeignKey("DeckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_cards_decks_deck_id");
+
+                    b.Navigation("Deck");
+                });
+
+            modelBuilder.Entity("Erudi.Api.Decks.Deck", b =>
+                {
+                    b.HasOne("Erudi.Api.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_decks_users_owner_id");
+                });
+
+            modelBuilder.Entity("Erudi.Api.Decks.Deck", b =>
+                {
+                    b.Navigation("Cards");
                 });
 #pragma warning restore 612, 618
         }
