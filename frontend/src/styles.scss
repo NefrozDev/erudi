@@ -13,6 +13,7 @@
   --color-border: #f0e2cf;
   --color-success: #12805a;
   --color-danger: #b42318;
+  --color-danger-dark: #8a1a12;
 
   // Deck tiles (screen 7).
   --color-tile-violet: #d9d2ff;
@@ -165,6 +166,17 @@ select {
   &:hover:not(:disabled) {
     background: var(--color-violet-soft);
     border-color: var(--color-violet);
+  }
+}
+
+// Only for what cannot be undone, such as deleting the account.
+.button--danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+
+  &:hover:not(:disabled) {
+    background: var(--color-danger-dark);
+    border-color: var(--color-danger-dark);
   }
 }
 

@@ -123,6 +123,7 @@ describe('app routes', () => {
     '/explore/p1/test',
     '/explore/p1/report',
     '/publish?deckId=d1',
+    '/settings/delete-account',
   ])('should protect %s', async (url) => {
     expect(await visit(url)).toBe('/welcome');
   });
@@ -144,6 +145,18 @@ describe('app routes', () => {
     expect(await visit('/reset-password')).toBe('/reset-password');
   });
 
+  it('should open the terms whether signed in or not, full screen', async () => {
+    const root = harness.fixture.nativeElement as HTMLElement;
+
+    expect(await visit('/terms')).toBe('/terms');
+    expect(root.querySelector('app-terms')).not.toBeNull();
+    expect(TestBed.inject(Title).getTitle()).toBe("Conditions d'utilisation · Erudi");
+
+    signIn();
+    expect(await visit('/terms')).toBe('/terms');
+    expect(root.querySelector('app-tab-shell')).toBeNull();
+  });
+
   it('should open the tabs for a signed-in user, inside the shell', async () => {
     signIn();
 
@@ -163,6 +176,7 @@ describe('app routes', () => {
     ['/explore/p1', 'app-public-deck', 'Paquet public · Erudi'],
     ['/explore/p1/report', 'app-report-form', 'Signaler un paquet · Erudi'],
     ['/publish?deckId=d1', 'app-publish-form', 'Publier un paquet · Erudi'],
+    ['/settings/delete-account', 'app-delete-account', 'Supprimer mon compte · Erudi'],
   ])('should open %s full screen, without the tab bar', async (url, selector, title) => {
     signIn();
 

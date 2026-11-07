@@ -82,6 +82,18 @@ describe('AuthApi', () => {
     expect(call.request.body).toEqual({ email: 'chloe@example.be' });
   });
 
+  it('should delete the account with a DELETE carrying the password', () => {
+    let completed = false;
+
+    api.deleteAccount('secret123').subscribe({ complete: () => (completed = true) });
+    const call = http.expectOne('/api/account');
+    call.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(call.request.method).toBe('DELETE');
+    expect(call.request.body).toEqual({ password: 'secret123' });
+    expect(completed).toBe(true);
+  });
+
   it('should confirm a password reset with the token and the new password', () => {
     api.confirmPasswordReset('token', 'new-secret').subscribe();
     const call = http.expectOne('/api/auth/password-reset/confirm');

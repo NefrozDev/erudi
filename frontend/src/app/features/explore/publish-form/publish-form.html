@@ -115,7 +115,13 @@
             }
           </div>
 
-          <p class="subtitle">{{ 'explore.publish.terms' | transloco }}</p>
+          <p class="subtitle">
+            {{ 'explore.publish.terms' | transloco }}
+            <!-- A new tab keeps what was typed in this form. -->
+            <a class="text-link" routerLink="/terms" target="_blank" rel="noopener">
+              {{ 'explore.publish.readTerms' | transloco }}
+            </a>
+          </p>
 
           @if (chosen(); as deck) {
             @if (deck.published && publication.hasValue()) {

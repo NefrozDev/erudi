@@ -19,7 +19,9 @@
     "publicDeck": "Paquet public",
     "test": "Test",
     "report": "Signaler un paquet",
-    "publish": "Publier un paquet"
+    "publish": "Publier un paquet",
+    "terms": "Conditions d'utilisation",
+    "deleteAccount": "Supprimer mon compte"
   },
   "intro": {
     "skip": "Passer",
@@ -72,6 +74,7 @@
       "title": "Créer un compte",
       "subtitle": "Gratuit, avec synchronisation sur tous tes appareils.",
       "terms": "J'accepte les conditions d'utilisation et la politique de confidentialité.",
+      "readTerms": "Lire les conditions et la politique de confidentialité",
       "submit": "Créer mon compte"
     },
     "signIn": {
@@ -325,6 +328,7 @@
       "descriptionPlaceholder": "En quelques mots",
       "descriptionTooLong": "300 caractères maximum.",
       "terms": "En publiant, tu confirmes que ce contenu t'appartient et respecte les conditions d'utilisation. Ton pseudo sera visible comme auteur.",
+      "readTerms": "Lire les conditions d'utilisation",
       "submit": "Publier",
       "update": "Mettre à jour",
       "emptyDeck": "Ajoute au moins une carte à ce paquet avant de le publier.",
@@ -362,6 +366,100 @@
   "settings": {
     "title": "Réglages",
     "account": "Compte",
-    "signOut": "Se déconnecter"
+    "terms": "Conditions d'utilisation",
+    "deleteAccount": "Supprimer mon compte",
+    "signOut": "Se déconnecter",
+    "delete": {
+      "back": "Réglages",
+      "title": "Supprimer mon compte",
+      "subtitle": "C'est définitif : rien ne pourra être récupéré.",
+      "goneTitle": "Ce qui sera effacé tout de suite",
+      "gone": {
+        "account": "ton compte, ton pseudo et ton adresse email ;",
+        "decks": "tes paquets, tes cartes et ta progression ;",
+        "explore": "tes publications dans l'Explorer, tes scores et tes signalements."
+      },
+      "copies": "Les copies que d'autres ont faites de tes paquets restent à eux.",
+      "password": "Confirme avec ton mot de passe",
+      "wrongPassword": "Mot de passe incorrect.",
+      "submit": "Supprimer définitivement",
+      "error": "La suppression a échoué. Réessaie dans un instant.",
+      "doneTitle": "Ton compte est supprimé",
+      "doneText": "Toutes tes données ont été effacées. Merci d'avoir révisé avec Erudi.",
+      "leave": "Retour à l'accueil"
+    }
+  },
+  "terms": {
+    "back": "Retour",
+    "title": "Conditions d'utilisation et confidentialité",
+    "updated": "Dernière mise à jour : {{date}}",
+    "contact": "Contact :",
+    "about": {
+      "title": "1. Erudi",
+      "text": "Erudi est une application de révision par boîtes de Leitner, éditée par Synapse Engineering, établie en Belgique. Ces conditions encadrent son utilisation : créer un compte signifie que tu les acceptes."
+    },
+    "account": {
+      "title": "2. Ton compte",
+      "age": "Tu dois avoir au moins 13 ans pour créer un compte.",
+      "email": "Ton adresse email doit être la tienne : elle sert à te connecter et à changer de mot de passe.",
+      "secret": "Ton mot de passe est personnel. Tu es responsable de ce qui est fait avec ton compte.",
+      "one": "Un compte correspond à une seule personne."
+    },
+    "content": {
+      "title": "3. Tes paquets et l'Explorer",
+      "yours": "Tes paquets et tes cartes t'appartiennent. Tant que tu ne les publies pas, toi seul peux les voir.",
+      "publish": "Quand tu publies un paquet, tout utilisateur d'Erudi peut le lire, s'y tester et le copier dans ses paquets, avec ton pseudo comme auteur : tu nous autorises à l'afficher pour cela. Une copie appartient à celui qui l'a faite et reste chez lui, même si tu retires ta publication ou supprimes ton compte.",
+      "rights": "Ne publie que ce que tu as le droit de partager : pas de contenu copié sans autorisation, comme un manuel ou un site payant.",
+      "check": "Les paquets publics sont écrits par d'autres utilisateurs et nous ne vérifions pas leurs réponses : vérifie avant d'apprendre."
+    },
+    "conduct": {
+      "title": "4. Règles de conduite",
+      "intro": "En utilisant Erudi, tu t'engages à ne pas :",
+      "illegal": "publier un contenu illégal, haineux, violent, harcelant ou qui porte atteinte aux droits d'autrui ;",
+      "spam": "publier de la publicité ou du spam ;",
+      "impersonate": "te faire passer pour quelqu'un d'autre ;",
+      "access": "tenter d'accéder au compte ou aux données d'une autre personne ;",
+      "disrupt": "perturber le service : contourner ses limites, l'automatiser de manière abusive ou y introduire du code malveillant.",
+      "reports": "Tu peux signaler un paquet public qui ne respecte pas ces règles. Nous pouvons retirer une publication ou suspendre un compte qui ne les respecte pas."
+    },
+    "service": {
+      "title": "5. Le service",
+      "text": "Erudi est fourni gratuitement, tel quel. Nous faisons de notre mieux pour qu'il reste disponible et que tes données soient conservées, sans pouvoir le garantir. Le service peut évoluer, être interrompu pour maintenance ou s'arrêter ; dans ce dernier cas, nous te préviendrons à l'avance.",
+      "liability": "Dans les limites permises par la loi, Synapse Engineering n'est pas responsable des dommages indirects liés à l'utilisation d'Erudi, ni des contenus publiés par les autres utilisateurs. Rien dans ces conditions ne limite les droits que la loi t'accorde en tant que consommateur."
+    },
+    "deletion": {
+      "title": "6. Supprimer ton compte",
+      "text": "Tu peux supprimer ton compte à tout moment dans les Réglages. Ton compte, tes paquets, tes cartes, ta progression, tes publications, tes scores et tes signalements sont alors effacés tout de suite ; les sauvegardes du serveur les gardent encore 14 jours au plus."
+    },
+    "privacy": {
+      "title": "7. Politique de confidentialité",
+      "controller": "Synapse Engineering est responsable du traitement de tes données personnelles, conformément au Règlement général sur la protection des données (RGPD).",
+      "keptTitle": "Ce que nous conservons",
+      "kept": {
+        "identity": "Ton pseudo, ton adresse email et ta langue.",
+        "password": "Ton mot de passe, jamais en clair : seulement une empreinte qui ne permet pas de le retrouver.",
+        "content": "Tes paquets, tes cartes, tes réponses et leurs dates (pour savoir quand revoir chaque carte), tes publications, tes scores aux tests, tes signalements et la date à laquelle tu as accepté ces conditions.",
+        "ip": "Ton adresse IP, le temps de limiter les abus (trop de tentatives de connexion par exemple). Elle n'est pas enregistrée avec ton compte."
+      },
+      "timeZone": "Ton appareil indique aussi son fuseau horaire à chaque échange, pour que « aujourd'hui » soit ton jour à toi. Nous ne le conservons pas.",
+      "publicTitle": "Ce que les autres voient",
+      "public": "Seulement ce que tu publies, avec ton pseudo. Ton adresse email, tes boîtes et tes scores ne sont jamais montrés aux autres, et l'auteur d'un paquet ne sait pas qui l'a signalé.",
+      "whyTitle": "Pourquoi",
+      "why": "Pour faire fonctionner le service que tu demandes (article 6.1.b du RGPD) et pour le protéger contre les abus (intérêt légitime, article 6.1.f). Nous ne vendons pas tes données, il n'y a pas de publicité et l'application ne contient aucun traceur ni service tiers.",
+      "cookiesTitle": "Cookies",
+      "cookies": "Un seul cookie, indispensable : celui qui te garde connecté, pendant 30 jours au plus. Ton navigateur retient aussi sur ton appareil que tu as déjà vu l'introduction.",
+      "whereTitle": "Où et combien de temps",
+      "where": "Tes données sont hébergées sur un serveur loué à OVHcloud (OVH SAS, France). Les emails, comme les liens pour changer de mot de passe (valables 30 minutes), partent de notre propre serveur de messagerie. Nous gardons tes données tant que ton compte existe.",
+      "rightsTitle": "Tes droits",
+      "rights": "Tu peux accéder à tes données, les corriger, les recevoir dans un format réutilisable, demander leur effacement, en limiter l'usage ou t'y opposer : écris à l'adresse de contact. Tu peux aussi introduire une plainte auprès de l'Autorité de protection des données :"
+    },
+    "changes": {
+      "title": "8. Modifications",
+      "text": "Nous pouvons modifier ces conditions. La date en haut de cette page indique la dernière version ; en cas de changement important, nous te prévenons dans l'application."
+    },
+    "law": {
+      "title": "9. Droit applicable",
+      "text": "Ces conditions sont soumises au droit belge. En cas de litige, et à défaut d'accord amiable, les tribunaux de Bruxelles sont compétents, sans préjudice des règles qui te permettent, en tant que consommateur, de saisir les tribunaux de ton domicile."
+    }
   }
 }

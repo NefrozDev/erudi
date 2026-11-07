@@ -19,3 +19,21 @@
     text-align: right;
   }
 }
+
+.settings__links {
+  display: flex;
+  flex-direction: column;
+  // The page gap would split the rows; they read as one list with the account.
+  margin-top: -16px;
+}
+
+// A row opening another screen, with the mockup's chevron.
+.settings__link {
+  color: var(--color-night);
+  text-decoration: none;
+
+  &::after {
+    content: '›';
+    color: var(--color-text-secondary);
+  }
+}

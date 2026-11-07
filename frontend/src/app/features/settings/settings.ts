@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthStore } from '../../core/auth/auth-store';
 
-/** Screen 17, with the account only for now. */
+/** Screen 17: the account, the terms and account deletion for now. */
 @Component({
   selector: 'app-settings',
-  imports: [TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe],
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

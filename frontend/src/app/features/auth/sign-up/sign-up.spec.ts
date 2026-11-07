@@ -60,6 +60,14 @@ describe('SignUp', () => {
     expect(host.querySelector('.form-error')).toBeNull();
   });
 
+  it('should open the terms in a new tab, so what was typed stays', () => {
+    const terms = linkNamed(host, 'Lire les conditions et la politique de confidentialité');
+
+    expect(terms.getAttribute('href')).toBe('/terms');
+    expect(terms.target).toBe('_blank');
+    expect(terms.rel).toBe('noopener');
+  });
+
   it('should explain every missing value and send nothing', async () => {
     await submit();
 

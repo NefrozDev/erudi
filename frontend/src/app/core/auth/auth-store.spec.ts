@@ -12,6 +12,7 @@ describe('AuthStore', () => {
     register: ReturnType<typeof vi.fn>;
     login: ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn<() => Observable<void>>>;
+    deleteAccount: ReturnType<typeof vi.fn<(password: string) => Observable<void>>>;
   };
   let store: AuthStore;
 
@@ -21,6 +22,7 @@ describe('AuthStore', () => {
       register: vi.fn(() => of(user)),
       login: vi.fn(() => of(user)),
       logout: vi.fn(() => of(undefined)),
+      deleteAccount: vi.fn(() => of(undefined)),
     };
     TestBed.configureTestingModule({ providers: [{ provide: AuthApi, useValue: api }] });
     store = TestBed.inject(AuthStore);
@@ -113,6 +115,26 @@ describe('AuthStore', () => {
     await expect(store.signOut()).resolves.toBeUndefined();
 
     expect(store.signedIn()).toBe(false);
+  });
+
+  it('should delete the account with the password, then forget the user', async () => {
+    await store.restore();
+
+    await store.deleteAccount('secret123');
+
+    expect(api.deleteAccount).toHaveBeenCalledExactlyOnceWith('secret123');
+    expect(store.signedIn()).toBe(false);
+    expect(api.logout).not.toHaveBeenCalled();
+  });
+
+  it('should keep the user and reject with the HTTP error when the deletion fails', async () => {
+    await store.restore();
+    const refused = new HttpErrorResponse({ status: 400 });
+    api.deleteAccount.mockReturnValue(throwError(() => refused));
+
+    await expect(store.deleteAccount('wrong')).rejects.toBe(refused);
+
+    expect(store.user()).toEqual(user);
   });
 
   it('should forget the user without calling the API when the server ended the session', async () => {

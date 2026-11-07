@@ -71,6 +71,12 @@
       @if (visibleError(form.acceptedTerms); as error) {
         <p class="form-error" id="sign-up-terms-error">{{ error | transloco }}</p>
       }
+      <p>
+        <!-- A new tab keeps what was typed in this form. -->
+        <a class="text-link" routerLink="/terms" target="_blank" rel="noopener">
+          {{ 'auth.signUp.readTerms' | transloco }}
+        </a>
+      </p>
     </div>
 
     <div class="page__actions">

@@ -52,4 +52,9 @@ export class AuthApi {
   confirmPasswordReset(token: string, password: string): Observable<void> {
     return this.http.post<void>('/api/auth/password-reset/confirm', { token, password });
   }
+
+  /** Deletes the account and all its data; the password confirms it is really its owner. */
+  deleteAccount(password: string): Observable<void> {
+    return this.http.delete<void>('/api/account', { body: { password } });
+  }
 }

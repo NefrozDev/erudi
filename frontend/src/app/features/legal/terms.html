@@ -1,0 +1,102 @@
+<main class="page terms">
+  <button type="button" class="text-link back-link" (click)="back()">
+    {{ 'terms.back' | transloco }}
+  </button>
+
+  <header>
+    <h1 class="title">{{ 'terms.title' | transloco }}</h1>
+    <p class="subtitle">{{ 'terms.updated' | transloco: { date: updatedOn } }}</p>
+  </header>
+
+  <section aria-labelledby="terms-about">
+    <h2 id="terms-about">{{ 'terms.about.title' | transloco }}</h2>
+    <p>{{ 'terms.about.text' | transloco }}</p>
+    <p>
+      {{ 'terms.contact' | transloco }} <a [href]="'mailto:' + contact">{{ contact }}</a>
+    </p>
+  </section>
+
+  <section aria-labelledby="terms-account">
+    <h2 id="terms-account">{{ 'terms.account.title' | transloco }}</h2>
+    <ul>
+      <li>{{ 'terms.account.age' | transloco }}</li>
+      <li>{{ 'terms.account.email' | transloco }}</li>
+      <li>{{ 'terms.account.secret' | transloco }}</li>
+      <li>{{ 'terms.account.one' | transloco }}</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="terms-content">
+    <h2 id="terms-content">{{ 'terms.content.title' | transloco }}</h2>
+    <p>{{ 'terms.content.yours' | transloco }}</p>
+    <p>{{ 'terms.content.publish' | transloco }}</p>
+    <p>{{ 'terms.content.rights' | transloco }}</p>
+    <p>{{ 'terms.content.check' | transloco }}</p>
+  </section>
+
+  <section aria-labelledby="terms-conduct">
+    <h2 id="terms-conduct">{{ 'terms.conduct.title' | transloco }}</h2>
+    <p>{{ 'terms.conduct.intro' | transloco }}</p>
+    <ul>
+      <li>{{ 'terms.conduct.illegal' | transloco }}</li>
+      <li>{{ 'terms.conduct.spam' | transloco }}</li>
+      <li>{{ 'terms.conduct.impersonate' | transloco }}</li>
+      <li>{{ 'terms.conduct.access' | transloco }}</li>
+      <li>{{ 'terms.conduct.disrupt' | transloco }}</li>
+    </ul>
+    <p>{{ 'terms.conduct.reports' | transloco }}</p>
+  </section>
+
+  <section aria-labelledby="terms-service">
+    <h2 id="terms-service">{{ 'terms.service.title' | transloco }}</h2>
+    <p>{{ 'terms.service.text' | transloco }}</p>
+    <p>{{ 'terms.service.liability' | transloco }}</p>
+  </section>
+
+  <section aria-labelledby="terms-deletion">
+    <h2 id="terms-deletion">{{ 'terms.deletion.title' | transloco }}</h2>
+    <p>{{ 'terms.deletion.text' | transloco }}</p>
+  </section>
+
+  <section id="privacy" aria-labelledby="terms-privacy">
+    <h2 id="terms-privacy">{{ 'terms.privacy.title' | transloco }}</h2>
+    <p>{{ 'terms.privacy.controller' | transloco }}</p>
+
+    <h3>{{ 'terms.privacy.keptTitle' | transloco }}</h3>
+    <ul>
+      <li>{{ 'terms.privacy.kept.identity' | transloco }}</li>
+      <li>{{ 'terms.privacy.kept.password' | transloco }}</li>
+      <li>{{ 'terms.privacy.kept.content' | transloco }}</li>
+      <li>{{ 'terms.privacy.kept.ip' | transloco }}</li>
+    </ul>
+    <p>{{ 'terms.privacy.timeZone' | transloco }}</p>
+
+    <h3>{{ 'terms.privacy.publicTitle' | transloco }}</h3>
+    <p>{{ 'terms.privacy.public' | transloco }}</p>
+
+    <h3>{{ 'terms.privacy.whyTitle' | transloco }}</h3>
+    <p>{{ 'terms.privacy.why' | transloco }}</p>
+
+    <h3>{{ 'terms.privacy.cookiesTitle' | transloco }}</h3>
+    <p>{{ 'terms.privacy.cookies' | transloco }}</p>
+
+    <h3>{{ 'terms.privacy.whereTitle' | transloco }}</h3>
+    <p>{{ 'terms.privacy.where' | transloco }}</p>
+
+    <h3>{{ 'terms.privacy.rightsTitle' | transloco }}</h3>
+    <p>
+      {{ 'terms.privacy.rights' | transloco }}
+      <a [href]="authorityUrl" target="_blank" rel="noopener">autoriteprotectiondonnees.be</a>.
+    </p>
+  </section>
+
+  <section aria-labelledby="terms-changes">
+    <h2 id="terms-changes">{{ 'terms.changes.title' | transloco }}</h2>
+    <p>{{ 'terms.changes.text' | transloco }}</p>
+  </section>
+
+  <section aria-labelledby="terms-law">
+    <h2 id="terms-law">{{ 'terms.law.title' | transloco }}</h2>
+    <p>{{ 'terms.law.text' | transloco }}</p>
+  </section>
+</main>

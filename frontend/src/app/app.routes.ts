@@ -35,6 +35,12 @@ export const routes: Routes = [
       import('./features/auth/reset-password/reset-password').then((m) => m.ResetPassword),
   },
   {
+    // Public: the terms are read before signing up.
+    path: 'terms',
+    title: 'titles.terms',
+    loadComponent: () => import('./features/legal/terms').then((m) => m.Terms),
+  },
+  {
     path: '',
     canActivate: [signedInGuard],
     children: [
@@ -129,6 +135,12 @@ export const routes: Routes = [
         title: 'titles.publish',
         loadComponent: () =>
           import('./features/explore/publish-form/publish-form').then((m) => m.PublishForm),
+      },
+      {
+        path: 'settings/delete-account',
+        title: 'titles.deleteAccount',
+        loadComponent: () =>
+          import('./features/settings/delete-account/delete-account').then((m) => m.DeleteAccount),
       },
     ],
   },

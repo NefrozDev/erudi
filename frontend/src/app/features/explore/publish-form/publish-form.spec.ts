@@ -90,6 +90,9 @@ describe('PublishForm', () => {
     expect(value('#publish-title')).toBe('');
     expect(linkNamed(host, 'Mes paquets').getAttribute('href')).toBe('/');
     expect(textOf(host, 'p.subtitle')).toContain('Ton pseudo sera visible comme auteur.');
+    const terms = linkNamed(host, "Lire les conditions d'utilisation");
+    expect(terms.getAttribute('href')).toBe('/terms');
+    expect(terms.target).toBe('_blank');
     expect(explore.getPublication).not.toHaveBeenCalled();
   });
 

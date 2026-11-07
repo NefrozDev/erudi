@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { buttonNamed, settle, textOf } from '../../../testing/dom';
+import { buttonNamed, linkNamed, settle, textOf } from '../../../testing/dom';
 import { AuthUser } from '../../core/auth/auth-api';
 import { AuthStore } from '../../core/auth/auth-store';
 import { Settings } from './settings';
@@ -28,6 +28,14 @@ describe('Settings', () => {
     expect(textOf(host, 'h1')).toBe('Réglages');
     expect(textOf(host, 'dt')).toBe('Compte');
     expect(textOf(host, 'dd')).toBe('chloe@example.be');
+  });
+
+  it('should open the terms and account deletion (screen 17)', () => {
+    expect(linkNamed(host, "Conditions d'utilisation").getAttribute('href')).toBe('/terms');
+    expect(linkNamed(host, 'Supprimer mon compte').getAttribute('href')).toBe(
+      '/settings/delete-account',
+    );
+    expect(signOut).not.toHaveBeenCalled();
   });
 
   it('should sign out, then open the sign-in screen', async () => {

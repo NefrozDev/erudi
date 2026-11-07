@@ -41,6 +41,12 @@ export class AuthStore {
     }
   }
 
+  /** Signed out once the account is gone; rejects with the HTTP error, keeping the user. */
+  async deleteAccount(password: string): Promise<void> {
+    await firstValueFrom(this.api.deleteAccount(password));
+    this.currentUser.set(null);
+  }
+
   /** The server ended the session (expired, or a password reset signed every device out). */
   clear(): void {
     this.currentUser.set(null);
