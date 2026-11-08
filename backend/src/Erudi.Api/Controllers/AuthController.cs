@@ -1,60 +1,43 @@
 using Erudi.Api.Auth;
 using Erudi.Api.Auth.Contracts;
+using Erudi.Api.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace Erudi.Api.Controllers;
 
+/// <summary>
+/// Signing in goes through the Synapse identity service (OpenID Connect): the same account
+/// opens every Synapse app. Erudi then keeps its own session.
+/// </summary>
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthController(
     AuthService auth,
-    PasswordResetService passwordResets,
-    SessionCookie sessionCookie) : ControllerBase
+    SessionCookie sessionCookie,
+    IdentityTokens identityTokens,
+    IOptionsMonitor<OpenIdConnectOptions> oidc,
+    IOptions<IdentityProviderOptions> identity,
+    IOptions<FrontendOptions> frontend,
+    ILogger<AuthController> logger) : ControllerBase
 {
-    [HttpPost("register")]
+    /// <summary>Sends the browser to the identity service, then back to <paramref name="returnTo"/>.</summary>
+    [HttpGet("login")]
     [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
-    [ProducesResponseType<AuthUserResponse>(StatusCodes.Status201Created)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<AuthUserResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status302Found)]
+    public IActionResult Login([FromQuery] string? returnTo, [FromQuery] string? lang)
     {
-        switch (await auth.RegisterAsync(request, cancellationToken))
+        var properties = new AuthenticationProperties { RedirectUri = ReturnPath.Safe(returnTo) };
+        if (lang is { Length: 2 } && lang.All(char.IsAsciiLetterLower))
         {
-            case RegistrationResult.Registered registered:
-                sessionCookie.Append(Response, registered.Session);
-                return StatusCode(StatusCodes.Status201Created, AuthUserResponse.From(registered.Session.User));
-
-            case RegistrationResult.Taken { Field: AccountField.Email }:
-                ModelState.AddModelError("email", "This e-mail address already has an account.");
-                break;
-
-            default:
-                ModelState.AddModelError("username", "This username is taken.");
-                break;
+            properties.Items[IdentitySignInEvents.LanguageItem] = lang;
         }
 
-        return ValidationProblem(statusCode: StatusCodes.Status409Conflict, modelStateDictionary: ModelState);
-    }
-
-    [HttpPost("login")]
-    [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
-    [ProducesResponseType<AuthUserResponse>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<AuthUserResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
-    {
-        var session = await auth.LoginAsync(request, cancellationToken);
-        if (session is null)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status401Unauthorized,
-                title: "Invalid credentials",
-                detail: "The e-mail address or the password is incorrect.");
-        }
-
-        sessionCookie.Append(Response, session);
-        return Ok(AuthUserResponse.From(session.User));
+        return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
     }
 
     [Authorize]
@@ -63,39 +46,84 @@ public sealed class AuthController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public ActionResult<AuthUserResponse> GetSession() => Ok(AuthUserResponse.From(User));
 
+    /// <summary>
+    /// Ends Erudi's session and answers where to send the browser next: the identity service,
+    /// which signs out of every Synapse app.
+    /// </summary>
     [HttpPost("logout")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+    [ProducesResponseType<SignOutResponse>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<SignOutResponse>> Logout(CancellationToken cancellationToken)
     {
         await auth.LogoutAsync(SessionCookie.Read(Request), cancellationToken);
         sessionCookie.Delete(Response);
-        return NoContent();
+        return Ok(new SignOutResponse(await SignOutUrlAsync(cancellationToken)));
     }
 
-    /// <summary>Always 204, so the answer never tells whether the address has an account.</summary>
-    [HttpPost("password-reset")]
-    [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> RequestPasswordReset(PasswordResetRequest request, CancellationToken cancellationToken)
-    {
-        await passwordResets.RequestAsync(request.Email, cancellationToken);
-        return NoContent();
-    }
-
-    [HttpPost("password-reset/confirm")]
-    [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    /// <summary>
+    /// Called by the identity service, not by browsers, when a session ends anywhere
+    /// (OpenID Connect Back-Channel Logout).
+    /// </summary>
+    [HttpPost("backchannel-logout")]
+    [Consumes("application/x-www-form-urlencoded")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ConfirmPasswordReset(PasswordResetConfirmation request, CancellationToken cancellationToken)
+    public async Task<IActionResult> BackchannelLogout(
+        [FromForm(Name = "logout_token")] string? logoutToken,
+        CancellationToken cancellationToken)
     {
-        if (await passwordResets.ConfirmAsync(request.Token, request.Password, cancellationToken))
+        var ended = string.IsNullOrEmpty(logoutToken)
+            ? null
+            : await identityTokens.ValidateLogoutTokenAsync(logoutToken, cancellationToken);
+        if (ended is null)
         {
-            return NoContent();
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid logout token");
         }
 
-        return Problem(
-            statusCode: StatusCodes.Status400BadRequest,
-            title: "Invalid reset link",
-            detail: "This link is unknown, expired or already used.");
+        await auth.EndSessionsAsync(ended, cancellationToken);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Called by the identity service when an account is deleted: Erudi erases everything it
+    /// keeps about it. The body is a signed notice (application/secevent+jwt).
+    /// </summary>
+    [HttpPost("account-deleted")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AccountDeleted(CancellationToken cancellationToken)
+    {
+        using var reader = new StreamReader(Request.Body);
+        var notice = await reader.ReadToEndAsync(cancellationToken);
+        var userId = notice.Length is > 0 and < 16_384
+            ? await identityTokens.ValidateAccountDeletionAsync(notice.Trim(), cancellationToken)
+            : null;
+        if (userId is null)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid deletion notice");
+        }
+
+        await auth.DeleteAccountAsync(userId.Value, cancellationToken);
+        logger.LogInformation("Account {UserId} deleted at the identity service.", userId);
+        return NoContent();
+    }
+
+    private async Task<string> SignOutUrlAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var options = oidc.Get(OpenIdConnectDefaults.AuthenticationScheme);
+            var configuration = await options.ConfigurationManager!.GetConfigurationAsync(cancellationToken);
+            var query = QueryString.Create(new Dictionary<string, string?>
+            {
+                ["client_id"] = identity.Value.ClientId,
+                ["post_logout_redirect_uri"] = $"{frontend.Value.Origin}/welcome",
+            });
+            return configuration.EndSessionEndpoint + query;
+        }
+        catch (InvalidOperationException)
+        {
+            // The identity service is unreachable: Erudi's session is gone all the same.
+            return "/welcome";
+        }
     }
 }

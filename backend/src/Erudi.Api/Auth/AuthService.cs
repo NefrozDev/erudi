@@ -1,7 +1,5 @@
-using Erudi.Api.Auth.Contracts;
 using Erudi.Api.Data;
 using Erudi.Api.Users;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -9,95 +7,58 @@ namespace Erudi.Api.Auth;
 
 public sealed record IssuedSession(string Token, DateTimeOffset ExpiresAt, User User);
 
-public enum AccountField
-{
-    Username,
-    Email,
-}
-
-public abstract record RegistrationResult
-{
-    private RegistrationResult()
-    {
-    }
-
-    public sealed record Registered(IssuedSession Session) : RegistrationResult;
-
-    public sealed record Taken(AccountField Field) : RegistrationResult;
-}
-
-/// <summary>Accounts and the sessions behind the HttpOnly cookie.</summary>
+/// <summary>
+/// Erudi's own sessions, behind the HttpOnly cookie, opened once the Synapse identity
+/// service has signed someone in. The account lives there; Erudi keeps the username and the
+/// e-mail as copies refreshed at each sign-in, and the language and its terms as its own.
+/// </summary>
 public sealed class AuthService(
     ErudiDbContext db,
-    PasswordService passwords,
     TimeProvider clock,
     IOptions<AuthOptions> options)
 {
-    public async Task<RegistrationResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
+    /// <summary>
+    /// Opens a session for the person the identity service vouched for, creating the learner
+    /// on a first visit, with the account's id.
+    /// </summary>
+    public async Task<IssuedSession> SignInAsync(IdentityClaims claims, CancellationToken cancellationToken)
     {
-        var username = request.Username.Trim();
-        var email = request.Email.Trim();
-        var normalizedUsername = UserRules.Normalize(username);
-        var normalizedEmail = UserRules.Normalize(email);
-
-        if (await FindTakenFieldAsync(normalizedUsername, normalizedEmail, cancellationToken) is { } taken)
-        {
-            return new RegistrationResult.Taken(taken);
-        }
-
-        var now = clock.GetUtcNow();
-        var user = new User
-        {
-            Id = Guid.CreateVersion7(now),
-            Username = username,
-            NormalizedUsername = normalizedUsername,
-            Email = email,
-            NormalizedEmail = normalizedEmail,
-            TermsAcceptedAt = now,
-            CreatedAt = now,
-        };
-        user.PasswordHash = passwords.Hash(user, request.Password);
-        db.Users.Add(user);
-        var session = AddSession(user, now);
-
-        try
-        {
-            await db.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException exception) when (exception.IsUniqueViolation())
-        {
-            // A concurrent sign-up took the name or the address between the check and the insert.
-            db.ChangeTracker.Clear();
-            var takenMeanwhile = await FindTakenFieldAsync(normalizedUsername, normalizedEmail, cancellationToken);
-            return new RegistrationResult.Taken(takenMeanwhile ?? AccountField.Username);
-        }
-
-        return new RegistrationResult.Registered(session);
-    }
-
-    /// <returns>The new session, or <c>null</c> when the e-mail or the password is wrong.</returns>
-    public async Task<IssuedSession?> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
-    {
-        var normalizedEmail = UserRules.Normalize(request.Email);
-        var user = await db.Users.SingleOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
-        var verification = passwords.Verify(user, request.Password);
-
-        if (user is null || verification == PasswordVerificationResult.Failed)
-        {
-            return null;
-        }
-
-        if (verification == PasswordVerificationResult.SuccessRehashNeeded)
-        {
-            user.PasswordHash = passwords.Hash(user, request.Password);
-        }
-
         var now = clock.GetUtcNow();
         await db.Sessions.Where(s => s.ExpiresAt <= now).ExecuteDeleteAsync(cancellationToken);
-        var session = AddSession(user, now);
+
+        var user = await db.Users.SingleOrDefaultAsync(u => u.Id == claims.Subject, cancellationToken);
+        if (user is null)
+        {
+            user = new User
+            {
+                Id = claims.Subject,
+                Locale = UserRules.LocaleOf(claims.Locale),
+                // Erudi's own terms are accepted on its first screen.
+                TermsAcceptedAt = null,
+                CreatedAt = now,
+            };
+            db.Users.Add(user);
+        }
+
+        user.Username = claims.Username.Trim();
+        user.NormalizedUsername = UserRules.Normalize(claims.Username);
+        user.Email = claims.Email.Trim();
+        user.NormalizedEmail = UserRules.Normalize(claims.Email);
+
+        var token = SecureTokens.Create();
+        var expiresAt = now.AddDays(options.Value.SessionTtlDays);
+        db.Sessions.Add(new Session
+        {
+            Id = Guid.CreateVersion7(now),
+            TokenHash = SecureTokens.Hash(token),
+            UserId = user.Id,
+            OidcSid = claims.SessionId,
+            ExpiresAt = expiresAt,
+            CreatedAt = now,
+        });
         await db.SaveChangesAsync(cancellationToken);
 
-        return session;
+        return new IssuedSession(token, expiresAt, user);
     }
 
     /// <returns>The signed-in user, or <c>null</c> when the token is unknown or expired.</returns>
@@ -140,60 +101,33 @@ public sealed class AuthService(
     }
 
     /// <summary>
-    /// Deletes the account and everything it owns: sessions, decks and their cards, answers,
-    /// publications, test scores and reports all go with it through ON DELETE CASCADE.
-    /// Decks other learners copied are theirs and stay.
+    /// An identity session ended (back-channel logout): ends the sessions opened from it, or
+    /// every session of the account when the token names no session.
     /// </summary>
-    /// <returns><c>false</c> when the password is wrong, and nothing was deleted.</returns>
-    public async Task<bool> DeleteAccountAsync(Guid userId, string password, CancellationToken cancellationToken)
+    public Task<int> EndSessionsAsync(EndedSession ended, CancellationToken cancellationToken) =>
+        ended.SessionId is { } sid
+            ? db.Sessions.Where(s => s.OidcSid == sid).ExecuteDeleteAsync(cancellationToken)
+            : db.Sessions.Where(s => s.UserId == ended.Subject).ExecuteDeleteAsync(cancellationToken);
+
+    /// <summary>
+    /// The account was deleted at the identity service: everything the learner owns goes
+    /// through ON DELETE CASCADE (sessions, decks, cards, answers, publications, test scores,
+    /// reports). Decks other learners copied are theirs and stay. Deleting twice is harmless.
+    /// </summary>
+    public Task DeleteAccountAsync(Guid userId, CancellationToken cancellationToken) =>
+        db.Users.Where(u => u.Id == userId).ExecuteDeleteAsync(cancellationToken);
+
+    /// <summary>Erudi's own terms, once: accepting again keeps the first date.</summary>
+    public async Task<User?> AcceptTermsAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        var user = await db.Users.SingleOrDefaultAsync(u => u.Id == userId, cancellationToken);
         if (user is null)
-        {
-            // Deleted meanwhile, from another tab: the outcome the learner asked for.
-            return true;
-        }
-
-        if (passwords.Verify(user, password) == PasswordVerificationResult.Failed)
-        {
-            return false;
-        }
-
-        await db.Users.Where(u => u.Id == userId).ExecuteDeleteAsync(cancellationToken);
-        return true;
-    }
-
-    private IssuedSession AddSession(User user, DateTimeOffset now)
-    {
-        var token = SecureTokens.Create();
-        var expiresAt = now.AddDays(options.Value.SessionTtlDays);
-        db.Sessions.Add(new Session
-        {
-            Id = Guid.CreateVersion7(now),
-            TokenHash = SecureTokens.Hash(token),
-            UserId = user.Id,
-            ExpiresAt = expiresAt,
-            CreatedAt = now,
-        });
-
-        return new IssuedSession(token, expiresAt, user);
-    }
-
-    private async Task<AccountField?> FindTakenFieldAsync(
-        string normalizedUsername,
-        string normalizedEmail,
-        CancellationToken cancellationToken)
-    {
-        var existing = await db.Users
-            .Where(u => u.NormalizedUsername == normalizedUsername || u.NormalizedEmail == normalizedEmail)
-            .Select(u => new { u.NormalizedEmail })
-            .ToListAsync(cancellationToken);
-
-        if (existing.Count == 0)
         {
             return null;
         }
 
-        return existing.Any(u => u.NormalizedEmail == normalizedEmail) ? AccountField.Email : AccountField.Username;
+        user.TermsAcceptedAt ??= clock.GetUtcNow();
+        await db.SaveChangesAsync(cancellationToken);
+        return user;
     }
 }

@@ -22,43 +22,6 @@ namespace Erudi.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Erudi.Api.Auth.PasswordReset", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
-                        .HasColumnName("token_hash");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_password_resets");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique()
-                        .HasDatabaseName("ix_password_resets_token_hash");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_password_resets_user_id");
-
-                    b.ToTable("password_resets", (string)null);
-                });
-
             modelBuilder.Entity("Erudi.Api.Auth.Session", b =>
                 {
                     b.Property<Guid>("Id")
@@ -72,6 +35,11 @@ namespace Erudi.Api.Data.Migrations
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
+
+                    b.Property<string>("OidcSid")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("oidc_sid");
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
@@ -88,6 +56,9 @@ namespace Erudi.Api.Data.Migrations
 
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("ix_sessions_expires_at");
+
+                    b.HasIndex("OidcSid")
+                        .HasDatabaseName("ix_sessions_oidc_sid");
 
                     b.HasIndex("TokenHash")
                         .IsUnique()
@@ -369,12 +340,7 @@ namespace Erudi.Api.Data.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("normalized_username");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("password_hash");
-
-                    b.Property<DateTimeOffset>("TermsAcceptedAt")
+                    b.Property<DateTimeOffset?>("TermsAcceptedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("terms_accepted_at");
 
@@ -388,26 +354,12 @@ namespace Erudi.Api.Data.Migrations
                         .HasName("pk_users");
 
                     b.HasIndex("NormalizedEmail")
-                        .IsUnique()
                         .HasDatabaseName("ix_users_normalized_email");
 
                     b.HasIndex("NormalizedUsername")
-                        .IsUnique()
                         .HasDatabaseName("ix_users_normalized_username");
 
                     b.ToTable("users", (string)null);
-                });
-
-            modelBuilder.Entity("Erudi.Api.Auth.PasswordReset", b =>
-                {
-                    b.HasOne("Erudi.Api.Users.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_password_resets_users_user_id");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Erudi.Api.Auth.Session", b =>

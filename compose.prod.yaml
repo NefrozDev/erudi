@@ -29,11 +29,10 @@ services:
     environment:
       ConnectionStrings__Erudi: Host=${DB_HOST:-db};Port=5432;Database=erudi;Username=erudi;Password=${ERUDI_DB_PASSWORD:?Set ERUDI_DB_PASSWORD in .env};Maximum Pool Size=${DATABASE_POOL_SIZE:-5}
       Frontend__Url: https://${DOMAIN:?Set DOMAIN in .env}
-      Smtp__Host: ${SMTP_HOST:-}
-      Smtp__Port: ${SMTP_PORT:-465}
-      Smtp__User: ${SMTP_USER:-}
-      Smtp__Password: ${SMTP_PASSWORD:-}
-      Smtp__From: ${MAIL_FROM:-}
+      Identity__Issuer: ${IDENTITY_ISSUER:-https://auth.synapseengineering.dev/oidc}
+      Identity__ClientId: erudi
+      # The same value as ERUDI_CLIENT_SECRET in synapse-auth's .env.
+      Identity__ClientSecret: ${IDENTITY_CLIENT_SECRET:?Set IDENTITY_CLIENT_SECRET in .env}
     mem_limit: 256m
     logging: *logging
     networks:

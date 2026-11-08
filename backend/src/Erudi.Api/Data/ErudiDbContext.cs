@@ -13,7 +13,6 @@ public sealed class ErudiDbContext(DbContextOptions<ErudiDbContext> options) : D
 
     public DbSet<Session> Sessions => Set<Session>();
 
-    public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
 
     public DbSet<Deck> Decks => Set<Deck>();
 

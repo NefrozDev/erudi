@@ -1,31 +1,31 @@
-using System.Net.Http.Json;
 using Erudi.Api.Auth;
-using Erudi.Api.Auth.Contracts;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Erudi.Api.Tests.Infrastructure;
 
 internal static class TestAccounts
 {
-    public const string Password = "correct horse battery";
-
-    /// <summary>A new, unique account, so tests sharing a database never collide.</summary>
-    public static RegisterRequest New()
+    /// <summary>A new, unique person as the identity service would describe them.</summary>
+    public static IdentityClaims NewIdentity(string? sessionId = null)
     {
         var id = Guid.NewGuid().ToString("N")[..12];
-        return new RegisterRequest
-        {
-            Username = $"User_{id}",
-            Email = $"Someone.{id}@Example.test",
-            Password = Password,
-            AcceptedTerms = true,
-        };
+        return new IdentityClaims(Guid.NewGuid(), $"User_{id}", $"Someone.{id}@Example.test", "fr", sessionId);
     }
 
-    public static async Task<AuthUserResponse> RegisterAsync(this HttpClient client, RegisterRequest account)
+    /// <summary>Opens a session as a completed sign-in would, without the round trip.</summary>
+    public static async Task<IssuedSession> SignInDirectlyAsync(this ErudiApiFactory factory, IdentityClaims identity)
     {
-        using var response = await client.PostAsJsonAsync("/api/auth/register", account, TestContext.Current.CancellationToken);
-        response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<AuthUserResponse>(TestContext.Current.CancellationToken))!;
+        await using var scope = factory.Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<AuthService>()
+            .SignInAsync(identity, TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>A client carrying the session cookie on every request.</summary>
+    public static HttpClient ClientWithSession(this ErudiApiFactory factory, string token)
+    {
+        var client = factory.CreateClientWithoutCookies();
+        client.DefaultRequestHeaders.Add("Cookie", $"{SessionCookie.Name}={token}");
+        return client;
     }
 
     /// <summary>The session token from a response's Set-Cookie header.</summary>

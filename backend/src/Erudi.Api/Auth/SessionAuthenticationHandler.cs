@@ -17,6 +17,9 @@ public sealed class SessionAuthenticationHandler(
     AuthService auth)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
+    /// <summary>"true" once the learner accepted Erudi's own terms.</summary>
+    public const string TermsAcceptedClaim = "erudi:terms_accepted";
+
     public const string SchemeName = "Session";
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -38,6 +41,7 @@ public sealed class SessionAuthenticationHandler(
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Email, user.Email),
+                new Claim(TermsAcceptedClaim, user.TermsAcceptedAt is null ? "false" : "true"),
             ],
             SchemeName);
 

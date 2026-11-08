@@ -7,11 +7,13 @@ public static class UserRules
     public const string UsernamePattern = "^[a-zA-Z0-9._-]{3,30}$";
     public const int UsernameMaxLength = 30;
     public const int EmailMaxLength = 254;
-    public const int PasswordMinLength = 8;
-    public const int PasswordMaxLength = 128;
     public const int LocaleMaxLength = 8;
     public const string DefaultLocale = "fr";
 
     /// <summary>Usernames and e-mails are unique case-insensitively: they are compared in this form.</summary>
     public static string Normalize(string value) => value.Trim().ToLowerInvariant();
+
+    /// <summary>The languages Erudi knows (French only for now); any other starts in French.</summary>
+    public static string LocaleOf(string? tag) =>
+        tag is { Length: >= 2 } && tag[..2].Equals("fr", StringComparison.OrdinalIgnoreCase) ? "fr" : DefaultLocale;
 }

@@ -11,9 +11,8 @@ internal static class TestDecks
 
     public static async Task<TestLearner> SignInNewLearnerAsync(this ErudiApiFactory factory)
     {
-        var client = factory.CreateClient();
-        var user = await client.RegisterAsync(TestAccounts.New());
-        return new TestLearner(client, user.Id);
+        var session = await factory.SignInDirectlyAsync(TestAccounts.NewIdentity());
+        return new TestLearner(factory.ClientWithSession(session.Token), session.User.Id);
     }
 
     public static async Task<DeckResponse> CreateDeckAsync(this HttpClient client, string name = "Anglais")

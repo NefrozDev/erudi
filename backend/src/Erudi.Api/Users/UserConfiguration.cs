@@ -14,7 +14,9 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.NormalizedEmail).HasMaxLength(UserRules.EmailMaxLength);
         builder.Property(u => u.Locale).HasMaxLength(UserRules.LocaleMaxLength);
 
-        builder.HasIndex(u => u.NormalizedUsername).IsUnique();
-        builder.HasIndex(u => u.NormalizedEmail).IsUnique();
+        // Not unique here: the identity service owns them, and a copy can lag behind a rename
+        // until its owner signs in again.
+        builder.HasIndex(u => u.NormalizedUsername);
+        builder.HasIndex(u => u.NormalizedEmail);
     }
 }
