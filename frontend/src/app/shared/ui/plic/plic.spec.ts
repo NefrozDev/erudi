@@ -29,6 +29,7 @@ describe('Plic', () => {
     expect(host.dataset['mood']).toBe('happy');
     expect(host.querySelector('path.plic__mouth')).not.toBeNull();
     expect(host.querySelectorAll('circle[r="12"]')).toHaveLength(2);
+    expect(host.querySelector('.plic__drop')).toBeNull();
   });
 
   it('should only wave when asked, with its arm in its own group', async () => {
@@ -44,11 +45,12 @@ describe('Plic', () => {
     expect(waving.querySelectorAll('.plic__arm > ellipse')).toHaveLength(1);
   });
 
-  it('should open a round mouth when surprised', async () => {
+  it('should open a round mouth and shed droplets when surprised', async () => {
     const host = await render('surprised');
 
     expect(host.dataset['mood']).toBe('surprised');
     expect(host.querySelector('ellipse.plic__mouth')).not.toBeNull();
+    expect(host.querySelectorAll('.plic__drop')).toHaveLength(4);
   });
 
   it('should close its eyes and show sparkles when proud', async () => {

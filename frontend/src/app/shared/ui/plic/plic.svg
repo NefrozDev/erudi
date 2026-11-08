@@ -68,6 +68,15 @@
   @switch (mood()) {
     @case ('surprised') {
       <ellipse class="plic__mouth" cx="100" cy="153" rx="6" ry="8" fill="#7a1e3a" />
+      <!-- Droplets popping off the head, beyond the spikes. Each points away from the head;
+           the outer group places it, so the CSS animation can move it along its own axis. -->
+      <g fill="#8fd3ff" stroke="#3b2db0" stroke-width="2.5" stroke-linejoin="round">
+        @for (drop of drops; track drop.angle) {
+          <g [attr.transform]="'translate(' + drop.x + ' ' + drop.y + ') rotate(' + drop.angle + ')'">
+            <path class="plic__drop" d="M0-16c7 9 11 14 11 20a11 11 0 0 1-22 0c0-6 4-11 11-20z" />
+          </g>
+        }
+      </g>
     }
     @case ('sleepy') {
       <path class="plic__mouth" d="M93 150q7 5 14 0" fill="none" stroke="#17153b" stroke-width="3" stroke-linecap="round" />

@@ -18,6 +18,14 @@ const SPIKES: readonly Spike[] = [
   { angle: 78, fill: '#ffc93c' },
 ];
 
+// Surprise droplets, around the head beyond the spikes.
+const DROPS: readonly { x: number; y: number; angle: number }[] = [
+  { x: -8, y: 84, angle: -68 },
+  { x: 22, y: 6, angle: -32 },
+  { x: 178, y: 6, angle: 32 },
+  { x: 208, y: 84, angle: 68 },
+];
+
 /**
  * Plic, the hedgehog whose spikes are flashcards. Decorative: the screen's text always says
  * what Plic expresses, so assistive technologies skip it.
@@ -39,4 +47,5 @@ export class Plic {
   readonly waving = input(false);
 
   protected readonly spikes = SPIKES;
+  protected readonly drops = DROPS;
 }

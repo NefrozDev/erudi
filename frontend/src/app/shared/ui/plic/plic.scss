@@ -22,6 +22,17 @@ svg {
     animation: plic-bob 3s ease-in-out infinite;
   }
 
+  // Surprised: a startled hop with a squash on landing, droplets flying off at the top of it.
+  :host([data-mood='surprised']) svg {
+    // The outer svg has a CSS box: percentages, so the squash sits on its feet at any size.
+    transform-origin: 50% 95%;
+    animation: plic-startle 2.8s ease-out infinite;
+  }
+
+  :host([data-mood='surprised']) .plic__drop {
+    animation: plic-drop 2.8s ease-out infinite;
+  }
+
   // The arm swings out from its shoulder (viewBox units) and up beside the head.
   :host([data-waving]) .plic__arm {
     transform-origin: 162px 116px;
@@ -60,5 +71,49 @@ svg {
 
   50% {
     transform: translateY(-4px);
+  }
+}
+
+@keyframes plic-startle {
+  0%,
+  40%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  8% {
+    transform: translateY(-18px) scale(0.96, 1.05);
+  }
+
+  18% {
+    transform: translateY(0) scale(1.06, 0.93);
+  }
+
+  26% {
+    transform: translateY(-4px) scale(1);
+  }
+}
+
+// Hidden while resting, so the hop is what shows them.
+@keyframes plic-drop {
+  0%,
+  5% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.6);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  32% {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.8);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.8);
   }
 }
