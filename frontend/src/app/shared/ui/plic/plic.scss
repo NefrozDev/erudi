@@ -33,7 +33,7 @@ svg {
     animation: plic-drop 2.8s ease-out infinite;
   }
 
-  // Proud: two happy hops, both thumbs pumping with them, the sparkles twinkling.
+  // Proud: two happy hops, raised arms pumping with them, the sparkles twinkling.
   :host([data-mood='proud']) svg {
     animation: plic-hops 2.4s ease-in-out infinite;
   }

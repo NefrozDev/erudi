@@ -33,16 +33,12 @@
         <path d="M73 124q11-12 22 0" />
         <path d="M105 124q11-12 22 0" />
       </g>
-      <!-- Both arms up, thumbs up: the left one mirrors the right. The thumb comes before the
-           fist, so the fist's outline covers its base. -->
+      <!-- Both arms raised in a cheer: the left one mirrors the right. -->
       <g fill="#7d63ff" stroke="#3b2db0" stroke-width="3">
         @for (side of cheerSides; track side) {
           <g [attr.transform]="side">
             <g class="plic__cheer">
-              <ellipse cx="168" cy="112" rx="11" ry="18" transform="rotate(18 168 112)" />
-              <ellipse cx="171" cy="70" rx="6.5" ry="11" transform="rotate(-8 171 70)" />
-              <ellipse cx="178" cy="88" rx="15" ry="13" />
-              <path d="M182 84h7M182 92h6" fill="none" stroke-width="2" stroke-linecap="round" />
+              <ellipse cx="176" cy="102" rx="13" ry="27" transform="rotate(42 176 102)" />
             </g>
           </g>
         }

@@ -55,7 +55,7 @@ describe('Plic', () => {
     expect(host.querySelectorAll('.plic__drop')).toHaveLength(4);
   });
 
-  it('should close its eyes, cheer with both thumbs up and show sparkles when proud', async () => {
+  it('should close its eyes, cheer with both arms raised and show sparkles when proud', async () => {
     const host = await render('proud');
 
     expect(host.querySelectorAll('.plic__cheer')).toHaveLength(2);
