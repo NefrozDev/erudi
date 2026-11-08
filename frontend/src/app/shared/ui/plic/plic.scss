@@ -33,6 +33,28 @@ svg {
     animation: plic-drop 2.8s ease-out infinite;
   }
 
+  // Proud: two happy hops, both thumbs pumping with them, the sparkles twinkling.
+  :host([data-mood='proud']) svg {
+    animation: plic-hops 2.4s ease-in-out infinite;
+  }
+
+  :host([data-mood='proud']) .plic__cheer {
+    // Each arm turns around its shoulder, at the bottom of its own box (mirrored on the left).
+    transform-box: fill-box;
+    transform-origin: 20% 100%;
+    animation: plic-pump 2.4s ease-in-out infinite;
+  }
+
+  :host([data-mood='proud']) .plic__sparkle {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: plic-twinkle 1.2s ease-in-out infinite alternate;
+
+    &:last-child {
+      animation-delay: -0.6s;
+    }
+  }
+
   // The arm swings out from its shoulder (viewBox units) and up beside the head.
   :host([data-waving]) .plic__arm {
     transform-origin: 162px 116px;
@@ -115,5 +137,43 @@ svg {
   100% {
     opacity: 0;
     transform: translateY(-22px) scale(0.8);
+  }
+}
+
+@keyframes plic-hops {
+  0%,
+  24%,
+  48%,
+  100% {
+    transform: translateY(0);
+  }
+
+  12%,
+  36% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes plic-pump {
+  0%,
+  24%,
+  48%,
+  100% {
+    transform: rotate(0);
+  }
+
+  12%,
+  36% {
+    transform: translateY(-6px) rotate(-12deg);
+  }
+}
+
+@keyframes plic-twinkle {
+  from {
+    transform: scale(0.7) rotate(0);
+  }
+
+  to {
+    transform: scale(1.2) rotate(25deg);
   }
 }

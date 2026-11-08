@@ -48,4 +48,6 @@ export class Plic {
 
   protected readonly spikes = SPIKES;
   protected readonly drops = DROPS;
+  // Proud: the right arm as drawn, then the same arm mirrored to the left.
+  protected readonly cheerSides = ['', 'translate(200 0) scale(-1 1)'];
 }

@@ -30,6 +30,8 @@ describe('Plic', () => {
     expect(host.querySelector('path.plic__mouth')).not.toBeNull();
     expect(host.querySelectorAll('circle[r="12"]')).toHaveLength(2);
     expect(host.querySelector('.plic__drop')).toBeNull();
+    expect(host.querySelector('.plic__cheer')).toBeNull();
+    expect(host.querySelector('.plic__arm')).not.toBeNull();
   });
 
   it('should only wave when asked, with its arm in its own group', async () => {
@@ -53,8 +55,11 @@ describe('Plic', () => {
     expect(host.querySelectorAll('.plic__drop')).toHaveLength(4);
   });
 
-  it('should close its eyes and show sparkles when proud', async () => {
+  it('should close its eyes, cheer with both thumbs up and show sparkles when proud', async () => {
     const host = await render('proud');
+
+    expect(host.querySelectorAll('.plic__cheer')).toHaveLength(2);
+    expect(host.querySelector('.plic__arm')).toBeNull();
 
     expect(host.querySelectorAll('circle[r="12"]')).toHaveLength(0);
     expect(host.querySelectorAll('path[fill="#ffc93c"], g[fill="#ffc93c"] path')).toHaveLength(2);
