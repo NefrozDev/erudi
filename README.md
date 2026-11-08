@@ -26,7 +26,9 @@ npm run build
 ## Deployment
 
 Erudi runs on the VPS next to Plano and Mailcow, with its own database in Plano's
-PostgreSQL. AGENTS.md explains the setup; nothing below touches Plano's database or
+PostgreSQL. Learners sign in with their Synapse account: the identity service
+(`synapse-auth`, at auth.synapseengineering.dev) must be deployed first, with
+Erudi's client in its clients file. AGENTS.md explains the setup; nothing below touches Plano's database or
 Mailcow's ports.
 
 ### First deployment
@@ -43,7 +45,8 @@ Mailcow's ports.
    ```sh
    git clone <repository URL> /home/ubuntu/erudi && cd /home/ubuntu/erudi
    cp .env.production.example .env && chmod 600 .env
-   # Fill in .env: ERUDI_DB_PASSWORD from `openssl rand -hex 32`, the SMTP password.
+   # Fill in .env: ERUDI_DB_PASSWORD from `openssl rand -hex 32`, and
+   # IDENTITY_CLIENT_SECRET, the ERUDI_CLIENT_SECRET of synapse-auth's .env.
    docker network ls && docker ps   # check PLANO_NETWORK, MAILCOW_NETWORK, plano-prod-db-1
    sh deploy/create-database.sh     # once: Erudi's role and database
    docker compose -f compose.prod.yaml pull
@@ -57,8 +60,9 @@ Mailcow's ports.
    `docker compose exec nginx-mailcow nginx -t` and, if it passes,
    `docker compose exec nginx-mailcow nginx -s reload`.
 5. **Backups**: add the cron line given at the top of `deploy/backup.sh`.
-6. **Check**: open https://erudi.synapseengineering.dev, create an account, ask for
-   a password reset to see the e-mail arrive, then delete the account in Settings.
+6. **Check**: open https://erudi.synapseengineering.dev, sign in with a Synapse
+   account, accept the terms, then sign out from Settings: the identity service
+   should end the session of every app.
 
 ### Updates
 
