@@ -108,7 +108,16 @@ describe('ExploreApi', () => {
   });
 
   it('should encode ids taken from the address bar', async () => {
-    await call(api.get('../decks'), 'GET', '/api/explore/..%2Fdecks', publicDeck);
-    await call(api.unpublish('a/b'), 'DELETE', '/api/decks/a%2Fb/publication', null);
+    // expectOne in call() fails unless the URL is exactly the encoded one.
+    expect(
+      (await call(api.get('../decks'), 'GET', '/api/explore/..%2Fdecks', publicDeck)).result,
+    ).toEqual(publicDeck);
+    const unpublished = await call(
+      api.unpublish('a/b'),
+      'DELETE',
+      '/api/decks/a%2Fb/publication',
+      null,
+    );
+    expect(unpublished.result).toBeNull();
   });
 });

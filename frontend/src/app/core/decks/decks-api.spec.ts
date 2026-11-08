@@ -77,7 +77,16 @@ describe('DecksApi', () => {
   });
 
   it('should keep an id from the address bar inside its path segment', async () => {
-    await call(api.delete('../auth/logout'), 'DELETE', '/api/decks/..%2Fauth%2Flogout', null);
-    await call(api.getCard('a?b#c'), 'GET', '/api/cards/a%3Fb%23c', card);
+    // expectOne in call() fails unless the URL is exactly the encoded one.
+    const deleted = await call(
+      api.delete('../auth/logout'),
+      'DELETE',
+      '/api/decks/..%2Fauth%2Flogout',
+      null,
+    );
+    expect(deleted.result).toBeNull();
+    expect((await call(api.getCard('a?b#c'), 'GET', '/api/cards/a%3Fb%23c', card)).result).toEqual(
+      card,
+    );
   });
 });
