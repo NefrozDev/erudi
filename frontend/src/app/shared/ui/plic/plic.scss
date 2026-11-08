@@ -21,6 +21,35 @@ svg {
   :host([data-mood='happy']) svg {
     animation: plic-bob 3s ease-in-out infinite;
   }
+
+  // The arm swings out from its shoulder (viewBox units) and up beside the head.
+  :host([data-waving]) .plic__arm {
+    transform-origin: 162px 116px;
+    animation: plic-wave 3.6s ease-in-out infinite;
+  }
+}
+
+// Raise, wave three times, lower, then rest for the second half.
+@keyframes plic-wave {
+  0%,
+  52%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+
+  12%,
+  28% {
+    transform: translate(20px, -14px) rotate(-175deg);
+  }
+
+  20%,
+  36% {
+    transform: translate(20px, -14px) rotate(-150deg);
+  }
+
+  42% {
+    transform: translate(20px, -14px) rotate(-170deg);
+  }
 }
 
 @keyframes plic-bob {

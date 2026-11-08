@@ -31,6 +31,7 @@ describe('Intro', () => {
     expect(host.textContent).toContain('Tes cartes sont rangées dans 5 boîtes.');
     expect(host.textContent).toContain('Étape 1 sur 3');
     expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('happy');
+    expect(host.querySelector('app-plic')?.hasAttribute('data-waving')).toBe(true);
     expect(host.querySelectorAll('.intro__dot--active')).toHaveLength(1);
   });
 
@@ -42,6 +43,7 @@ describe('Intro', () => {
     expect(host.textContent).toContain('La carte retourne en boîte 1 et revient bientôt.');
     expect(host.textContent).toContain('Étape 2 sur 3');
     expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('surprised');
+    expect(host.querySelector('app-plic')?.hasAttribute('data-waving')).toBe(false);
   });
 
   it('should end on the choice between creating an account and signing in, without skip', async () => {

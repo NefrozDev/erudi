@@ -31,6 +31,19 @@ describe('Plic', () => {
     expect(host.querySelectorAll('circle[r="12"]')).toHaveLength(2);
   });
 
+  it('should only wave when asked, with its arm in its own group', async () => {
+    const still = await render();
+    expect(still.hasAttribute('data-waving')).toBe(false);
+
+    const fixture = TestBed.createComponent(Plic);
+    fixture.componentRef.setInput('waving', true);
+    await fixture.whenStable();
+    const waving = fixture.nativeElement as HTMLElement;
+
+    expect(waving.hasAttribute('data-waving')).toBe(true);
+    expect(waving.querySelectorAll('.plic__arm > ellipse')).toHaveLength(1);
+  });
+
   it('should open a round mouth when surprised', async () => {
     const host = await render('surprised');
 

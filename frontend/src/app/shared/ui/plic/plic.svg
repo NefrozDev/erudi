@@ -15,7 +15,10 @@
     <ellipse cx="124" cy="180" rx="18" ry="9" fill="#fff1df" />
     <circle cx="100" cy="118" r="62" fill="#6f52ff" />
     <ellipse cx="42" cy="130" rx="13" ry="20" fill="#7d63ff" transform="rotate(-12 42 130)" />
-    <ellipse cx="158" cy="130" rx="13" ry="20" fill="#7d63ff" transform="rotate(12 158 130)" />
+    <!-- Its own group: a CSS transform on the ellipse would replace its rotate attribute. -->
+    <g class="plic__arm">
+      <ellipse cx="158" cy="130" rx="13" ry="20" fill="#7d63ff" transform="rotate(12 158 130)" />
+    </g>
   </g>
   <ellipse cx="76" cy="80" rx="20" ry="10" fill="#ffffff" opacity="0.25" transform="rotate(-22 76 80)" />
   <ellipse cx="100" cy="132" rx="45" ry="38" fill="#ffe7cc" />

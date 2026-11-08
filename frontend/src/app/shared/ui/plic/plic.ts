@@ -27,10 +27,16 @@ const SPIKES: readonly Spike[] = [
   templateUrl: './plic.svg',
   styleUrl: './plic.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { 'aria-hidden': 'true', '[attr.data-mood]': 'mood()' },
+  host: {
+    'aria-hidden': 'true',
+    '[attr.data-mood]': 'mood()',
+    '[attr.data-waving]': 'waving() || null',
+  },
 })
 export class Plic {
   readonly mood = input<PlicMood>('happy');
+  /** Waves hello every few seconds, unless the device asks for reduced motion. */
+  readonly waving = input(false);
 
   protected readonly spikes = SPIKES;
 }

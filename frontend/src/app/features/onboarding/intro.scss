@@ -9,7 +9,28 @@
 }
 
 .intro__skip {
+  // The padding makes a bigger target without moving the text off the gutter.
+  margin: -10px -18px -10px 0;
+  padding: 10px 18px;
+  border-radius: 999px;
   color: var(--color-text-secondary);
+  font-size: 1.0625rem;
+
+  &:hover {
+    background: var(--color-violet-soft);
+    color: var(--color-violet);
+  }
+}
+
+// On a wide screen the column sits in the middle: skipping belongs in the window's corner.
+@media (min-width: 768px) {
+  .intro__skip {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    margin: 0;
+    font-size: 1.125rem;
+  }
 }
 
 .intro__art {
@@ -17,7 +38,8 @@
   flex: 1;
   align-items: center;
   justify-content: center;
-  --plic-size: min(220px, 55vw);
+  // As big as the screen allows, leaving room for the text and buttons below.
+  --plic-size: min(400px, 60vw, 40dvh);
 }
 
 .intro__slide {
