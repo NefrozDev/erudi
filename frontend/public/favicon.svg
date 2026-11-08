@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Plic's head, simplified to read at 16px: five card-spikes, no feet, nose or eye whites. -->
+  <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+    <rect x="24" y="2" width="16" height="22" rx="3.5" fill="#ff8a8a" transform="rotate(-62 32 37)" />
+    <rect x="24" y="2" width="16" height="22" rx="3.5" fill="#9fe8c8" transform="rotate(62 32 37)" />
+    <rect x="24" y="2" width="16" height="22" rx="3.5" fill="#ffc93c" transform="rotate(-31 32 37)" />
+    <rect x="24" y="2" width="16" height="22" rx="3.5" fill="#ffc93c" transform="rotate(31 32 37)" />
+    <rect x="24" y="2" width="16" height="22" rx="3.5" fill="#ffffff" />
+    <circle cx="32" cy="38" r="23" fill="#6f52ff" />
+  </g>
+  <ellipse cx="32" cy="43.5" rx="17.5" ry="15" fill="#ffe7cc" />
+  <circle cx="17.5" cy="48.5" r="3.4" fill="#ff9aa8" />
+  <circle cx="46.5" cy="48.5" r="3.4" fill="#ff9aa8" />
+  <circle cx="24.5" cy="41" r="5" fill="#17153b" />
+  <circle cx="39.5" cy="41" r="5" fill="#17153b" />
+  <circle cx="26.3" cy="39.2" r="1.7" fill="#ffffff" />
+  <circle cx="41.3" cy="39.2" r="1.7" fill="#ffffff" />
+  <path d="M27 49.5q5 5.5 10 0" fill="none" stroke="#17153b" stroke-width="2.8" stroke-linecap="round" />
+</svg>
