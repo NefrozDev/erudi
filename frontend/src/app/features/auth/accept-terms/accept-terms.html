@@ -1,0 +1,20 @@
+<main class="page">
+  <app-plic class="accept-terms__plic" mood="happy" />
+  <h1 class="title">{{ 'auth.acceptTerms.title' | transloco }}</h1>
+  <p class="subtitle">{{ 'auth.acceptTerms.text' | transloco }}</p>
+  <p>
+    <a class="text-link" routerLink="/terms" target="_blank" rel="noopener">{{
+      'auth.acceptTerms.read' | transloco
+    }}</a>
+  </p>
+
+  @if (failed()) {
+    <p class="alert" role="alert">{{ 'auth.acceptTerms.error' | transloco }}</p>
+  }
+
+  <div class="page__actions">
+    <button class="button" type="button" [disabled]="accepting()" (click)="accept()">
+      {{ 'auth.acceptTerms.submit' | transloco }}
+    </button>
+  </div>
+</main>

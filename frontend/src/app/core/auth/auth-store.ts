@@ -1,8 +1,11 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AuthApi, AuthUser, SignInRequest, SignUpRequest } from './auth-api';
+import { AuthApi, AuthUser } from './auth-api';
 
-/** The signed-in user, the server being the source of truth. */
+/**
+ * The signed-in user, the server being the source of truth. Signing in happens on the
+ * Synapse account: the API opens Erudi's session on the way back.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
   private readonly api = inject(AuthApi);
@@ -20,34 +23,27 @@ export class AuthStore {
     }
   }
 
-  /** Rejects with the HTTP error, for the form to explain it. */
-  async signUp(request: SignUpRequest): Promise<void> {
-    this.currentUser.set(await firstValueFrom(this.api.register(request)));
-  }
-
-  /** Rejects with the HTTP error, for the form to explain it. */
-  async signIn(request: SignInRequest): Promise<void> {
-    this.currentUser.set(await firstValueFrom(this.api.login(request)));
-  }
-
-  /** Signed out locally even if the API cannot be reached. */
-  async signOut(): Promise<void> {
+  /**
+   * Signed out locally even if the API cannot be reached. Resolves with where to send the
+   * browser to sign out of every Synapse app, or null when the API did not answer.
+   */
+  async signOut(): Promise<string | null> {
     try {
-      await firstValueFrom(this.api.logout());
+      return (await firstValueFrom(this.api.logout())).redirectTo;
     } catch {
       // The cookie expires on its own; the user must not stay stuck signed in.
+      return null;
     } finally {
       this.currentUser.set(null);
     }
   }
 
-  /** Signed out once the account is gone; rejects with the HTTP error, keeping the user. */
-  async deleteAccount(password: string): Promise<void> {
-    await firstValueFrom(this.api.deleteAccount(password));
-    this.currentUser.set(null);
+  /** Erudi's own terms; rejects with the HTTP error, keeping the user as they were. */
+  async acceptTerms(): Promise<void> {
+    this.currentUser.set(await firstValueFrom(this.api.acceptTerms()));
   }
 
-  /** The server ended the session (expired, or a password reset signed every device out). */
+  /** The server ended the session (expired, or signed out on another app or device). */
   clear(): void {
     this.currentUser.set(null);
   }

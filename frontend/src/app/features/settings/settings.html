@@ -12,9 +12,18 @@
     <a class="settings__row settings__link" routerLink="/terms">
       {{ 'settings.terms' | transloco }}
     </a>
-    <a class="settings__row settings__link" routerLink="/settings/delete-account">
-      {{ 'settings.deleteAccount' | transloco }}
+    <a
+      class="settings__row settings__link"
+      [href]="accountUrl"
+      target="_blank"
+      rel="noopener"
+      aria-describedby="settings-account-hint"
+    >
+      {{ 'settings.manageAccount' | transloco }}
     </a>
+    <p class="subtitle settings__hint" id="settings-account-hint">
+      {{ 'settings.manageAccountHint' | transloco }}
+    </p>
   </nav>
 
   <button

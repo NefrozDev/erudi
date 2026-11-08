@@ -1,7 +1,7 @@
 <main class="page intro">
   <div class="intro__top">
     @if (!isLast()) {
-      <button type="button" class="text-link intro__skip" (click)="leave('/sign-up')">
+      <button type="button" class="text-link intro__skip" (click)="leave()">
         {{ 'intro.skip' | transloco }}
       </button>
     }
@@ -42,10 +42,10 @@
 
   <div class="page__actions">
     @if (isLast()) {
-      <button type="button" class="button" (click)="leave('/sign-up')">
+      <button type="button" class="button" (click)="leave()">
         {{ 'intro.start.createAccount' | transloco }}
       </button>
-      <button type="button" class="button button--secondary" (click)="leave('/sign-in')">
+      <button type="button" class="button button--secondary" (click)="leave()">
         {{ 'intro.start.haveAccount' | transloco }}
       </button>
     } @else {

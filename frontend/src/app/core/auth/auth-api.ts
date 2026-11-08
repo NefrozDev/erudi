@@ -6,18 +6,19 @@ export interface AuthUser {
   id: string;
   username: string;
   email: string;
+  /** False until Erudi's own terms are accepted, on its first screen after signing in. */
+  termsAccepted: boolean;
 }
 
-export interface SignUpRequest {
-  username: string;
-  email: string;
-  password: string;
-  acceptedTerms: boolean;
+/** Where to send the browser after signing out of Erudi: the identity service. */
+export interface SignOutResponse {
+  redirectTo: string;
 }
 
-export interface SignInRequest {
-  email: string;
-  password: string;
+/** Where the browser goes to sign in with the Synapse account, coming back to `returnTo`. */
+export function signInUrl(returnTo: string, language: string): string {
+  const params = new URLSearchParams({ returnTo, lang: language });
+  return `/api/auth/login?${params.toString()}`;
 }
 
 /**
@@ -28,33 +29,15 @@ export interface SignInRequest {
 export class AuthApi {
   private readonly http = inject(HttpClient);
 
-  register(request: SignUpRequest): Observable<AuthUser> {
-    return this.http.post<AuthUser>('/api/auth/register', request);
-  }
-
-  login(request: SignInRequest): Observable<AuthUser> {
-    return this.http.post<AuthUser>('/api/auth/login', request);
-  }
-
   getSession(): Observable<AuthUser> {
     return this.http.get<AuthUser>('/api/auth/session');
   }
 
-  logout(): Observable<void> {
-    return this.http.post<void>('/api/auth/logout', null);
+  logout(): Observable<SignOutResponse> {
+    return this.http.post<SignOutResponse>('/api/auth/logout', null);
   }
 
-  /** Always succeeds for a well-formed address, whether or not it has an account. */
-  requestPasswordReset(email: string): Observable<void> {
-    return this.http.post<void>('/api/auth/password-reset', { email });
-  }
-
-  confirmPasswordReset(token: string, password: string): Observable<void> {
-    return this.http.post<void>('/api/auth/password-reset/confirm', { token, password });
-  }
-
-  /** Deletes the account and all its data; the password confirms it is really its owner. */
-  deleteAccount(password: string): Observable<void> {
-    return this.http.delete<void>('/api/account', { body: { password } });
+  acceptTerms(): Observable<AuthUser> {
+    return this.http.post<AuthUser>('/api/account/terms', null);
   }
 }

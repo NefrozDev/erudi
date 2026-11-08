@@ -1,66 +1,41 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { FormField, FormRoot, form, required } from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
-import { httpStatus } from '../../../core/api/api-errors';
-import { AuthStore } from '../../../core/auth/auth-store';
-import { visibleError } from '../../../shared/forms/field-errors';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { signInUrl } from '../../../core/auth/auth-api';
+import { BROWSER_LOCATION } from '../../../core/browser/browser-location';
 import { Plic } from '../../../shared/ui/plic/plic';
 
-interface SignInModel {
-  email: string;
-  password: string;
-}
-
-/** Screen 5. */
+/**
+ * Screen 5. Erudi signs in with the Synapse account, shared by every Synapse Engineering
+ * app: the button opens its pages, which come back to Erudi signed in.
+ */
 @Component({
   selector: 'app-sign-in',
-  imports: [FormField, FormRoot, Plic, RouterLink, TranslocoPipe],
+  imports: [Plic, TranslocoPipe],
   templateUrl: './sign-in.html',
   styleUrl: './sign-in.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignIn {
-  private readonly auth = inject(AuthStore);
-  private readonly router = inject(Router);
+  private readonly location = inject(BROWSER_LOCATION);
+  private readonly transloco = inject(TranslocoService);
 
-  protected readonly formError = signal<string | null>(null);
-  protected readonly visibleError = visibleError;
+  /** ?signIn=cancelled|failed: how the last sign-in came back. */
+  readonly signIn = input<string>();
 
-  private readonly model = signal<SignInModel>({ email: '', password: '' });
-
-  // Only presence is checked: the format of an existing account's e-mail is the API's concern.
-  protected readonly form = form(
-    this.model,
-    (path) => {
-      required(path.email, { message: 'auth.errors.required' });
-      required(path.password, { message: 'auth.errors.required' });
-    },
-    { submission: { action: () => this.submit() } },
-  );
-
-  private async submit(): Promise<void> {
-    this.formError.set(null);
-    try {
-      // The email input already strips surrounding spaces; the password is sent as typed.
-      await this.auth.signIn(this.model());
-    } catch (error) {
-      this.formError.set(this.explain(error));
-      return;
-    }
-
-    await this.router.navigateByUrl('/');
-  }
-
-  private explain(error: unknown): string {
-    switch (httpStatus(error)) {
-      case 400:
-      case 401:
-        return 'auth.errors.invalidCredentials';
-      case 429:
-        return 'auth.errors.tooManyAttempts';
+  protected readonly leaving = signal(false);
+  protected readonly notice = computed(() => {
+    switch (this.signIn()) {
+      case 'cancelled':
+        return 'auth.signIn.cancelled';
+      case 'failed':
+        return 'auth.signIn.failed';
       default:
-        return 'auth.errors.generic';
+        return null;
     }
+  });
+
+  protected start(): void {
+    this.leaving.set(true);
+    this.location.assign(signInUrl('/', this.transloco.getActiveLang()));
   }
 }

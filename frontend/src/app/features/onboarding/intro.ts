@@ -36,8 +36,9 @@ export class Intro {
     this.index.update((index) => Math.min(index + 1, SLIDES.length - 1));
   }
 
-  protected leave(target: '/sign-up' | '/sign-in'): void {
+  /** Both last buttons open the Synapse sign-in, which also creates accounts. */
+  protected leave(): void {
     this.onboarding.markIntroSeen();
-    void this.router.navigateByUrl(target);
+    void this.router.navigateByUrl('/sign-in');
   }
 }

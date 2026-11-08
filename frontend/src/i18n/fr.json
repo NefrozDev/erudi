@@ -1,10 +1,7 @@
 {
   "titles": {
     "welcome": "Bienvenue",
-    "signUp": "Créer un compte",
     "signIn": "Connexion",
-    "forgotPassword": "Mot de passe oublié",
-    "resetPassword": "Nouveau mot de passe",
     "home": "Accueil",
     "explore": "Explorer",
     "progress": "Progrès",
@@ -21,7 +18,7 @@
     "report": "Signaler un paquet",
     "publish": "Publier un paquet",
     "terms": "Conditions d'utilisation",
-    "deleteAccount": "Supprimer mon compte"
+    "acceptTerms": "Bienvenue"
   },
   "intro": {
     "skip": "Passer",
@@ -47,64 +44,20 @@
     }
   },
   "auth": {
-    "fields": {
-      "username": "Pseudo",
-      "usernamePlaceholder": "Affiché sur tes paquets publiés",
-      "email": "Email",
-      "emailPlaceholder": "nom@exemple.be",
-      "password": "Mot de passe",
-      "passwordPlaceholder": "8 caractères minimum",
-      "newPassword": "Nouveau mot de passe"
-    },
-    "errors": {
-      "required": "Ce champ est obligatoire.",
-      "email": "Saisis une adresse email valide.",
-      "usernameFormat": "3 à 30 lettres sans accent, chiffres, points, tirets ou _.",
-      "passwordLength": "Au moins 8 caractères.",
-      "passwordTooLong": "128 caractères maximum.",
-      "terms": "Accepte les conditions pour continuer.",
-      "usernameTaken": "Ce pseudo est déjà pris.",
-      "emailTaken": "Cette adresse a déjà un compte.",
-      "invalidCredentials": "Email ou mot de passe incorrect.",
-      "tooManyAttempts": "Trop de tentatives. Réessaie dans une minute.",
-      "generic": "Une erreur est survenue. Réessaie dans un instant."
-    },
-    "signUp": {
-      "back": "Connexion",
-      "title": "Créer un compte",
-      "subtitle": "Gratuit, avec synchronisation sur tous tes appareils.",
-      "terms": "J'accepte les conditions d'utilisation et la politique de confidentialité.",
-      "readTerms": "Lire les conditions et la politique de confidentialité",
-      "submit": "Créer mon compte"
-    },
     "signIn": {
       "title": "Bienvenue",
-      "subtitle": "Connecte-toi pour retrouver tes cartes sur tous tes appareils.",
-      "forgotPassword": "Mot de passe oublié ?",
-      "submit": "Se connecter",
-      "noAccount": "Pas encore de compte ?",
-      "createAccount": "Créer un compte"
+      "subtitle": "Erudi utilise ton compte Synapse : le même pour toutes les applications de Synapse Engineering. Tu peux aussi en créer un.",
+      "submit": "Se connecter ou créer un compte",
+      "leaving": "Redirection…",
+      "cancelled": "La connexion a été annulée.",
+      "failed": "La connexion a échoué. Réessaie dans un instant."
     },
-    "forgotPassword": {
-      "back": "Connexion",
-      "title": "Mot de passe oublié",
-      "subtitle": "Saisis ton adresse email. Nous t'enverrons un lien pour choisir un nouveau mot de passe.",
-      "submit": "Envoyer le lien",
-      "sentTitle": "Vérifie ta boîte mail",
-      "sentText": "Si un compte existe pour {{email}}, tu vas recevoir un lien valable 30 minutes.",
-      "backToSignIn": "Retour à la connexion"
-    },
-    "resetPassword": {
-      "back": "Connexion",
-      "title": "Nouveau mot de passe",
-      "subtitle": "Choisis ton nouveau mot de passe. Tous tes appareils seront déconnectés.",
-      "submit": "Enregistrer",
-      "doneTitle": "Mot de passe changé",
-      "doneText": "Tu peux maintenant te connecter avec ton nouveau mot de passe.",
-      "signIn": "Se connecter",
-      "invalidTitle": "Lien expiré",
-      "invalidText": "Ce lien n'est plus valable. Demande-en un nouveau.",
-      "requestNew": "Demander un nouveau lien"
+    "acceptTerms": {
+      "title": "Bienvenue sur Erudi",
+      "text": "Ton compte Synapse te connecte. Pour utiliser Erudi, accepte aussi ses conditions d'utilisation et sa politique de confidentialité.",
+      "read": "Lire les conditions et la politique de confidentialité",
+      "submit": "J'accepte et je continue",
+      "error": "L'enregistrement a échoué. Réessaie dans un instant."
     }
   },
   "shell": {
@@ -367,27 +320,9 @@
     "title": "Réglages",
     "account": "Compte",
     "terms": "Conditions d'utilisation",
-    "deleteAccount": "Supprimer mon compte",
     "signOut": "Se déconnecter",
-    "delete": {
-      "back": "Réglages",
-      "title": "Supprimer mon compte",
-      "subtitle": "C'est définitif : rien ne pourra être récupéré.",
-      "goneTitle": "Ce qui sera effacé tout de suite",
-      "gone": {
-        "account": "ton compte, ton pseudo et ton adresse email ;",
-        "decks": "tes paquets, tes cartes et ta progression ;",
-        "explore": "tes publications dans l'Explorer, tes scores et tes signalements."
-      },
-      "copies": "Les copies que d'autres ont faites de tes paquets restent à eux.",
-      "password": "Confirme avec ton mot de passe",
-      "wrongPassword": "Mot de passe incorrect.",
-      "submit": "Supprimer définitivement",
-      "error": "La suppression a échoué. Réessaie dans un instant.",
-      "doneTitle": "Ton compte est supprimé",
-      "doneText": "Toutes tes données ont été effacées. Merci d'avoir révisé avec Erudi.",
-      "leave": "Retour à l'accueil"
-    }
+    "manageAccount": "Gérer mon compte Synapse",
+    "manageAccountHint": "Pseudo, email, mot de passe et suppression du compte, pour toutes les applications Synapse."
   },
   "terms": {
     "back": "Retour",
@@ -396,13 +331,13 @@
     "contact": "Contact :",
     "about": {
       "title": "1. Erudi",
-      "text": "Erudi est une application de révision par boîtes de Leitner, éditée par Synapse Engineering, établie en Belgique. Ces conditions encadrent son utilisation : créer un compte signifie que tu les acceptes."
+      "text": "Erudi est une application de révision par boîtes de Leitner, éditée par Synapse Engineering, établie en Belgique. Ces conditions encadrent son utilisation : elles te sont demandées à ta première visite."
     },
     "account": {
       "title": "2. Ton compte",
       "age": "Tu dois avoir au moins 13 ans pour créer un compte.",
-      "email": "Ton adresse email doit être la tienne : elle sert à te connecter et à changer de mot de passe.",
-      "secret": "Ton mot de passe est personnel. Tu es responsable de ce qui est fait avec ton compte.",
+      "email": "Tu te connectes avec ton compte Synapse, le même pour toutes les applications de Synapse Engineering. Il a ses propres conditions, sur auth.synapseengineering.dev.",
+      "secret": "Le mot de passe de ton compte est personnel. Tu es responsable de ce qui est fait avec ton compte.",
       "one": "Un compte correspond à une seule personne."
     },
     "content": {
@@ -429,15 +364,15 @@
     },
     "deletion": {
       "title": "6. Supprimer ton compte",
-      "text": "Tu peux supprimer ton compte à tout moment dans les Réglages. Ton compte, tes paquets, tes cartes, ta progression, tes publications, tes scores et tes signalements sont alors effacés tout de suite ; les sauvegardes du serveur les gardent encore 14 jours au plus."
+      "text": "Tu peux supprimer ton compte à tout moment depuis la page de ton compte Synapse (Réglages, « Gérer mon compte Synapse »). Erudi est alors prévenu et efface tout de suite ton compte, tes paquets, tes cartes, ta progression, tes publications, tes scores et tes signalements ; les sauvegardes du serveur les gardent encore 14 jours au plus."
     },
     "privacy": {
       "title": "7. Politique de confidentialité",
       "controller": "Synapse Engineering est responsable du traitement de tes données personnelles, conformément au Règlement général sur la protection des données (RGPD).",
       "keptTitle": "Ce que nous conservons",
       "kept": {
-        "identity": "Ton pseudo, ton adresse email et ta langue.",
-        "password": "Ton mot de passe, jamais en clair : seulement une empreinte qui ne permet pas de le retrouver.",
+        "identity": "Ton pseudo et ton adresse email, recopiés de ton compte Synapse à chaque connexion, et ta langue.",
+        "password": "Aucun mot de passe : seul ton compte Synapse le garde.",
         "content": "Tes paquets, tes cartes, tes réponses et leurs dates (pour savoir quand revoir chaque carte), tes publications, tes scores aux tests, tes signalements et la date à laquelle tu as accepté ces conditions.",
         "ip": "Ton adresse IP, le temps de limiter les abus (trop de tentatives de connexion par exemple). Elle n'est pas enregistrée avec ton compte."
       },
@@ -447,9 +382,9 @@
       "whyTitle": "Pourquoi",
       "why": "Pour faire fonctionner le service que tu demandes (article 6.1.b du RGPD) et pour le protéger contre les abus (intérêt légitime, article 6.1.f). Nous ne vendons pas tes données, il n'y a pas de publicité et l'application ne contient aucun traceur ni service tiers.",
       "cookiesTitle": "Cookies",
-      "cookies": "Un seul cookie, indispensable : celui qui te garde connecté, pendant 30 jours au plus. Ton navigateur retient aussi sur ton appareil que tu as déjà vu l'introduction.",
+      "cookies": "Uniquement des cookies indispensables : celui qui te garde connecté, pendant 30 jours au plus, et ceux qui protègent une connexion en cours, pendant 15 minutes au plus. Ton navigateur retient aussi sur ton appareil que tu as déjà vu l'introduction.",
       "whereTitle": "Où et combien de temps",
-      "where": "Tes données sont hébergées sur un serveur loué à OVHcloud (OVH SAS, France). Les emails, comme les liens pour changer de mot de passe (valables 30 minutes), partent de notre propre serveur de messagerie. Nous gardons tes données tant que ton compte existe.",
+      "where": "Tes données sont hébergées sur un serveur loué à OVHcloud (OVH SAS, France). Nous gardons tes données tant que ton compte existe.",
       "rightsTitle": "Tes droits",
       "rights": "Tu peux accéder à tes données, les corriger, les recevoir dans un format réutilisable, demander leur effacement, en limiter l'usage ou t'y opposer : écris à l'adresse de contact. Tu peux aussi introduire une plainte auprès de l'Autorité de protection des données :"
     },

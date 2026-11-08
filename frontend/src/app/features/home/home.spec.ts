@@ -11,7 +11,12 @@ import { StudyApi, StudySummary } from '../../core/study/study-api';
 import { Home } from './home';
 
 describe('Home', () => {
-  const user = signal<AuthUser | null>({ id: '1', username: 'chloe', email: 'chloe@example.be' });
+  const user = signal<AuthUser | null>({
+    id: '1',
+    username: 'chloe',
+    email: 'chloe@example.be',
+    termsAccepted: true,
+  });
   const list = vi.fn<() => Observable<Deck[]>>();
   const summary = vi.fn<() => Observable<StudySummary>>();
   const decks: Deck[] = [

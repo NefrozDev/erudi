@@ -3,55 +3,13 @@
   <h1 class="title">{{ 'auth.signIn.title' | transloco }}</h1>
   <p class="subtitle">{{ 'auth.signIn.subtitle' | transloco }}</p>
 
-  <form class="page__form" [formRoot]="form">
-    <div class="field">
-      <label class="field__label" for="sign-in-email">{{ 'auth.fields.email' | transloco }}</label>
-      <input
-        id="sign-in-email"
-        class="field__input"
-        type="email"
-        autocomplete="email"
-        [formField]="form.email"
-        [placeholder]="'auth.fields.emailPlaceholder' | transloco"
-        [attr.aria-invalid]="!!visibleError(form.email)"
-        [attr.aria-describedby]="visibleError(form.email) ? 'sign-in-email-error' : null"
-      />
-      @if (visibleError(form.email); as error) {
-        <p class="form-error" id="sign-in-email-error">{{ error | transloco }}</p>
-      }
-    </div>
+  @if (notice(); as notice) {
+    <p class="alert" role="alert">{{ notice | transloco }}</p>
+  }
 
-    <div class="field">
-      <label class="field__label" for="sign-in-password">{{
-        'auth.fields.password' | transloco
-      }}</label>
-      <input
-        id="sign-in-password"
-        class="field__input"
-        type="password"
-        autocomplete="current-password"
-        [formField]="form.password"
-        [attr.aria-invalid]="!!visibleError(form.password)"
-        [attr.aria-describedby]="visibleError(form.password) ? 'sign-in-password-error' : null"
-      />
-      @if (visibleError(form.password); as error) {
-        <p class="form-error" id="sign-in-password-error">{{ error | transloco }}</p>
-      }
-      <a class="text-link sign-in__forgot" routerLink="/forgot-password">
-        {{ 'auth.signIn.forgotPassword' | transloco }}
-      </a>
-    </div>
-
-    @if (formError(); as error) {
-      <p class="alert" role="alert">{{ error | transloco }}</p>
-    }
-    <button class="button" type="submit" [disabled]="form().submitting()">
-      {{ 'auth.signIn.submit' | transloco }}
+  <div class="page__actions">
+    <button class="button" type="button" [disabled]="leaving()" (click)="start()">
+      {{ (leaving() ? 'auth.signIn.leaving' : 'auth.signIn.submit') | transloco }}
     </button>
-
-    <p class="sign-in__sign-up">
-      <span class="subtitle">{{ 'auth.signIn.noAccount' | transloco }}</span>
-      <a class="text-link" routerLink="/sign-up">{{ 'auth.signIn.createAccount' | transloco }}</a>
-    </p>
-  </form>
+  </div>
 </main>

@@ -93,7 +93,7 @@ describe('app routes', () => {
   }
 
   function signIn(): void {
-    user.set({ id: '1', username: 'chloe', email: 'chloe@example.be' });
+    user.set({ id: '1', username: 'chloe', email: 'chloe@example.be', termsAccepted: true });
   }
 
   it('should greet a first-time visitor with the intro', async () => {
@@ -123,12 +123,11 @@ describe('app routes', () => {
     '/explore/p1/test',
     '/explore/p1/report',
     '/publish?deckId=d1',
-    '/settings/delete-account',
   ])('should protect %s', async (url) => {
     expect(await visit(url)).toBe('/welcome');
   });
 
-  it.each(['/welcome', '/sign-up', '/sign-in', '/forgot-password'])(
+  it.each(['/welcome', '/sign-in'])(
     'should send a signed-in user away from %s',
     async (url) => {
       signIn();
@@ -138,11 +137,25 @@ describe('app routes', () => {
     },
   );
 
-  it('should open the reset link whether signed in or not', async () => {
-    expect(await visit('/reset-password')).toBe('/reset-password');
+  it.each(['/sign-up', '/forgot-password', '/reset-password'])(
+    'should send %s, now handled by the Synapse account, to the sign-in',
+    async (url) => {
+      expect(await visit(url)).toBe('/sign-in');
+    },
+  );
 
+  it("should ask a newcomer from another Synapse app for Erudi's terms before anything else", async () => {
+    user.set({ id: '1', username: 'chloe', email: 'chloe@example.be', termsAccepted: false });
+
+    expect(await visit('/decks/new')).toBe('/accept-terms');
+    expect(harness.fixture.nativeElement.querySelector('app-accept-terms')).not.toBeNull();
+    expect(TestBed.inject(Title).getTitle()).toBe('Bienvenue · Erudi');
+  });
+
+  it('should send the old account deletion screen to the settings', async () => {
     signIn();
-    expect(await visit('/reset-password')).toBe('/reset-password');
+
+    expect(await visit('/settings/delete-account')).toBe('/settings');
   });
 
   it('should open the terms whether signed in or not, full screen', async () => {
@@ -176,7 +189,6 @@ describe('app routes', () => {
     ['/explore/p1', 'app-public-deck', 'Paquet public · Erudi'],
     ['/explore/p1/report', 'app-report-form', 'Signaler un paquet · Erudi'],
     ['/publish?deckId=d1', 'app-publish-form', 'Publier un paquet · Erudi'],
-    ['/settings/delete-account', 'app-delete-account', 'Supprimer mon compte · Erudi'],
   ])('should open %s full screen, without the tab bar', async (url, selector, title) => {
     signIn();
 

@@ -40,7 +40,7 @@ describe('Terms', () => {
     await open('/terms');
 
     expect(textOf(host, 'h1')).toBe("Conditions d'utilisation et confidentialité");
-    expect(textOf(host, 'header .subtitle')).toBe('Dernière mise à jour : 7 novembre 2026');
+    expect(textOf(host, 'header .subtitle')).toBe('Dernière mise à jour : 8 novembre 2026');
     expect([...host.querySelectorAll('h2')].map((title) => title.textContent?.trim())).toEqual([
       '1. Erudi',
       '2. Ton compte',
@@ -71,7 +71,9 @@ describe('Terms', () => {
 
     const text = host.textContent ?? '';
     expect(text).toContain('pendant 30 jours au plus');
-    expect(text).toContain('valables 30 minutes');
+    expect(text).toContain('pendant 15 minutes au plus');
+    expect(text).toContain('ton compte Synapse');
+    expect(text).toContain('Aucun mot de passe');
     expect(text).toContain('14 jours au plus');
     expect(text).toContain('aucun traceur ni service tiers');
     expect(text).toContain('OVHcloud');

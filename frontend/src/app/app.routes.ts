@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { signedInGuard, signedOutGuard } from './core/auth/auth-guards';
+import { signedInGuard, signedOutGuard, termsPendingGuard } from './core/auth/auth-guards';
 
 export const routes: Routes = [
   {
@@ -9,33 +9,25 @@ export const routes: Routes = [
     loadComponent: () => import('./features/onboarding/intro').then((m) => m.Intro),
   },
   {
-    path: 'sign-up',
-    title: 'titles.signUp',
-    canActivate: [signedOutGuard],
-    loadComponent: () => import('./features/auth/sign-up/sign-up').then((m) => m.SignUp),
-  },
-  {
     path: 'sign-in',
     title: 'titles.signIn',
     canActivate: [signedOutGuard],
     loadComponent: () => import('./features/auth/sign-in/sign-in').then((m) => m.SignIn),
   },
   {
-    path: 'forgot-password',
-    title: 'titles.forgotPassword',
-    canActivate: [signedOutGuard],
+    // The first screen after a first sign-in: Erudi's own terms.
+    path: 'accept-terms',
+    title: 'titles.acceptTerms',
+    canActivate: [termsPendingGuard],
     loadComponent: () =>
-      import('./features/auth/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+      import('./features/auth/accept-terms/accept-terms').then((m) => m.AcceptTerms),
   },
+  // Accounts, passwords and their recovery moved to the Synapse account.
+  { path: 'sign-up', redirectTo: 'sign-in' },
+  { path: 'forgot-password', redirectTo: 'sign-in' },
+  { path: 'reset-password', redirectTo: 'sign-in' },
   {
-    // Open whether signed in or not: the e-mailed link must work on any device.
-    path: 'reset-password',
-    title: 'titles.resetPassword',
-    loadComponent: () =>
-      import('./features/auth/reset-password/reset-password').then((m) => m.ResetPassword),
-  },
-  {
-    // Public: the terms are read before signing up.
+    // Public: the terms are read before accepting them.
     path: 'terms',
     title: 'titles.terms',
     loadComponent: () => import('./features/legal/terms').then((m) => m.Terms),
@@ -136,12 +128,8 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/explore/publish-form/publish-form').then((m) => m.PublishForm),
       },
-      {
-        path: 'settings/delete-account',
-        title: 'titles.deleteAccount',
-        loadComponent: () =>
-          import('./features/settings/delete-account/delete-account').then((m) => m.DeleteAccount),
-      },
+      // Deleting the account happens on the Synapse account page.
+      { path: 'settings/delete-account', redirectTo: 'settings' },
     ],
   },
   { path: '**', redirectTo: '' },

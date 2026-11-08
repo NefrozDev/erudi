@@ -59,20 +59,20 @@ describe('Intro', () => {
     expect(markIntroSeen).not.toHaveBeenCalled();
   });
 
-  it('should skip to the sign-up screen and remember the intro was seen', async () => {
+  it('should skip to the sign-in screen and remember the intro was seen', async () => {
     await clickButton('Passer');
 
     expect(markIntroSeen).toHaveBeenCalledTimes(1);
-    expect(navigateByUrl).toHaveBeenCalledExactlyOnceWith('/sign-up');
+    expect(navigateByUrl).toHaveBeenCalledExactlyOnceWith('/sign-in');
   });
 
-  it('should open the sign-up screen from the last step', async () => {
+  it('should open the sign-in screen, which also creates accounts, from the last step', async () => {
     await clickButton('Suivant');
     await clickButton('Suivant');
     await clickButton('Créer un compte');
 
     expect(markIntroSeen).toHaveBeenCalledTimes(1);
-    expect(navigateByUrl).toHaveBeenCalledExactlyOnceWith('/sign-up');
+    expect(navigateByUrl).toHaveBeenCalledExactlyOnceWith('/sign-in');
   });
 
   it('should open the sign-in screen for someone who has an account', async () => {

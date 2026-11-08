@@ -1,83 +1,63 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
-import { buttonNamed, linkNamed, settle, textOf, typeInto } from '../../../../testing/dom';
-import { SignInRequest } from '../../../core/auth/auth-api';
-import { AuthStore } from '../../../core/auth/auth-store';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { buttonNamed, textOf } from '../../../../testing/dom';
+import { BROWSER_LOCATION } from '../../../core/browser/browser-location';
 import { SignIn } from './sign-in';
 
 describe('SignIn', () => {
-  const signIn = vi.fn<(request: SignInRequest) => Promise<void>>();
-  let fixture: ComponentFixture<SignIn>;
-  let host: HTMLElement;
-  let navigateByUrl: ReturnType<typeof vi.spyOn>;
+  const assign = vi.fn<(url: string) => void>();
+  let harness: RouterTestingHarness;
 
   beforeEach(async () => {
-    signIn.mockReset().mockResolvedValue();
+    assign.mockReset();
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: AuthStore, useValue: { signIn } }],
+      providers: [
+        provideRouter([{ path: 'sign-in', component: SignIn }], withComponentInputBinding()),
+        { provide: BROWSER_LOCATION, useValue: { assign } },
+      ],
     });
-    navigateByUrl = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
-    fixture = TestBed.createComponent(SignIn);
-    host = fixture.nativeElement as HTMLElement;
-    await fixture.whenStable();
+    harness = await RouterTestingHarness.create();
   });
 
-  async function submitWith(email: string, password: string): Promise<void> {
-    typeInto(host, '#sign-in-email', email);
-    typeInto(host, '#sign-in-password', password);
-    buttonNamed(host, 'Se connecter').click();
-    await settle(fixture);
+  async function open(url = '/sign-in'): Promise<HTMLElement> {
+    await harness.navigateByUrl(url);
+    return harness.routeNativeElement!;
   }
 
-  it('should link to password recovery and to sign-up', () => {
+  it('should explain the Synapse account and offer one way in, with no password field', async () => {
+    const host = await open();
+
     expect(textOf(host, 'h1')).toBe('Bienvenue');
-    expect(linkNamed(host, 'Mot de passe oublié ?').getAttribute('href')).toBe('/forgot-password');
-    expect(linkNamed(host, 'Créer un compte').getAttribute('href')).toBe('/sign-up');
-  });
-
-  it('should require both fields and send nothing', async () => {
-    await submitWith('', '');
-
-    expect(textOf(host, '#sign-in-email-error')).toBe('Ce champ est obligatoire.');
-    expect(textOf(host, '#sign-in-password-error')).toBe('Ce champ est obligatoire.');
-    expect(signIn).not.toHaveBeenCalled();
-  });
-
-  it('should sign in without the spaces around the e-mail but with the password as typed', async () => {
-    await submitWith(' chloe@example.be ', ' secret with spaces ');
-
-    expect(signIn).toHaveBeenCalledExactlyOnceWith({
-      email: 'chloe@example.be',
-      password: ' secret with spaces ',
-    });
-    expect(navigateByUrl).toHaveBeenCalledExactlyOnceWith('/');
+    expect(textOf(host, '.subtitle')).toContain('ton compte Synapse');
+    expect(host.querySelector('input')).toBeNull();
     expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(assign).not.toHaveBeenCalled();
   });
 
-  it('should say the credentials are wrong without telling which one, and allow retrying', async () => {
-    signIn.mockRejectedValueOnce(new HttpErrorResponse({ status: 401 }));
+  it('should send the browser to the API sign-in in the page language, only once', async () => {
+    const host = await open();
 
-    await submitWith('chloe@example.be', 'wrong');
+    buttonNamed(host, 'Se connecter ou créer un compte').click();
+    harness.detectChanges();
 
-    expect(textOf(host, '[role="alert"]')).toBe('Email ou mot de passe incorrect.');
-    expect(navigateByUrl).not.toHaveBeenCalled();
-
-    buttonNamed(host, 'Se connecter').click();
-    await settle(fixture);
-    expect(signIn).toHaveBeenCalledTimes(2);
+    expect(assign).toHaveBeenCalledExactlyOnceWith('/api/auth/login?returnTo=%2F&lang=fr');
+    expect(buttonNamed(host, 'Redirection…').disabled).toBe(true);
   });
 
   it.each([
-    [429, 'Trop de tentatives. Réessaie dans une minute.'],
-    [500, 'Une erreur est survenue. Réessaie dans un instant.'],
-    [0, 'Une erreur est survenue. Réessaie dans un instant.'],
-  ])('should explain a %s answer', async (status, message) => {
-    signIn.mockRejectedValue(new HttpErrorResponse({ status }));
-
-    await submitWith('chloe@example.be', 'secret123');
+    ['cancelled', 'La connexion a été annulée.'],
+    ['failed', 'La connexion a échoué. Réessaie dans un instant.'],
+  ])('should say when the last sign-in came back %s', async (outcome, message) => {
+    const host = await open(`/sign-in?signIn=${outcome}`);
 
     expect(textOf(host, '[role="alert"]')).toBe(message);
-    expect(navigateByUrl).not.toHaveBeenCalled();
+    expect(assign).not.toHaveBeenCalled();
+  });
+
+  it('should ignore an unknown outcome in the address', async () => {
+    const host = await open('/sign-in?signIn=%3Cscript%3E');
+
+    expect(host.querySelector('[role="alert"]')).toBeNull();
   });
 });

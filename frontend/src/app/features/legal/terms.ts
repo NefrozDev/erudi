@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 /** Change it with any change to the terms (`terms` in the translations). */
-export const TERMS_UPDATED_ON = '2026-11-07';
+export const TERMS_UPDATED_ON = '2026-11-08';
 export const CONTACT_EMAIL = 'contact@synapseengineering.dev';
 export const DATA_PROTECTION_AUTHORITY_URL = 'https://www.autoriteprotectiondonnees.be';
 
