@@ -130,7 +130,7 @@ describe('Home', () => {
 
     expect(textOf(host, 'h2')).toBe("Aucun paquet pour l'instant");
     expect(host.querySelector('.goal')).toBeNull();
-    expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('sleepy');
+    expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('magician');
     expect(linkNamed(host, 'Créer un paquet').getAttribute('href')).toBe('/decks/new');
     expect(rows(host)).toHaveLength(0);
   });

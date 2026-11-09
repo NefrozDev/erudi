@@ -45,13 +45,56 @@ svg {
     animation: plic-pump 2.4s ease-in-out infinite;
   }
 
-  :host([data-mood='proud']) .plic__sparkle {
+  :host([data-mood='proud']) .plic__sparkle,
+  :host([data-mood='magician']) .plic__sparkle {
     transform-box: fill-box;
     transform-origin: center;
     animation: plic-twinkle 1.2s ease-in-out infinite alternate;
 
     &:last-child {
       animation-delay: -0.6s;
+    }
+  }
+
+  // Magician: each card crosses at a steady pace while rising then falling, which draws the
+  // parabola of plic.ts (TOSS_WIDTH, TOSS_HEIGHT, TOSS_SECONDS). The delays spread the cards
+  // along it; these animated transforms replace the resting ones of the template.
+  :host([data-mood='magician']) {
+    .plic__toss-x,
+    .plic__toss-y,
+    .plic__toss-card {
+      animation-duration: 2.4s;
+      animation-delay: var(--toss-delay);
+      animation-iteration-count: infinite;
+    }
+
+    .plic__toss-x {
+      animation-name: plic-toss-x;
+      animation-timing-function: linear;
+    }
+
+    .plic__toss-y {
+      animation-name: plic-toss-y;
+    }
+
+    .plic__toss-card {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation-name: plic-toss-card;
+      animation-timing-function: linear;
+    }
+
+    // One flick per card: four cards in flight, 2.4s each.
+    .plic__toss-arm {
+      transform-box: fill-box;
+      transform-origin: 85% 90%;
+      animation: plic-flick 0.6s ease-in-out infinite;
+    }
+
+    .plic__wink {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: plic-wink 3.6s ease-in-out infinite;
     }
   }
 
@@ -165,6 +208,75 @@ svg {
   12%,
   36% {
     transform: translateY(-6px) rotate(-12deg);
+  }
+}
+
+@keyframes plic-toss-x {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(176px);
+  }
+}
+
+// Quadratic easing out then in: a thrown card's height.
+@keyframes plic-toss-y {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.33, 0.67, 0.67, 1);
+  }
+
+  50% {
+    transform: translateY(-64px);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.67, 0.33);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+// Appears off the deck, tilts along the way, vanishes into the other hand.
+@keyframes plic-toss-card {
+  0% {
+    opacity: 0;
+    transform: rotate(-30deg);
+  }
+
+  10%,
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(30deg);
+  }
+}
+
+@keyframes plic-flick {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+
+  40% {
+    transform: rotate(-7deg);
+  }
+}
+
+@keyframes plic-wink {
+  0%,
+  78%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  84% {
+    transform: scaleY(0.1);
   }
 }
 
