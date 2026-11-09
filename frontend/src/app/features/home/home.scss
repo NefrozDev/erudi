@@ -1,6 +1,6 @@
-// The shell's bar sits below: the page does not need the full viewport height.
+// The shell's bar sits below: the page fills the height above it, for the empty card to grow into.
 .home {
-  min-height: auto;
+  min-height: calc(100dvh - 88px - env(safe-area-inset-bottom));
 }
 
 // The violet card of screen 7.
@@ -66,23 +66,32 @@
   text-underline-offset: 3px;
 }
 
+// The whole screen while there is nothing else: Plic as large as the height allows.
 .home__empty {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 12px;
   margin-top: 8px;
-  padding: 24px 20px 28px;
+  padding: 32px 24px 36px;
   text-align: center;
-  --plic-size: 140px;
+  --plic-size: min(320px, 68vw, 38dvh);
+
+  .subtitle {
+    max-width: 32ch;
+    font-size: 1.1rem;
+  }
 
   .button {
-    margin-top: 12px;
+    margin-top: 16px;
   }
 }
 
 .home__empty-title {
-  font-size: 1.15rem;
+  margin-top: 8px;
+  font-size: 1.6rem;
   font-weight: 700;
 }
 
