@@ -22,6 +22,43 @@ svg {
     animation: plic-bob 3s ease-in-out infinite;
   }
 
+  // Happy: the spikes sway with the bob, around the middle of the head (viewBox units).
+  :host([data-mood='happy']) .plic__spikes {
+    transform-origin: 100px 116px;
+    animation: plic-sway 3s ease-in-out infinite;
+  }
+
+  // Open eyes blink now and then; surprised ones twice, just after the landing.
+  :host([data-mood='happy']) .plic__eyes,
+  :host([data-mood='surprised']) .plic__eyes {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  :host([data-mood='happy']) .plic__eyes {
+    animation: plic-blink 4.2s ease-in-out infinite;
+  }
+
+  :host([data-mood='surprised']) .plic__eyes {
+    animation: plic-double-blink 2.8s ease-in-out infinite;
+  }
+
+  // Sleepy: slow breaths from the feet, and each z drifting up and away in turn.
+  :host([data-mood='sleepy']) svg {
+    transform-origin: 50% 95%;
+    animation: plic-breathe 4s ease-in-out infinite;
+  }
+
+  :host([data-mood='sleepy']) .plic__z {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: plic-snore 3s ease-out infinite;
+
+    &:last-child {
+      animation-delay: -1.5s;
+    }
+  }
+
   // Surprised: a startled hop with a squash on landing, droplets flying off at the top of it.
   :host([data-mood='surprised']) svg {
     // The outer svg has a CSS box: percentages, so the squash sits on its feet at any size.
@@ -135,7 +172,75 @@ svg {
   }
 
   50% {
-    transform: translateY(-4px);
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes plic-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes plic-blink {
+  0%,
+  90%,
+  98%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  94% {
+    transform: scaleY(0.1);
+  }
+}
+
+// Wide-eyed after the hop (which lands at 18%): two quick blinks.
+@keyframes plic-double-blink {
+  0%,
+  44%,
+  50%,
+  56%,
+  62%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  47%,
+  59% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes plic-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.985, 1.03);
+  }
+}
+
+@keyframes plic-snore {
+  0% {
+    opacity: 0;
+    transform: translate(-6px, 10px) scale(0.6);
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(8px, -14px) scale(1.15);
   }
 }
 

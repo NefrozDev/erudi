@@ -29,6 +29,8 @@ describe('Plic', () => {
     expect(host.dataset['mood']).toBe('happy');
     expect(host.querySelector('path.plic__mouth')).not.toBeNull();
     expect(host.querySelectorAll('circle[r="12"]')).toHaveLength(2);
+    // Both eyes in one group, which blinks.
+    expect(host.querySelectorAll('.plic__eyes circle[r="12"]')).toHaveLength(2);
     expect(host.querySelector('.plic__drop')).toBeNull();
     expect(host.querySelector('.plic__cheer')).toBeNull();
     expect(host.querySelector('.plic__arm')).not.toBeNull();
@@ -53,6 +55,7 @@ describe('Plic', () => {
     expect(host.dataset['mood']).toBe('surprised');
     expect(host.querySelector('ellipse.plic__mouth')).not.toBeNull();
     expect(host.querySelectorAll('.plic__drop')).toHaveLength(4);
+    expect(host.querySelectorAll('.plic__eyes circle[r="4"]')).toHaveLength(2);
   });
 
   it('should close its eyes, cheer with both arms raised and show sparkles when proud', async () => {
@@ -105,6 +108,7 @@ describe('Plic', () => {
     // Only the right eye winks; both are open.
     expect(host.querySelectorAll('circle[r="12"]')).toHaveLength(2);
     expect(host.querySelectorAll('.plic__wink circle[r="12"]')).toHaveLength(1);
+    expect(host.querySelector('.plic__eyes')).toBeNull();
     expect(host.querySelectorAll('.plic__sparkle')).toHaveLength(2);
     expect(host.querySelector('path.plic__mouth')).not.toBeNull();
   });
@@ -120,7 +124,12 @@ describe('Plic', () => {
   it('should snore when sleepy', async () => {
     const host = await render('sleepy');
 
-    expect([...host.querySelectorAll('text')].map((z) => z.textContent)).toEqual(['z', 'z']);
+    // Each z drifts up on its own.
+    expect([...host.querySelectorAll('text.plic__z')].map((z) => z.textContent)).toEqual([
+      'z',
+      'z',
+    ]);
     expect(host.querySelectorAll('circle[r="12"]')).toHaveLength(0);
+    expect(host.querySelector('.plic__eyes')).toBeNull();
   });
 });
