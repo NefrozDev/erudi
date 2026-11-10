@@ -12,6 +12,7 @@
     "test:front": "npm --prefix frontend test -- --watch=false",
     "test:back": "cd backend && dotnet test --solution Erudi.slnx",
     "test": "npm run test:front && npm run test:back",
+    "test:e2e": "npm --prefix frontend run build && npm --prefix frontend run e2e",
     "build:front": "npm --prefix frontend run build",
     "build:back": "dotnet build backend/Erudi.slnx -c Release",
     "build": "npm run build:front && npm run build:back"
