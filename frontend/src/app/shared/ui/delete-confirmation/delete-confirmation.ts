@@ -1,8 +1,22 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  output,
+  signal,
+  viewChild,
+  type Signal,
+} from '@angular/core';
 
 /**
  * A delete link that asks before acting: the first click shows the question, and only the
- * second button emits `confirmed`. Texts come translated from the parent.
+ * second button emits `confirmed`. Texts come translated from the parent. The button pressed
+ * disappears, so focus moves on with the keyboard user: to "keep", the harmless answer, then
+ * back to the link.
  */
 @Component({
   selector: 'app-delete-confirmation',
@@ -17,11 +31,11 @@ import { ChangeDetectionStrategy, Component, input, output, signal } from '@angu
       >
         {{ confirmLabel() }}
       </button>
-      <button type="button" class="text-link" [disabled]="busy()" (click)="asking.set(false)">
+      <button #keepButton type="button" class="text-link" [disabled]="busy()" (click)="keep()">
         {{ keepLabel() }}
       </button>
     } @else {
-      <button type="button" class="text-link text-link--danger" (click)="asking.set(true)">
+      <button #askButton type="button" class="text-link text-link--danger" (click)="ask()">
         {{ label() }}
       </button>
     }
@@ -58,4 +72,22 @@ export class DeleteConfirmation {
   readonly confirmed = output<void>();
 
   protected readonly asking = signal(false);
+
+  private readonly injector = inject(Injector);
+  private readonly keepButton = viewChild<ElementRef<HTMLButtonElement>>('keepButton');
+  private readonly askButton = viewChild<ElementRef<HTMLButtonElement>>('askButton');
+
+  protected ask(): void {
+    this.asking.set(true);
+    this.focusOnceRendered(this.keepButton);
+  }
+
+  protected keep(): void {
+    this.asking.set(false);
+    this.focusOnceRendered(this.askButton);
+  }
+
+  private focusOnceRendered(button: Signal<ElementRef<HTMLButtonElement> | undefined>): void {
+    afterNextRender(() => button()?.nativeElement.focus(), { injector: this.injector });
+  }
 }

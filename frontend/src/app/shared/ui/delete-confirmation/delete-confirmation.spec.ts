@@ -29,6 +29,15 @@ describe('DeleteConfirmation', () => {
     expect(host.querySelector('[role="alert"]')).toBeNull();
   });
 
+  it('should move focus with the question, to the harmless answer, then back', async () => {
+    await click('Supprimer la carte');
+    expect(document.activeElement).toBe(buttonNamed(host, 'Garder la carte'));
+
+    await click('Garder la carte');
+    expect(document.activeElement).toBe(buttonNamed(host, 'Supprimer la carte'));
+    expect(confirmed).not.toHaveBeenCalled();
+  });
+
   it('should ask first, and emit only once confirmed', async () => {
     await click('Supprimer la carte');
     expect(textOf(host, '[role="alert"]')).toBe('Supprimer cette carte ?');
