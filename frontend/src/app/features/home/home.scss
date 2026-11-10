@@ -12,6 +12,11 @@
   border-radius: 28px;
   background: var(--color-violet);
   color: var(--color-surface);
+
+  // The global violet outline would vanish on the violet card.
+  :focus-visible {
+    outline-color: var(--color-surface);
+  }
 }
 
 .goal__summary {
