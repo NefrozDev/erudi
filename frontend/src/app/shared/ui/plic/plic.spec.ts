@@ -113,6 +113,39 @@ describe('Plic', () => {
     expect(host.querySelector('path.plic__mouth')).not.toBeNull();
   });
 
+  describe('playing again on a click', () => {
+    // jsdom has no animations: each test says what the browser would report.
+    async function renderWith(playStates: AnimationPlayState[]) {
+      const host = await render('happy');
+      host.getAnimations = vi.fn(() => playStates.map((playState) => ({ playState }) as Animation));
+      const restartDuringLayout: boolean[] = [];
+      host.getBoundingClientRect = vi.fn(() => {
+        restartDuringLayout.push(host.hasAttribute('data-restart'));
+        return new DOMRect();
+      });
+      return { host, restartDuringLayout };
+    }
+
+    it('should switch its animations off for one layout, so they start over', async () => {
+      const { host, restartDuringLayout } = await renderWith([]);
+
+      host.click();
+
+      expect(host.getAnimations).toHaveBeenCalledExactlyOnceWith({ subtree: true });
+      expect(restartDuringLayout).toEqual([true]);
+      expect(host.hasAttribute('data-restart')).toBe(false);
+    });
+
+    it('should not interrupt an animation still playing', async () => {
+      const { host, restartDuringLayout } = await renderWith(['finished', 'running']);
+
+      host.click();
+
+      expect(restartDuringLayout).toEqual([]);
+      expect(host.hasAttribute('data-restart')).toBe(false);
+    });
+  });
+
   it('should keep the trick to the magician', async () => {
     const host = await render('happy');
 

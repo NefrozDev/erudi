@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, input } from '@angular/core';
 
 export type PlicMood = 'happy' | 'surprised' | 'proud' | 'sleepy' | 'magician';
 
@@ -67,11 +67,12 @@ const TOSSED_CARDS = SUITS.map((face, index, all) => {
     'aria-hidden': 'true',
     '[attr.data-mood]': 'mood()',
     '[attr.data-waving]': 'waving() || null',
+    '(click)': 'replay()',
   },
 })
 export class Plic {
   readonly mood = input<PlicMood>('happy');
-  /** Waves hello every few seconds, unless the device asks for reduced motion. */
+  /** Waves hello when it appears, unless the device asks for reduced motion. */
   readonly waving = input(false);
 
   protected readonly spikes = SPIKES;
@@ -79,4 +80,23 @@ export class Plic {
   protected readonly tossedCards = TOSSED_CARDS;
   // Proud: the right arm as drawn, then the same arm mirrored to the left.
   protected readonly cheerSides = ['', 'translate(200 0) scale(-1 1)'];
+
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /**
+   * Plays the mood again, from the start: it only plays once by itself (plic.scss). Does
+   * nothing while it still plays, or when the device asks for reduced motion (no animation).
+   */
+  protected replay(): void {
+    const host = this.host.nativeElement;
+    const animations = host.getAnimations?.({ subtree: true }) ?? [];
+    if (animations.some((animation) => animation.playState === 'running')) {
+      return;
+    }
+    // Finished animations are gone from getAnimations(): switching them off for one layout
+    // (data-restart, plic.scss) makes the browser start them over.
+    host.dataset['restart'] = '';
+    host.getBoundingClientRect();
+    delete host.dataset['restart'];
+  }
 }

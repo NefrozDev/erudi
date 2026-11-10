@@ -11,21 +11,30 @@ svg {
   overflow: visible;
 }
 
+// Set for a single layout by replay() (plic.ts), so every animation starts over. Important:
+// it must beat every mood's own rule, whatever their specificity.
+:host([data-restart]) svg,
+:host([data-restart]) svg * {
+  animation: none !important;
+}
+
 // Proud: the spikes stand up, as described on screen 23.
 :host([data-mood='proud']) .plic__spikes {
   transform: scale(1.06);
   transform-origin: 100px 116px;
 }
 
+// Each mood plays for under five seconds when Plic appears, then rests: anything moving on
+// its own for longer would need a pause control (WCAG 2.2.2). A click plays it again (plic.ts).
 @media (prefers-reduced-motion: no-preference) {
   :host([data-mood='happy']) svg {
-    animation: plic-bob 3s ease-in-out infinite;
+    animation: plic-bob 3s ease-in-out;
   }
 
   // Happy: the spikes sway with the bob, around the middle of the head (viewBox units).
   :host([data-mood='happy']) .plic__spikes {
     transform-origin: 100px 116px;
-    animation: plic-sway 3s ease-in-out infinite;
+    animation: plic-sway 3s ease-in-out;
   }
 
   // Open eyes blink now and then; surprised ones twice, just after the landing.
@@ -36,23 +45,23 @@ svg {
   }
 
   :host([data-mood='happy']) .plic__eyes {
-    animation: plic-blink 4.2s ease-in-out infinite;
+    animation: plic-blink 4.2s ease-in-out;
   }
 
   :host([data-mood='surprised']) .plic__eyes {
-    animation: plic-double-blink 2.8s ease-in-out infinite;
+    animation: plic-double-blink 2.8s ease-in-out;
   }
 
   // Sleepy: slow breaths from the feet, and each z drifting up and away in turn.
   :host([data-mood='sleepy']) svg {
     transform-origin: 50% 95%;
-    animation: plic-breathe 4s ease-in-out infinite;
+    animation: plic-breathe 4s ease-in-out;
   }
 
   :host([data-mood='sleepy']) .plic__z {
     transform-box: fill-box;
     transform-origin: center;
-    animation: plic-snore 3s ease-out infinite;
+    animation: plic-snore 3s ease-out;
 
     &:last-child {
       animation-delay: -1.5s;
@@ -63,30 +72,30 @@ svg {
   :host([data-mood='surprised']) svg {
     // The outer svg has a CSS box: percentages, so the squash sits on its feet at any size.
     transform-origin: 50% 95%;
-    animation: plic-startle 2.8s ease-out infinite;
+    animation: plic-startle 2.8s ease-out;
   }
 
   :host([data-mood='surprised']) .plic__drop {
-    animation: plic-drop 2.8s ease-out infinite;
+    animation: plic-drop 2.8s ease-out;
   }
 
   // Proud: two happy hops, raised arms pumping with them, the sparkles twinkling.
   :host([data-mood='proud']) svg {
-    animation: plic-hops 2.4s ease-in-out infinite;
+    animation: plic-hops 2.4s ease-in-out 2;
   }
 
   :host([data-mood='proud']) .plic__cheer {
     // Each arm turns around its shoulder, at the bottom of its own box (mirrored on the left).
     transform-box: fill-box;
     transform-origin: 20% 100%;
-    animation: plic-pump 2.4s ease-in-out infinite;
+    animation: plic-pump 2.4s ease-in-out 2;
   }
 
   :host([data-mood='proud']) .plic__sparkle,
   :host([data-mood='magician']) .plic__sparkle {
     transform-box: fill-box;
     transform-origin: center;
-    animation: plic-twinkle 1.2s ease-in-out infinite alternate;
+    animation: plic-twinkle 1.2s ease-in-out 4 alternate;
 
     &:last-child {
       animation-delay: -0.6s;
@@ -102,7 +111,9 @@ svg {
     .plic__toss-card {
       animation-duration: 2.4s;
       animation-delay: var(--toss-delay);
-      animation-iteration-count: infinite;
+      animation-iteration-count: 2;
+      // The trick over, the cards stay gone: Plic keeps only its deck.
+      animation-fill-mode: forwards;
     }
 
     .plic__toss-x {
@@ -125,20 +136,20 @@ svg {
     .plic__toss-arm {
       transform-box: fill-box;
       transform-origin: 85% 90%;
-      animation: plic-flick 0.6s ease-in-out infinite;
+      animation: plic-flick 0.6s ease-in-out 7;
     }
 
     .plic__wink {
       transform-box: fill-box;
       transform-origin: center;
-      animation: plic-wink 3.6s ease-in-out infinite;
+      animation: plic-wink 3.6s ease-in-out;
     }
   }
 
   // The arm swings out from its shoulder (viewBox units) and up beside the head.
   :host([data-waving]) .plic__arm {
     transform-origin: 162px 116px;
-    animation: plic-wave 3.6s ease-in-out infinite;
+    animation: plic-wave 3.6s ease-in-out;
   }
 }
 
@@ -176,13 +187,18 @@ svg {
   }
 }
 
+// Starts and ends upright, where Plic rests.
 @keyframes plic-sway {
   0%,
   100% {
+    transform: rotate(0);
+  }
+
+  25% {
     transform: rotate(-3deg);
   }
 
-  50% {
+  75% {
     transform: rotate(3deg);
   }
 }
