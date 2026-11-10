@@ -21,7 +21,7 @@ npm run start:front   # http://localhost:4200, proxies /api to the backend
 npm run lint
 npm test
 npm run build
-npm run test:e2e   # accessibility in Chromium (once: npx --prefix frontend playwright install chromium)
+npm run test:e2e   # accessibility in Chromium (once: npm --prefix frontend run e2e:install)
 ```
 
 ## Deployment
