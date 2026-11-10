@@ -105,7 +105,14 @@ describe('StudySession', () => {
       const progress = query(host, '[role="progressbar"]');
       expect(progress.getAttribute('aria-valuenow')).toBe('0');
       expect(progress.getAttribute('aria-valuetext')).toBe('Carte 1 sur 3');
+      expect(progress.getAttribute('aria-label')).toBe('Progression de la session');
       expect(host.textContent).not.toContain('manquer de');
+    });
+
+    it('should name the session in a heading for screen readers', () => {
+      const heading = query(host, 'h1');
+      expect(heading.textContent?.trim()).toBe('Révision');
+      expect(heading.classList).toContain('visually-hidden');
     });
 
     it('should turn the card over, from the button or the card itself (screen 11)', async () => {
@@ -259,6 +266,10 @@ describe('StudySession', () => {
 
   describe('practice', () => {
     beforeEach(() => render('practice', 'd1'));
+
+    it('should name the practice in its heading', () => {
+      expect(query(host, 'h1').textContent?.trim()).toBe('Entraînement');
+    });
 
     it('should ask random cards and send no answer', async () => {
       await flipAndAnswer('Je savais');

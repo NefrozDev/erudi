@@ -78,6 +78,8 @@
         </div>
       </section>
     } @else if (current(); as card) {
+      <!-- The bar and the card say where we are; screen readers still get a page heading. -->
+      <h1 class="visually-hidden">{{ 'titles.' + mode() | transloco }}</h1>
       <header class="study__bar">
         <a
           class="study__close"
@@ -92,6 +94,7 @@
         <div
           class="study__progress"
           role="progressbar"
+          [attr.aria-label]="'study.progressLabel' | transloco"
           aria-valuemin="0"
           [attr.aria-valuemax]="total()"
           [attr.aria-valuenow]="index()"

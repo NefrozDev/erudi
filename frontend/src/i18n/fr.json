@@ -162,6 +162,7 @@
   "study": {
     "quit": "Quitter la session",
     "progress": "Carte {{current}} sur {{total}}",
+    "progressLabel": "Progression de la session",
     "tapToFlip": "Touche pour retourner",
     "flip": "Retourner la carte",
     "answer": "Réponse",
