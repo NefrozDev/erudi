@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
@@ -39,6 +40,9 @@ public sealed class FakeIdentityProvider : HttpMessageHandler
 
     /// <summary>The nonce the next ID token carries: the one the handler sent to /auth.</summary>
     public string? Nonce { get; set; }
+
+    /// <summary>False to act as if the service were down: its discovery document cannot be read.</summary>
+    public bool Reachable { get; set; } = true;
 
     /// <summary>The form bodies the token endpoint received.</summary>
     public List<string> TokenRequests { get; } = [];
@@ -113,5 +117,18 @@ public sealed class FakeIdentityProvider : HttpMessageHandler
     {
         if (disposing) key.Rsa.Dispose();
         base.Dispose(disposing);
+    }
+}
+
+/// <summary>Hands out the fake's discovery document, or fails like an unreachable service.</summary>
+public sealed class FakeConfigurationManager(FakeIdentityProvider identity) : IConfigurationManager<OpenIdConnectConfiguration>
+{
+    public Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel) =>
+        identity.Reachable
+            ? Task.FromResult(identity.Configuration)
+            : throw new InvalidOperationException("IDX20803: Unable to obtain configuration.");
+
+    public void RequestRefresh()
+    {
     }
 }

@@ -21,6 +21,13 @@ describe('AuthApi', () => {
     expect(signInUrl('/decks/1', 'fr')).toBe('/api/auth/login?returnTo=%2Fdecks%2F1&lang=fr');
   });
 
+  it('should ask for a silent sign-in only when told to', () => {
+    expect(signInUrl('/decks/1?tab=cards', 'fr', true)).toBe(
+      '/api/auth/login?returnTo=%2Fdecks%2F1%3Ftab%3Dcards&lang=fr&silent=true',
+    );
+    expect(signInUrl('/', 'fr', false)).not.toContain('silent');
+  });
+
   it('should read the session, sign out and accept the terms on the API', async () => {
     const session = firstValueFrom(api.getSession());
     http.expectOne({ method: 'GET', url: '/api/auth/session' }).flush(user);

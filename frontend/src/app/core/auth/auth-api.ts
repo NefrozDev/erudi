@@ -15,11 +15,21 @@ export interface SignOutResponse {
   redirectTo: string;
 }
 
-/** Where the browser goes to sign in with the Synapse account, coming back to `returnTo`. */
-export function signInUrl(returnTo: string, language: string): string {
+/**
+ * Where the browser goes to sign in with the Synapse account, coming back to `returnTo`.
+ * A `silent` attempt shows no page: without a Synapse session, the API comes back to
+ * `returnTo` with `?signIn=none`.
+ */
+export function signInUrl(returnTo: string, language: string, silent = false): string {
   const params = new URLSearchParams({ returnTo, lang: language });
+  if (silent) {
+    params.set('silent', 'true');
+  }
   return `/api/auth/login?${params.toString()}`;
 }
+
+/** The query parameter the API adds once a silent attempt is over: never try again then. */
+export const SILENT_SIGN_IN_DONE = { param: 'signIn', value: 'none' } as const;
 
 /**
  * The session lives in an HttpOnly cookie set by the API: this code never sees the token,

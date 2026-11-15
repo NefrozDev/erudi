@@ -25,16 +25,34 @@ public sealed class AuthController(
     IOptions<FrontendOptions> frontend,
     ILogger<AuthController> logger) : ControllerBase
 {
-    /// <summary>Sends the browser to the identity service, then back to <paramref name="returnTo"/>.</summary>
+    /// <summary>
+    /// Sends the browser to the identity service, then back to <paramref name="returnTo"/>.
+    /// <paramref name="silent"/> asks it to show nothing (see <see cref="SilentSignIn"/>).
+    /// </summary>
     [HttpGet("login")]
     [EnableRateLimiting(AuthSetup.RateLimitPolicy)]
     [ProducesResponseType(StatusCodes.Status302Found)]
-    public IActionResult Login([FromQuery] string? returnTo, [FromQuery] string? lang)
+    public async Task<IActionResult> Login(
+        [FromQuery] string? returnTo,
+        [FromQuery] string? lang,
+        [FromQuery] bool silent,
+        CancellationToken cancellationToken)
     {
+        // Nothing to try, or nobody to ask: the visitor still gets the screen they wanted.
+        if (silent && (SilentSignIn.WasTried(Request) || !await IdentityServiceAnswersAsync(cancellationToken)))
+        {
+            return Redirect(SilentSignIn.FallbackPath(returnTo));
+        }
+
         var properties = new AuthenticationProperties { RedirectUri = ReturnPath.Safe(returnTo) };
         if (lang is { Length: 2 } && lang.All(char.IsAsciiLetterLower))
         {
             properties.Items[IdentitySignInEvents.LanguageItem] = lang;
+        }
+
+        if (silent)
+        {
+            properties.Items[SilentSignIn.Item] = "true";
         }
 
         return Challenge(properties, OpenIdConnectDefaults.AuthenticationScheme);
@@ -105,6 +123,22 @@ public sealed class AuthController(
         await auth.DeleteAccountAsync(userId.Value, cancellationToken);
         logger.LogInformation("Account {UserId} deleted at the identity service.", userId);
         return NoContent();
+    }
+
+    /// <summary>The discovery document is cached, so this only calls out once in a while.</summary>
+    private async Task<bool> IdentityServiceAnswersAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await oidc.Get(OpenIdConnectDefaults.AuthenticationScheme).ConfigurationManager!
+                .GetConfigurationAsync(cancellationToken);
+            return true;
+        }
+        catch (InvalidOperationException exception)
+        {
+            logger.LogWarning(exception, "The identity service is unreachable: no silent sign-in.");
+            return false;
+        }
     }
 
     private async Task<string> SignOutUrlAsync(CancellationToken cancellationToken)

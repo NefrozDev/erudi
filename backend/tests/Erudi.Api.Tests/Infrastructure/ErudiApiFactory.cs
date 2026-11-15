@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Erudi.Api.Tests.Infrastructure;
@@ -55,7 +54,7 @@ public sealed class ErudiApiFactory(PostgresFixture postgres) : WebApplicationFa
             services.PostConfigure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
                 options.Configuration = Identity.Configuration;
-                options.ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(Identity.Configuration);
+                options.ConfigurationManager = new FakeConfigurationManager(Identity);
                 options.Backchannel = new HttpClient(Identity, disposeHandler: false);
                 // The sign-in cookies and the signed tokens live in real time: on the fake clock
                 // the cookies would already be expired for the client's cookie jar.

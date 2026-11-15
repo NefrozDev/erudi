@@ -5,8 +5,9 @@ import { Router, TitleStrategy, provideRouter, withComponentInputBinding } from 
 import { RouterTestingHarness } from '@angular/router/testing';
 import { of } from 'rxjs';
 import { routes } from './app.routes';
-import { AuthUser } from './core/auth/auth-api';
+import { AuthUser, signInUrl } from './core/auth/auth-api';
 import { AuthStore } from './core/auth/auth-store';
+import { BROWSER_LOCATION } from './core/browser/browser-location';
 import { Deck, DecksApi } from './core/decks/decks-api';
 import { ExploreApi, PublicDeck } from './core/explore/explore-api';
 import { StudyApi } from './core/study/study-api';
@@ -66,11 +67,13 @@ describe('app routes', () => {
     ),
   };
   const hasSeenIntro = vi.fn(() => false);
+  const assign = vi.fn<(url: string) => void>();
   let harness: RouterTestingHarness;
 
   beforeEach(async () => {
     user.set(null);
     hasSeenIntro.mockReset().mockReturnValue(false);
+    assign.mockReset();
     TestBed.configureTestingModule({
       providers: [
         // As in app.config.ts: the screens read the route's ids as inputs.
@@ -81,6 +84,7 @@ describe('app routes', () => {
         { provide: DecksApi, useValue: decksApi },
         { provide: StudyApi, useValue: studyApi },
         { provide: ExploreApi, useValue: exploreApi },
+        { provide: BROWSER_LOCATION, useValue: { assign } },
       ],
     });
     harness = await RouterTestingHarness.create();
@@ -96,15 +100,28 @@ describe('app routes', () => {
     user.set({ id: '1', username: 'chloe', email: 'chloe@example.be', termsAccepted: true });
   }
 
-  it('should greet a first-time visitor with the intro', async () => {
-    expect(await visit('/')).toBe('/welcome');
+  /** The address the API comes back to when the silent sign-in found no Synapse session. */
+  function afterSilentTry(url: string): string {
+    return `${url}${url.includes('?') ? '&' : '?'}signIn=none`;
+  }
+
+  it('should try a silent sign-in on arrival before showing anything', async () => {
+    expect(await visit('/')).toBe('/');
+
+    expect(assign).toHaveBeenCalledExactlyOnceWith('/api/auth/login?returnTo=%2F&lang=fr&silent=true');
+    expect(harness.routeNativeElement).toBeNull();
+  });
+
+  it('should greet a first-time visitor with the intro once the silent try is over', async () => {
+    expect(await visit('/?signIn=none')).toBe('/welcome');
     expect(TestBed.inject(Title).getTitle()).toBe('Bienvenue · Erudi');
+    expect(assign).not.toHaveBeenCalled();
   });
 
   it('should send a returning signed-out visitor to sign-in', async () => {
     hasSeenIntro.mockReturnValue(true);
 
-    expect(await visit('/settings')).toBe('/sign-in');
+    expect(await visit('/settings?signIn=none')).toBe('/sign-in');
     expect(TestBed.inject(Title).getTitle()).toBe('Connexion · Erudi');
   });
 
@@ -124,7 +141,11 @@ describe('app routes', () => {
     '/explore/p1/report',
     '/publish?deckId=d1',
   ])('should protect %s', async (url) => {
-    expect(await visit(url)).toBe('/welcome');
+    await visit(url);
+    expect(assign).toHaveBeenCalledExactlyOnceWith(signInUrl(url, 'fr', true));
+
+    expect(await visit(afterSilentTry(url))).toBe('/welcome');
+    expect(assign).toHaveBeenCalledOnce();
   });
 
   it.each(['/welcome', '/sign-in'])(

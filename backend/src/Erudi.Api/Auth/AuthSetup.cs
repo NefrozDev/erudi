@@ -32,6 +32,7 @@ public static class AuthSetup
             .ValidateOnStart();
 
         services.AddSingleton<SessionCookie>();
+        services.AddSingleton<SilentSignIn>();
         services.AddSingleton<IdentityTokens>();
         services.AddScoped<AuthService>();
 
@@ -113,6 +114,11 @@ public static class IdentitySignInEvents
             context.ProtocolMessage.UiLocales = language;
         }
 
+        if (SilentSignIn.IsSilent(context.Properties.Items))
+        {
+            context.ProtocolMessage.Prompt = OpenIdConnectPrompt.None;
+        }
+
         return Task.CompletedTask;
     }
 
@@ -138,9 +144,24 @@ public static class IdentitySignInEvents
         context.HandleResponse();
     }
 
-    /// <summary>Cancelled, or not this browser's sign-in: the sign-in page says so.</summary>
+    /// <summary>
+    /// Cancelled, or not this browser's sign-in: the sign-in page says so. A silent attempt
+    /// that failed was never asked for, so it only leads to the screen the visitor wanted.
+    /// </summary>
     public static Task RemoteFailure(RemoteFailureContext context)
     {
+        if (SilentSignIn.IsSilent(context.Properties?.Items))
+        {
+            if (SilentSignIn.NeedsInteraction(context.Failure))
+            {
+                context.HttpContext.RequestServices.GetRequiredService<SilentSignIn>().MarkTried(context.Response);
+            }
+
+            context.Response.Redirect(SilentSignIn.FallbackPath(context.Properties!.RedirectUri));
+            context.HandleResponse();
+            return Task.CompletedTask;
+        }
+
         var cancelled = context.Failure?.Message.Contains("access_denied", StringComparison.Ordinal) == true;
         context.Response.Redirect($"/sign-in?signIn={(cancelled ? "cancelled" : "failed")}");
         context.HandleResponse();
