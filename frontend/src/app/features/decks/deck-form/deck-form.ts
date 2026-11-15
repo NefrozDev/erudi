@@ -16,13 +16,22 @@ import { httpStatus } from '../../../core/api/api-errors';
 import { DecksApi } from '../../../core/decks/decks-api';
 import { visibleError } from '../../../shared/forms/field-errors';
 import { DeleteConfirmation } from '../../../shared/ui/delete-confirmation/delete-confirmation';
+import { SubmitOnEnter } from '../../../shared/forms/submit-on-enter';
 import { Plic } from '../../../shared/ui/plic/plic';
 import { DECK_NAME_MAX_LENGTH, NOT_BLANK } from '../deck-rules';
 
 /** Creates a deck (`decks/new`), or renames and deletes one (`decks/:deckId/edit`). */
 @Component({
   selector: 'app-deck-form',
-  imports: [DeleteConfirmation, FormField, FormRoot, Plic, RouterLink, TranslocoPipe],
+  imports: [
+    DeleteConfirmation,
+    FormField,
+    FormRoot,
+    Plic,
+    RouterLink,
+    SubmitOnEnter,
+    TranslocoPipe,
+  ],
   templateUrl: './deck-form.html',
   styleUrl: './deck-form.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -90,7 +99,8 @@ export class DeckForm {
   private async save(): Promise<void> {
     this.formError.set(null);
     const deckId = this.deckId();
-    const { name } = this.model();
+    // A pasted name may hold line breaks: a deck name is one line.
+    const name = this.model().name.replace(/\s*\n\s*/g, ' ');
 
     let savedId: string;
     try {

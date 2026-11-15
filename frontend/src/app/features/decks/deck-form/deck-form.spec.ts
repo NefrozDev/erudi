@@ -90,6 +90,24 @@ describe('DeckForm', () => {
       expect(navigate).toHaveBeenCalledExactlyOnceWith(['/decks', 'd9'], { replaceUrl: true });
     });
 
+    it('should save on Enter in the name', async () => {
+      typeInto(host, '#deck-name', 'Anglais');
+      query(host, '#deck-name').dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+      );
+      await settle(fixture);
+
+      expect(api.create).toHaveBeenCalledExactlyOnceWith('Anglais');
+    });
+
+    it('should keep a long name readable on several lines, and join pasted lines', async () => {
+      expect(query(host, '#deck-name').tagName).toBe('TEXTAREA');
+
+      await saveWith('Vocabulaire\n  anglais');
+
+      expect(api.create).toHaveBeenCalledExactlyOnceWith('Vocabulaire anglais');
+    });
+
     it.each([
       [409, 'Tu as atteint la limite de 200 paquets.'],
       [500, "L'enregistrement a échoué. Réessaie dans un instant."],

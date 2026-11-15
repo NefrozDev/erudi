@@ -28,16 +28,18 @@
     <form class="page__form" [formRoot]="form">
       <div class="field">
         <label class="field__label" for="deck-name">{{ 'decks.form.name' | transloco }}</label>
-        <input
+        <!-- A textarea, so a long name wraps and stays readable; Enter still saves. -->
+        <textarea
           id="deck-name"
-          class="field__input"
-          type="text"
+          class="field__input field__input--line"
+          rows="2"
+          appSubmitOnEnter
           autocomplete="off"
           [formField]="form.name"
           [placeholder]="'decks.form.namePlaceholder' | transloco"
           [attr.aria-invalid]="!!visibleError(form.name)"
           [attr.aria-describedby]="visibleError(form.name) ? 'deck-name-error' : null"
-        />
+        ></textarea>
         @if (visibleError(form.name); as error) {
           <p class="form-error" id="deck-name-error">{{ error | transloco }}</p>
         }
