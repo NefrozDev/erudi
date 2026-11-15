@@ -2,18 +2,41 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, of, throwError } from 'rxjs';
 import { buttonNamed, settle, textOf } from '../../../testing/dom';
+import { provideRouter } from '@angular/router';
+import { Deck, DecksApi } from '../../core/decks/decks-api';
 import { StudyApi, StudySummary } from '../../core/study/study-api';
 import { Progress } from './progress';
 
 describe('Progress', () => {
   const summary = vi.fn<() => Observable<StudySummary>>();
+  const list = vi.fn<() => Observable<Deck[]>>();
+  const deck = (id: string, name: string, cardCount: number, masteredCount: number): Deck => ({
+    id,
+    name,
+    cardCount,
+    dueCount: 0,
+    level: 1,
+    published: false,
+    masteredCount,
+  });
   let fixture: ComponentFixture<Progress>;
 
   beforeEach(() => {
     summary
       .mockReset()
       .mockReturnValue(of({ reviewedToday: 2, dueCount: 5, boxes: [30, 28, 1, 0, 18] }));
-    TestBed.configureTestingModule({ providers: [{ provide: StudyApi, useValue: { summary } }] });
+    list
+      .mockReset()
+      .mockReturnValue(
+        of([deck('d1', 'Anglais', 8, 2), deck('d2', 'Vide', 0, 0), deck('d3', 'Histoire', 3, 3)]),
+      );
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: StudyApi, useValue: { summary } },
+        { provide: DecksApi, useValue: { list } },
+      ],
+    });
   });
 
   async function render(): Promise<HTMLElement> {
@@ -74,5 +97,50 @@ describe('Progress', () => {
 
     expect(summary).toHaveBeenCalledTimes(2);
     expect(rows(host)).toHaveLength(5);
+  });
+
+  describe('per deck', () => {
+    function deckRows(host: HTMLElement): string[][] {
+      return [...host.querySelectorAll<HTMLAnchorElement>('.progress__deck')].map((row) => [
+        textOf(row, '.progress__deck-name'),
+        textOf(row, '.progress__deck-count'),
+        row.querySelector<HTMLElement>('.progress__bar-fill')?.style.width ?? '',
+        row.getAttribute('href') ?? '',
+      ]);
+    }
+
+    it('should show the mastered share of each deck with cards, linking to it', async () => {
+      const host = await render();
+
+      expect(list).toHaveBeenCalledTimes(1);
+      expect(textOf(host, 'h2')).toBe('Par paquet');
+      expect(deckRows(host)).toEqual([
+        ['Anglais', '2 / 8 maîtrisées', '25%', '/decks/d1'],
+        ['Histoire', '3 / 3 maîtrisées', '100%', '/decks/d3'],
+      ]);
+      expect(host.querySelector('.progress__bar')?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should leave the section out without a deck holding cards', async () => {
+      list.mockReturnValue(of([deck('d2', 'Vide', 0, 0)]));
+
+      const host = await render();
+
+      expect(host.querySelector('.progress__decks')).toBeNull();
+      expect(rows(host)).toHaveLength(5);
+    });
+
+    it('should keep the boxes when the decks fail, and load the decks again on demand', async () => {
+      list.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 500 })));
+
+      const host = await render();
+      expect(rows(host)).toHaveLength(5);
+      buttonNamed(host, 'Réessayer').click();
+      await settle(fixture);
+
+      expect(list).toHaveBeenCalledTimes(2);
+      expect(summary).toHaveBeenCalledTimes(1);
+      expect(deckRows(host)).toHaveLength(2);
+    });
   });
 });

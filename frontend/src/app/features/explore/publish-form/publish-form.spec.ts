@@ -9,9 +9,33 @@ import { PublishForm } from './publish-form';
 
 describe('PublishForm', () => {
   const decks: Deck[] = [
-    { id: 'd1', name: 'Permis', cardCount: 12, dueCount: 0, level: 2, published: false },
-    { id: 'd2', name: 'Anglais', cardCount: 30, dueCount: 3, level: 3, published: true },
-    { id: 'd3', name: 'Brouillon', cardCount: 0, dueCount: 0, level: 0, published: false },
+    {
+      id: 'd1',
+      name: 'Permis',
+      cardCount: 12,
+      dueCount: 0,
+      level: 2,
+      published: false,
+      masteredCount: 0,
+    },
+    {
+      id: 'd2',
+      name: 'Anglais',
+      cardCount: 30,
+      dueCount: 3,
+      level: 3,
+      published: true,
+      masteredCount: 0,
+    },
+    {
+      id: 'd3',
+      name: 'Brouillon',
+      cardCount: 0,
+      dueCount: 0,
+      level: 0,
+      published: false,
+      masteredCount: 0,
+    },
   ];
   const publication: Publication = {
     title: 'Verbes irréguliers',
@@ -132,7 +156,10 @@ describe('PublishForm', () => {
       category: 'driving',
       description: 'Panneaux et priorités',
     });
-    expect(navigate).toHaveBeenCalledExactlyOnceWith(['/explore', 'd1'], { replaceUrl: true });
+    expect(navigate).toHaveBeenCalledExactlyOnceWith(['/explore', 'd1'], {
+      replaceUrl: true,
+      state: { published: true },
+    });
   });
 
   it.each([

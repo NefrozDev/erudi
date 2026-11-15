@@ -207,7 +207,8 @@ public sealed class ExploreService(ErudiDbContext db, StudyCalendar calendar, Ti
             CardCount: count,
             DueCount: count,
             Level: count == 0 ? 0 : LeitnerSchedule.FirstBox,
-            Published: false));
+            Published: false,
+            MasteredCount: 0));
     }
 
     /// <summary>Records a report for moderation. Reporting again replaces the learner's previous report.</summary>

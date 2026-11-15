@@ -3,7 +3,21 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Deck } from '../decks/decks-api';
 
-export type DeckCategory = 'languages' | 'driving' | 'studies' | 'other';
+export type DeckCategory =
+  | 'languages'
+  | 'sciences'
+  | 'mathematics'
+  | 'history'
+  | 'geography'
+  | 'computing'
+  | 'law'
+  | 'health'
+  | 'economics'
+  | 'arts'
+  | 'general'
+  | 'driving'
+  | 'studies'
+  | 'other';
 
 export type ReportReason = 'offensive' | 'incorrect' | 'spam' | 'copyright' | 'other';
 

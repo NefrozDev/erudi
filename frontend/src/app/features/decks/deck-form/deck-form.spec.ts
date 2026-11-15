@@ -13,7 +13,7 @@ describe('DeckForm', () => {
     cardCount: 3,
     dueCount: 1,
     level: 2,
-    published: false,
+    published: false, masteredCount: 0,
   };
   const api = {
     get: vi.fn<(deckId: string) => Observable<Deck>>(),
@@ -157,7 +157,7 @@ describe('DeckForm', () => {
     });
 
     it('should warn that deleting a published deck also withdraws it', async () => {
-      api.get.mockReturnValue(of({ ...deck, published: true }));
+      api.get.mockReturnValue(of({ ...deck, published: true, masteredCount: 0 }));
       await render('d1');
 
       await click(buttonNamed(host, 'Supprimer le paquet'));

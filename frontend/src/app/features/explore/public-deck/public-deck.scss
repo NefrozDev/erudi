@@ -67,3 +67,18 @@
   align-self: center;
   padding: 8px;
 }
+
+// Right after publishing: Plic, proud, says it worked.
+.public-deck__published {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  --plic-size: 72px;
+
+  p {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+  }
+}

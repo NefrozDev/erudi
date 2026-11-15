@@ -89,16 +89,23 @@ describe('ExplorePage', () => {
     expect(chips.map((button) => button.textContent?.trim())).toEqual([
       'Tous',
       'Langues',
+      'Sciences',
+      'Mathématiques',
+      'Histoire',
+      'Géographie',
+      'Informatique',
+      'Droit',
+      'Santé',
+      'Économie',
+      'Arts et musique',
+      'Culture générale',
       'Permis',
       'Études',
       'Autres',
     ]);
     expect(chips.map((button) => button.getAttribute('aria-pressed'))).toEqual([
       'true',
-      'false',
-      'false',
-      'false',
-      'false',
+      ...Array<string>(14).fill('false'),
     ]);
   });
 

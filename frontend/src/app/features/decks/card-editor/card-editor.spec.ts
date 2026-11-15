@@ -13,7 +13,7 @@ describe('CardEditor', () => {
     cardCount: 3,
     dueCount: 1,
     level: 2,
-    published: false,
+    published: false, masteredCount: 0,
   };
   const card: Card = { id: 'c1', deckId: 'd1', front: 'to run ot of', back: 'manquer de', box: 3 };
   const api = {

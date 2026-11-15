@@ -31,7 +31,7 @@ public sealed class DeckEndpointsTests(ErudiApiFactory factory) : IClassFixture<
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var deck = await response.Content.ReadFromJsonAsync<DeckResponse>(Cancellation);
-        Assert.Equal(new DeckResponse(deck!.Id, "Anglais", CardCount: 0, DueCount: 0, Level: 0, Published: false), deck);
+        Assert.Equal(new DeckResponse(deck!.Id, "Anglais", CardCount: 0, DueCount: 0, Level: 0, Published: false, MasteredCount: 0), deck);
         Assert.EndsWith($"/api/decks/{deck.Id}", response.Headers.Location?.ToString(), StringComparison.OrdinalIgnoreCase);
 
         var stored = await factory.QueryAsync(db => db.Decks.SingleAsync(d => d.Id == deck.Id, Cancellation));
@@ -101,11 +101,11 @@ public sealed class DeckEndpointsTests(ErudiApiFactory factory) : IClassFixture<
 
         var decks = await client.GetFromJsonAsync<DeckResponse[]>("/api/decks", Cancellation) ?? [];
 
-        // Boxes 1, 3 and 4 average 2.67: the deck shows level 3.
+        // Boxes 1, 3 and 4 average 2.67: the deck shows level 3; the card in box 4 is mastered.
         Assert.Equal(
             [
-                new DeckResponse(english.Id, "Anglais", CardCount: 3, DueCount: 1, Level: 3, Published: false),
-                new DeckResponse(history.Id, "Histoire", CardCount: 0, DueCount: 0, Level: 0, Published: false),
+                new DeckResponse(english.Id, "Anglais", CardCount: 3, DueCount: 1, Level: 3, Published: false, MasteredCount: 1),
+                new DeckResponse(history.Id, "Histoire", CardCount: 0, DueCount: 0, Level: 0, Published: false, MasteredCount: 0),
             ],
             decks);
     }
@@ -123,7 +123,7 @@ public sealed class DeckEndpointsTests(ErudiApiFactory factory) : IClassFixture<
         var own = await client.GetFromJsonAsync<DeckResponse>($"/api/decks/{deck.Id}", Cancellation);
         using var foreign = await stranger.GetAsync($"/api/decks/{deck.Id}", Cancellation);
 
-        Assert.Equal(new DeckResponse(deck.Id, "Anglais", CardCount: 1, DueCount: 1, Level: 1, Published: false), own);
+        Assert.Equal(new DeckResponse(deck.Id, "Anglais", CardCount: 1, DueCount: 1, Level: 1, Published: false, MasteredCount: 0), own);
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
     }
 

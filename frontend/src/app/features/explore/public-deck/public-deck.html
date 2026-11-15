@@ -3,6 +3,15 @@
 
   @if (deck.hasValue() && facts(); as facts) {
     @let publicDeck = deck.value();
+    @if (justPublished) {
+      <section class="card public-deck__published" role="status">
+        <app-plic mood="proud" />
+        <p>
+          <strong>{{ 'explore.deck.publishedTitle' | transloco }}</strong>
+          {{ 'explore.deck.publishedText' | transloco }}
+        </p>
+      </section>
+    }
     <header class="public-deck__header">
       <h1 class="title public-deck__title">{{ publicDeck.title }}</h1>
       <p class="subtitle">

@@ -235,6 +235,11 @@
     "cards": {
       "one": "carte",
       "other": "cartes"
+    },
+    "decks": {
+      "title": "Par paquet",
+      "text": "Une carte est maîtrisée en boîte 4 ou 5.",
+      "mastered": "{{mastered}} / {{total}} maîtrisées"
     }
   },
   "explore": {
@@ -245,6 +250,16 @@
     "all": "Tous",
     "categories": {
       "languages": "Langues",
+      "sciences": "Sciences",
+      "mathematics": "Mathématiques",
+      "history": "Histoire",
+      "geography": "Géographie",
+      "computing": "Informatique",
+      "law": "Droit",
+      "health": "Santé",
+      "economics": "Économie",
+      "arts": "Arts et musique",
+      "general": "Culture générale",
       "driving": "Permis",
       "studies": "Études",
       "other": "Autres"
@@ -265,7 +280,9 @@
     "notFoundTitle": "Paquet introuvable",
     "notFoundText": "Ce paquet n'est plus publié.",
     "deck": {
-      "byline": "par {{author}} · mis à jour {{when}}",
+      "publishedTitle": "Paquet publié !",
+      "publishedText": "Les autres peuvent maintenant le trouver dans l'Explorer.",
+      "byline":"par {{author}} · mis à jour {{when}}",
       "description": "Description",
       "preview": "Aperçu",
       "answer": "Réponse :",

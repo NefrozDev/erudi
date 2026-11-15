@@ -9,6 +9,9 @@ public static class LeitnerSchedule
     public const int FirstBox = 1;
     public const int LastBox = 5;
 
+    /// <summary>A card from this box on counts as mastered in a deck's progress.</summary>
+    public const int MasteredFromBox = 4;
+
     // Every day, every 2 days, every 4 days, every week, every 2 weeks.
     private static readonly int[] IntervalDays = [1, 2, 4, 7, 14];
 

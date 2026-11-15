@@ -11,7 +11,8 @@ import { Plic } from '../../../shared/ui/plic/plic';
 
 /**
  * Screen 15: a public deck, with a test of 20 of its cards, a copy into the learner's decks,
- * and a report. The author sees a way to their own deck instead.
+ * and a report. The author sees a way to their own deck instead, and right after publishing,
+ * Plic saying it worked.
  */
 @Component({
   selector: 'app-public-deck',
@@ -33,6 +34,9 @@ export class PublicDeckPage {
     params: () => this.deckId(),
     stream: ({ params }) => this.api.get(params),
   });
+  /** Arrived from the publish form (navigation state), not from a link or a reload. */
+  protected readonly justPublished =
+    this.router.currentNavigation()?.extras.state?.['published'] === true;
   protected readonly notFound = computed(() => httpStatus(this.deck.error()) === 404);
 
   /** The counts and date as the subtitle shows them. */

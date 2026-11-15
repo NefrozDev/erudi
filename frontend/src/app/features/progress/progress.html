@@ -22,6 +22,43 @@
         </li>
       }
     </ol>
+
+    @if (deckRows().length > 0) {
+      <section class="progress__decks" aria-labelledby="progress-decks-title">
+        <h2 class="progress__section-title" id="progress-decks-title">
+          {{ 'progress.decks.title' | transloco }}
+        </h2>
+        <p class="subtitle">{{ 'progress.decks.text' | transloco }}</p>
+        <ul class="progress__deck-list">
+          @for (deck of deckRows(); track deck.id) {
+            <li>
+              <a class="progress__deck" [routerLink]="['/decks', deck.id]">
+                <span class="progress__deck-head">
+                  <span class="progress__deck-name">{{ deck.name }}</span>
+                  <span class="progress__deck-count">
+                    {{
+                      'progress.decks.mastered'
+                        | transloco: { mastered: deck.masteredCount, total: deck.cardCount }
+                    }}
+                  </span>
+                </span>
+                <!-- The text above says it all; the bar repeats it for the eye. -->
+                <span class="progress__bar" aria-hidden="true">
+                  <span class="progress__bar-fill" [style.width.%]="deck.percent"></span>
+                </span>
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    } @else if (decks.error()) {
+      <div class="alert alert--retry" role="alert">
+        <p>{{ 'common.loadError' | transloco }}</p>
+        <button type="button" class="text-link" (click)="decks.reload()">
+          {{ 'common.retry' | transloco }}
+        </button>
+      </div>
+    }
   } @else if (summary.error()) {
     <div class="alert alert--retry" role="alert">
       <p>{{ 'common.loadError' | transloco }}</p>

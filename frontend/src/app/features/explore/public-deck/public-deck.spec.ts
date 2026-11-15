@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { Navigation, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { buttonNamed, linkNamed, settle, textOf } from '../../../../testing/dom';
 import { Deck } from '../../../core/decks/decks-api';
@@ -29,6 +29,7 @@ describe('PublicDeckPage', () => {
     dueCount: 420,
     level: 1,
     published: false,
+    masteredCount: 0,
   };
   const api = {
     get: vi.fn<(deckId: string) => Observable<PublicDeck>>(),
@@ -65,6 +66,27 @@ describe('PublicDeckPage', () => {
       (line) => line.textContent?.trim().replace(/[\n ]+/g, ' ') ?? '',
     );
   }
+
+  it('should let Plic say the deck is published, right after publishing only', async () => {
+    vi.spyOn(TestBed.inject(Router), 'currentNavigation').mockReturnValue({
+      extras: { state: { published: true } },
+    } as unknown as Navigation);
+
+    await render();
+
+    const status = host.querySelector('.public-deck__published');
+    expect(status?.getAttribute('role')).toBe('status');
+    expect(textOf(host, '.public-deck__published p').replace(/\s+/g, ' ')).toBe(
+      "Paquet publié ! Les autres peuvent maintenant le trouver dans l'Explorer.",
+    );
+    expect(status?.querySelector('app-plic')?.getAttribute('data-mood')).toBe('proud');
+  });
+
+  it('should not congratulate on a visit from a link or a reload', async () => {
+    await render();
+
+    expect(host.querySelector('.public-deck__published')).toBeNull();
+  });
 
   it('should show the public deck, its description and first card (screen 15)', async () => {
     await render();

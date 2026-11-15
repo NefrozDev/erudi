@@ -104,7 +104,7 @@ public sealed class ExploreEndpointsTests(ErudiApiFactory factory) : IClassFixtu
 
     [Theory]
     [InlineData("?category=cooking")]
-    [InlineData("?category=9")]
+    [InlineData("?category=99")]
     public async Task Search_RejectsAnUnknownCategory(string query)
     {
         using var learner = await factory.SignInNewLearnerAsync();
@@ -123,6 +123,21 @@ public sealed class ExploreEndpointsTests(ErudiApiFactory factory) : IClassFixtu
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(["q"], (await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(Cancellation))!.Errors.Keys);
+    }
+
+    [Fact]
+    public async Task Search_FiltersOnANewCategory_UnderItsJsonName()
+    {
+        var word = NewWord();
+        using var author = await factory.SignInNewLearnerAsync();
+        // Bound from the query string by its member name, stored in the database by it too.
+        var general = await PublishedDeckAsync(author.Client, $"Culture {word}", DeckCategory.General);
+        await PublishedDeckAsync(author.Client, $"Maths {word}", DeckCategory.Mathematics);
+
+        var found = await SearchAsync(author.Client, $"?q={word}&category=general");
+
+        Assert.Equal([general], found.Select(d => d.Id));
+        Assert.Equal(DeckCategory.General, Assert.Single(found).Category);
     }
 
     [Fact]
@@ -321,7 +336,7 @@ public sealed class ExploreEndpointsTests(ErudiApiFactory factory) : IClassFixtu
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var copy = await response.Content.ReadFromJsonAsync<DeckResponse>(Cancellation);
-        Assert.Equal(new DeckResponse(copy!.Id, "Code de la route", CardCount: 3, DueCount: 3, Level: 1, Published: false), copy);
+        Assert.Equal(new DeckResponse(copy!.Id, "Code de la route", CardCount: 3, DueCount: 3, Level: 1, Published: false, MasteredCount: 0), copy);
         Assert.EndsWith($"/api/decks/{copy.Id}", response.Headers.Location?.ToString(), StringComparison.OrdinalIgnoreCase);
         Assert.NotEqual(deck.Id, copy.Id);
 

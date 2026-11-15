@@ -9,6 +9,16 @@ export const SEARCH_MAX_LENGTH = 100;
 /** In the order of the Explorer's chips (screen 14). */
 export const DECK_CATEGORIES: readonly DeckCategory[] = [
   'languages',
+  'sciences',
+  'mathematics',
+  'history',
+  'geography',
+  'computing',
+  'law',
+  'health',
+  'economics',
+  'arts',
+  'general',
   'driving',
   'studies',
   'other',

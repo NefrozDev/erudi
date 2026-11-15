@@ -13,7 +13,7 @@ describe('DeckPage', () => {
     cardCount: 3,
     dueCount: 1,
     level: 2,
-    published: false,
+    published: false, masteredCount: 0,
   };
   const cards: CardSummary[] = [
     { id: 'c1', front: 'to run out of', box: 2 },
@@ -130,7 +130,7 @@ describe('DeckPage', () => {
   });
 
   it('should show that a deck is published, with its public page and publication', async () => {
-    get.mockReturnValue(of({ ...deck, published: true }));
+    get.mockReturnValue(of({ ...deck, published: true, masteredCount: 0 }));
 
     const host = await render();
 

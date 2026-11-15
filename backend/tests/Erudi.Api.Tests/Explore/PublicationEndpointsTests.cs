@@ -20,7 +20,7 @@ public sealed class PublicationEndpointsTests(ErudiApiFactory factory) : IClassF
         { "title", """{"title":"  ","category":"driving"}""" },
         { "title", $$"""{"title":"{{new string('a', ExploreRules.TitleMaxLength + 1)}}","category":"driving"}""" },
         { "category", """{"title":"Code de la route"}""" },
-        { "category", """{"title":"Code de la route","category":9}""" },
+        { "category", """{"title":"Code de la route","category":99}""" },
         { "description", $$"""{"title":"Code","category":"driving","description":"{{new string('a', ExploreRules.DescriptionMaxLength + 1)}}"}""" },
     };
 

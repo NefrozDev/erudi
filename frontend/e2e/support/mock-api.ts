@@ -30,8 +30,17 @@ const decks = [
     dueCount: 2,
     level: 2,
     published: true,
+    masteredCount: 1,
   },
-  { id: 'd2', name: 'Code de la route', cardCount: 2, dueCount: 0, level: 4, published: false },
+  {
+    id: 'd2',
+    name: 'Code de la route',
+    cardCount: 2,
+    dueCount: 0,
+    level: 4,
+    published: false,
+    masteredCount: 2,
+  },
 ];
 
 const cards = [

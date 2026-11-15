@@ -12,6 +12,8 @@ export interface Deck {
   level: number;
   /** Shared in the Explorer. */
   published: boolean;
+  /** Cards in box 4 or 5. */
+  masteredCount: number;
 }
 
 export interface CardSummary {

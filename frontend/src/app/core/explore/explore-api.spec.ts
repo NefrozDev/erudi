@@ -83,6 +83,7 @@ describe('ExploreApi', () => {
       dueCount: 2,
       level: 1,
       published: false,
+      masteredCount: 0,
     };
     expect((await call(api.copy('d1'), 'POST', '/api/explore/d1/copies', copy)).result).toEqual(
       copy,

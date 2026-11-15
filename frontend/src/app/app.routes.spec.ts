@@ -22,7 +22,7 @@ describe('app routes', () => {
     cardCount: 0,
     dueCount: 0,
     level: 0,
-    published: false,
+    published: false, masteredCount: 0,
   };
   const decksApi = {
     list: () => of([deck]),

@@ -141,7 +141,11 @@ export class PublishForm {
       return;
     }
 
-    // Shows the deck as others now see it; "back" returns to where the learner came from.
-    await this.router.navigate(['/explore', deckId], { replaceUrl: true });
+    // Shows the deck as others now see it, where Plic says it worked; "back" returns to where
+    // the learner came from.
+    await this.router.navigate(['/explore', deckId], {
+      replaceUrl: true,
+      state: { published: true },
+    });
   }
 }

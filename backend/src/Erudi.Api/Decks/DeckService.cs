@@ -61,7 +61,7 @@ public sealed class DeckService(ErudiDbContext db, StudyCalendar calendar, TimeP
         db.Decks.Add(deck);
         await db.SaveChangesAsync(cancellationToken);
 
-        return new DeckCreation.Created(new DeckResponse(deck.Id, deck.Name, CardCount: 0, DueCount: 0, Level: 0, Published: false));
+        return new DeckCreation.Created(new DeckResponse(deck.Id, deck.Name, CardCount: 0, DueCount: 0, Level: 0, Published: false, MasteredCount: 0));
     }
 
     public async Task<DeckResponse?> RenameAsync(Guid ownerId, Guid deckId, string name, CancellationToken cancellationToken)
@@ -183,7 +183,8 @@ public sealed class DeckService(ErudiDbContext db, StudyCalendar calendar, TimeP
                 d.Cards.Count,
                 d.Cards.Count(c => c.DueOn <= today),
                 d.Cards.Average(c => (double?)c.Box),
-                d.Publication != null));
+                d.Publication != null,
+                d.Cards.Count(c => c.Box >= LeitnerSchedule.MasteredFromBox)));
     }
 
     private static DeckResponse ToResponse(DeckRow row) => new(
@@ -192,9 +193,10 @@ public sealed class DeckService(ErudiDbContext db, StudyCalendar calendar, TimeP
         row.CardCount,
         row.DueCount,
         row.AverageBox is { } average ? (int)Math.Round(average, MidpointRounding.AwayFromZero) : 0,
-        row.Published);
+        row.Published,
+        row.MasteredCount);
 
     private static CardResponse ToResponse(Card card) => new(card.Id, card.DeckId, card.Front, card.Back, card.Box);
 
-    private sealed record DeckRow(Guid Id, string Name, int CardCount, int DueCount, double? AverageBox, bool Published);
+    private sealed record DeckRow(Guid Id, string Name, int CardCount, int DueCount, double? AverageBox, bool Published, int MasteredCount);
 }
