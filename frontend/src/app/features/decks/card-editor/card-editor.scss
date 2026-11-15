@@ -6,3 +6,8 @@
 .card-editor__side {
   font-family: var(--font-card);
 }
+
+.card-editor__added {
+  color: var(--color-success);
+  font-weight: 500;
+}

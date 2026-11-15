@@ -28,12 +28,18 @@
     <h1 class="title">{{ (editing() ? 'cards.editTitle' : 'cards.newTitle') | transloco }}</h1>
 
     <form class="page__form" [formRoot]="form">
+      @if (!editing()) {
+        <p class="subtitle">{{ 'cards.enterHint' | transloco }}</p>
+      }
+
       <div class="field">
         <label class="field__label" for="card-front">{{ 'cards.front' | transloco }}</label>
         <textarea
           id="card-front"
-          class="field__input"
+          class="field__input card-editor__side"
           rows="4"
+          appSubmitOnEnter
+          #frontField
           [formField]="form.front"
           [placeholder]="'cards.frontPlaceholder' | transloco"
           [attr.aria-invalid]="!!visibleError(form.front)"
@@ -48,8 +54,9 @@
         <label class="field__label" for="card-back">{{ 'cards.back' | transloco }}</label>
         <textarea
           id="card-back"
-          class="field__input"
+          class="field__input card-editor__side"
           rows="4"
+          appSubmitOnEnter
           [formField]="form.back"
           [placeholder]="'cards.backPlaceholder' | transloco"
           [attr.aria-invalid]="!!visibleError(form.back)"
@@ -83,11 +90,17 @@
         @if (formError(); as error) {
           <p class="alert" role="alert">{{ error | transloco }}</p>
         }
+        <!-- Always in the page, so screen readers announce each new count. -->
+        <p class="card-editor__added" role="status">
+          @if (added() > 0) {
+            {{ addedKey() | transloco: { count: added() } }}
+          }
+        </p>
         <button class="button" type="submit" [disabled]="form().submitting() || deleting()">
-          {{ 'common.save' | transloco }}
+          {{ (editing() ? 'common.save' : 'cards.add') | transloco }}
         </button>
         <a class="button button--secondary" [routerLink]="deckLink()">
-          {{ 'common.cancel' | transloco }}
+          {{ (added() > 0 ? 'cards.done' : 'common.cancel') | transloco }}
         </a>
       </div>
     </form>

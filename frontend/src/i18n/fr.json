@@ -142,8 +142,15 @@
     "publish": "Publier dans l'Explorer"
   },
   "cards": {
-    "newTitle": "Nouvelle carte",
+    "newTitle": "Nouvelles cartes",
     "editTitle": "Modifier la carte",
+    "enterHint": "Entrée ajoute la carte et passe à la suivante, Maj + Entrée va à la ligne.",
+    "add": "Ajouter la carte",
+    "done": "Terminer",
+    "added": {
+      "one": "{{count}} carte ajoutée. Écris la suivante.",
+      "other": "{{count}} cartes ajoutées. Écris la suivante."
+    },
     "front": "Recto",
     "frontPlaceholder": "Question ou mot",
     "back": "Verso",

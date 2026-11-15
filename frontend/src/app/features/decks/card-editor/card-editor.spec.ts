@@ -57,7 +57,9 @@ describe('CardEditor', () => {
   async function saveWith(front: string, back: string): Promise<void> {
     typeInto(host, '#card-front', front);
     typeInto(host, '#card-back', back);
-    await click(buttonNamed(host, 'Enregistrer'));
+    await click(
+      buttonNamed(host, fixture.componentInstance.cardId() ? 'Enregistrer' : 'Ajouter la carte'),
+    );
   }
 
   describe('when adding', () => {
@@ -66,7 +68,7 @@ describe('CardEditor', () => {
     it('should start empty in box 1, with ways back to the deck', () => {
       expect(api.get).toHaveBeenCalledExactlyOnceWith('d1');
       expect(api.getCard).not.toHaveBeenCalled();
-      expect(textOf(host, 'h1')).toBe('Nouvelle carte');
+      expect(textOf(host, 'h1')).toBe('Nouvelles cartes');
       expect(query<HTMLTextAreaElement>(host, '#card-front').value).toBe('');
       expect(textOf(host, '.card-editor__box')).toBe('La carte démarre en boîte 1.');
       expect(linkNamed(host, 'Anglais').getAttribute('href')).toBe('/decks/d1');
@@ -91,14 +93,52 @@ describe('CardEditor', () => {
       expect(api.addCard).not.toHaveBeenCalled();
     });
 
-    it('should add the card with its lines, then go back to the deck', async () => {
+    it('should add the card with its lines, then empty the form for the next one', async () => {
       await saveWith('to run out of', 'manquer de\nêtre à court de');
 
       expect(api.addCard).toHaveBeenCalledExactlyOnceWith('d1', {
         front: 'to run out of',
         back: 'manquer de\nêtre à court de',
       });
-      expect(navigate).toHaveBeenCalledExactlyOnceWith(['/decks', 'd1'], { replaceUrl: true });
+      expect(navigate).not.toHaveBeenCalled();
+      expect(query<HTMLTextAreaElement>(host, '#card-front').value).toBe('');
+      expect(query<HTMLTextAreaElement>(host, '#card-back').value).toBe('');
+      // Emptied but untouched: no "required" error before the learner types.
+      expect(host.querySelector('#card-front-error')).toBeNull();
+      expect(document.activeElement).toBe(query(host, '#card-front'));
+      expect(textOf(host, '[role="status"]')).toBe('1 carte ajoutée. Écris la suivante.');
+      expect(linkNamed(host, 'Terminer').getAttribute('href')).toBe('/decks/d1');
+    });
+
+    it('should count the cards added one after the other', async () => {
+      await saveWith('to run out of', 'manquer de');
+      await saveWith('to look for', 'chercher');
+
+      expect(api.addCard).toHaveBeenCalledTimes(2);
+      expect(api.addCard).toHaveBeenLastCalledWith('d1', {
+        front: 'to look for',
+        back: 'chercher',
+      });
+      expect(textOf(host, '[role="status"]')).toBe('2 cartes ajoutées. Écris la suivante.');
+    });
+
+    it('should add the card on Enter, and keep Shift+Enter as a new line', async () => {
+      typeInto(host, '#card-front', 'to run out of');
+      typeInto(host, '#card-back', 'manquer de');
+      const back = query(host, '#card-back');
+      const enter = (shiftKey: boolean) =>
+        new KeyboardEvent('keydown', { key: 'Enter', shiftKey, bubbles: true, cancelable: true });
+
+      back.dispatchEvent(enter(true));
+      await settle(fixture);
+      expect(api.addCard).not.toHaveBeenCalled();
+
+      back.dispatchEvent(enter(false));
+      await settle(fixture);
+      expect(api.addCard).toHaveBeenCalledExactlyOnceWith('d1', {
+        front: 'to run out of',
+        back: 'manquer de',
+      });
     });
 
     it.each([

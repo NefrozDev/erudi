@@ -1,11 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
   computed,
   inject,
   input,
   linkedSignal,
   signal,
+  viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormField, FormRoot, form, maxLength, pattern, required } from '@angular/forms/signals';
@@ -14,15 +18,28 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { httpStatus } from '../../../core/api/api-errors';
 import { CardContent, DecksApi } from '../../../core/decks/decks-api';
+import { countKey } from '../../../shared/i18n/count-key';
 import { visibleError } from '../../../shared/forms/field-errors';
 import { DeleteConfirmation } from '../../../shared/ui/delete-confirmation/delete-confirmation';
+import { SubmitOnEnter } from '../../../shared/forms/submit-on-enter';
 import { Plic } from '../../../shared/ui/plic/plic';
 import { CARD_SIDE_MAX_LENGTH, NOT_BLANK } from '../deck-rules';
 
-/** Screen 9: adds a card (`decks/:deckId/cards/new`), or edits and deletes one (`…/cards/:cardId`). */
+/**
+ * Screen 9: adds cards one after the other (`decks/:deckId/cards/new`), or edits and deletes
+ * one (`…/cards/:cardId`). Enter saves, Shift+Enter adds a line.
+ */
 @Component({
   selector: 'app-card-editor',
-  imports: [DeleteConfirmation, FormField, FormRoot, Plic, RouterLink, TranslocoPipe],
+  imports: [
+    DeleteConfirmation,
+    FormField,
+    FormRoot,
+    Plic,
+    RouterLink,
+    SubmitOnEnter,
+    TranslocoPipe,
+  ],
   templateUrl: './card-editor.html',
   styleUrl: './card-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +47,8 @@ import { CARD_SIDE_MAX_LENGTH, NOT_BLANK } from '../deck-rules';
 export class CardEditor {
   private readonly api = inject(DecksApi);
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
+  private readonly frontField = viewChild<ElementRef<HTMLTextAreaElement>>('frontField');
 
   /** From the route. */
   readonly deckId = input.required<string>();
@@ -61,6 +80,9 @@ export class CardEditor {
 
   protected readonly formError = signal<string | null>(null);
   protected readonly deleting = signal(false);
+  /** Cards added since the screen opened, announced after each one. */
+  protected readonly added = signal(0);
+  protected readonly addedKey = computed(() => countKey('cards.added', this.added()));
   protected readonly visibleError = visibleError;
 
   // Filled with the card's text once it is loaded.
@@ -125,7 +147,15 @@ export class CardEditor {
       return;
     }
 
-    await this.backToDeck();
+    if (cardId !== undefined) {
+      await this.backToDeck();
+      return;
+    }
+
+    // Ready for the next card: empty, untouched (no "required" errors), front field focused.
+    this.added.update((count) => count + 1);
+    this.form().reset({ front: '', back: '' });
+    afterNextRender(() => this.frontField()?.nativeElement.focus(), { injector: this.injector });
   }
 
   /** Replaces the form in the history, so "back" from the deck does not reopen it. */
