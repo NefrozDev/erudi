@@ -4,9 +4,10 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthStore } from '../../core/auth/auth-store';
 import { SYNAPSE_ACCOUNT_URL } from '../../core/auth/synapse-account';
 import { BROWSER_LOCATION } from '../../core/browser/browser-location';
+import { SoundEffects } from '../../core/sound/sound-effects';
 
 /**
- * Screen 17: the account and the terms for now. The account itself (username, e-mail,
+ * Screen 17: the account, the answer sounds and the terms for now. The account itself (username, e-mail,
  * password, deletion) is managed on the Synapse account page.
  */
 @Component({
@@ -22,6 +23,7 @@ export class Settings {
 
   protected readonly auth = inject(AuthStore);
   protected readonly accountUrl = inject(SYNAPSE_ACCOUNT_URL);
+  protected readonly sounds = inject(SoundEffects);
   protected readonly signingOut = signal(false);
 
   /** Erudi's session ends, then the identity service signs out of every Synapse app. */

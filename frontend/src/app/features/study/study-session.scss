@@ -91,16 +91,27 @@
   text-align: center;
   animation: flashcard-turn 0.25s ease-out;
 
+  // A new card's front slides in from the side; the back turns over (below).
   &:is(button) {
     cursor: pointer;
+    animation-name: flashcard-next;
+    animation-duration: 0.3s;
   }
 }
 
-// The card turns into view; skipped for people who asked for less motion.
+// Turning a card over: it rotates into view.
 @keyframes flashcard-turn {
   from {
     transform: perspective(900px) rotateY(80deg);
     opacity: 0.4;
+  }
+}
+
+// The next card: it comes in from the right, as if the stack moved along.
+@keyframes flashcard-next {
+  from {
+    transform: translateX(40%) rotate(4deg);
+    opacity: 0;
   }
 }
 

@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { httpStatus } from '../../../core/api/api-errors';
 import { DecksApi } from '../../../core/decks/decks-api';
+import { CardDirection } from '../../../core/study/study-api';
 import { countKey } from '../../../shared/i18n/count-key';
 import { Plic } from '../../../shared/ui/plic/plic';
 
-/** Screen 8: a deck and its cards. */
+/** Screen 8: a deck and its cards, and the ways to study it, from the front or the back. */
 @Component({
   selector: 'app-deck-page',
   imports: [Plic, RouterLink, TranslocoPipe],
@@ -29,6 +30,14 @@ export class DeckPage {
     params: () => this.deckId(),
     stream: ({ params }) => this.api.listCards(params),
   });
+
+  protected readonly directions: readonly CardDirection[] = ['front', 'back', 'mixed'];
+  /** For both study links; the front, the default, stays out of the address. */
+  protected readonly direction = signal<CardDirection>('front');
+  protected readonly studyParams = computed(() => ({
+    deckId: this.deckId(),
+    direction: this.direction() === 'front' ? null : this.direction(),
+  }));
 
   protected readonly notFound = computed(
     () => httpStatus(this.deck.error()) === 404 || httpStatus(this.cards.error()) === 404,

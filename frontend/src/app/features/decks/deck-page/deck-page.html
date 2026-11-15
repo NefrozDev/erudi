@@ -20,10 +20,35 @@
     </p>
 
     <div class="deck-page__actions">
+      @if (deck.value().cardCount > 0) {
+        <fieldset class="deck-page__direction">
+          <legend class="field__label">{{ 'decks.direction.label' | transloco }}</legend>
+          <div class="deck-page__direction-options">
+            @for (option of directions; track option) {
+              <label class="deck-page__direction-option">
+                <input
+                  type="radio"
+                  name="direction"
+                  [value]="option"
+                  [checked]="direction() === option"
+                  (change)="direction.set(option)"
+                />
+                {{ 'decks.direction.' + option | transloco }}
+              </label>
+            }
+          </div>
+        </fieldset>
+      }
       @if (deck.value().dueCount > 0) {
-        <a class="button" routerLink="/study/quiz" [queryParams]="{ deckId: deckId() }">
+        <a
+          class="button"
+          routerLink="/study/quiz"
+          [queryParams]="studyParams()"
+          aria-describedby="deck-quiz-hint"
+        >
           {{ 'decks.quiz' | transloco: { count: deck.value().dueCount } }}
         </a>
+        <p class="deck-page__hint" id="deck-quiz-hint">{{ 'decks.quizHint' | transloco }}</p>
       } @else if (deck.value().cardCount > 0) {
         <p class="deck-page__up-to-date">{{ 'decks.upToDate' | transloco }}</p>
       }
@@ -32,7 +57,8 @@
           <a
             class="button button--secondary"
             routerLink="/study/practice"
-            [queryParams]="{ deckId: deckId() }"
+            [queryParams]="studyParams()"
+            aria-describedby="deck-practice-hint"
           >
             {{ 'decks.practice' | transloco }}
           </a>
@@ -41,6 +67,11 @@
           {{ 'decks.addCard' | transloco }}
         </a>
       </div>
+      @if (deck.value().cardCount > 0) {
+        <p class="deck-page__hint" id="deck-practice-hint">
+          {{ 'decks.practiceHint' | transloco }}
+        </p>
+      }
     </div>
 
     @if (deck.value().published) {

@@ -8,6 +8,15 @@
     </div>
   </dl>
 
+  <label class="settings__row settings__toggle">
+    {{ 'settings.sounds' | transloco }}
+    <input
+      type="checkbox"
+      [checked]="sounds.enabled()"
+      (change)="sounds.setEnabled($any($event.target).checked)"
+    />
+  </label>
+
   <nav class="settings__links" [attr.aria-label]="'settings.title' | transloco">
     <a class="settings__row settings__link" routerLink="/terms">
       {{ 'settings.terms' | transloco }}

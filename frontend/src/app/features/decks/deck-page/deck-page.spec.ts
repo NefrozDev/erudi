@@ -68,6 +68,46 @@ describe('DeckPage', () => {
     expect(host.querySelector('.deck-page__up-to-date')).toBeNull();
   });
 
+  it('should explain the difference between a quiz and practice, tied to each link', async () => {
+    const host = await render();
+
+    const quiz = linkNamed(host, 'Réviser (1)');
+    const practice = linkNamed(host, "S'entraîner");
+    expect(textOf(host, `#${quiz.getAttribute('aria-describedby')}`)).toContain(
+      'Elles changent de boîte',
+    );
+    expect(textOf(host, `#${practice.getAttribute('aria-describedby')}`)).toContain(
+      'Leurs boîtes ne bougent pas',
+    );
+  });
+
+  it('should ask the front by default, and pass another side to both study links', async () => {
+    const host = await render();
+    const options = [...host.querySelectorAll<HTMLInputElement>('input[name="direction"]')];
+    expect(options.map((option) => option.parentElement?.textContent?.trim())).toEqual([
+      'Recto → verso',
+      'Verso → recto',
+      'Au hasard',
+    ]);
+    expect(options[0].checked).toBe(true);
+
+    options[1].click();
+    await settle(fixture);
+
+    expect(linkNamed(host, 'Réviser (1)').getAttribute('href')).toBe(
+      '/study/quiz?deckId=d1&direction=back',
+    );
+    expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe(
+      '/study/practice?deckId=d1&direction=back',
+    );
+
+    options[2].click();
+    await settle(fixture);
+    expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe(
+      '/study/practice?deckId=d1&direction=mixed',
+    );
+  });
+
   it('should say when nothing is due, still offering practice', async () => {
     get.mockReturnValue(of({ ...deck, dueCount: 0 }));
 
@@ -135,6 +175,7 @@ describe('DeckPage', () => {
 
     expect(textOf(host, 'h2')).toBe('Ce paquet est vide');
     expect(host.querySelector('a[href^="/study/"]')).toBeNull();
+    expect(host.querySelector('input[name="direction"]')).toBeNull();
     expect(host.querySelector('.deck-page__up-to-date')).toBeNull();
     expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('surprised');
     expect(linkNamed(host, 'Ajouter une carte')).toBeTruthy();

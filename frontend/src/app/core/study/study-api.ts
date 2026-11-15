@@ -51,3 +51,9 @@ export class StudyApi {
     return this.http.post<AnswerResult>('/api/study/answers', { cardId, knew });
   }
 }
+
+/** Which side a session asks: the front (the default), the back, or either, card by card. */
+export type CardDirection = 'front' | 'back' | 'mixed';
+
+/** The most due cards one quiz asks; the learner can then go on with the next ones. */
+export const QUIZ_SIZE = 50;

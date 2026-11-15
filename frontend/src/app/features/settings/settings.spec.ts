@@ -6,6 +6,7 @@ import { AuthUser } from '../../core/auth/auth-api';
 import { AuthStore } from '../../core/auth/auth-store';
 import { SYNAPSE_ACCOUNT_URL } from '../../core/auth/synapse-account';
 import { BROWSER_LOCATION } from '../../core/browser/browser-location';
+import { SoundEffects } from '../../core/sound/sound-effects';
 import { Settings } from './settings';
 
 describe('Settings', () => {
@@ -17,6 +18,8 @@ describe('Settings', () => {
   });
   const signOut = vi.fn<() => Promise<string | null>>();
   const assign = vi.fn<(url: string) => void>();
+  const soundsOn = signal(true);
+  const setEnabled = vi.fn((enabled: boolean) => soundsOn.set(enabled));
   let fixture: ComponentFixture<Settings>;
   let host: HTMLElement;
   let navigateByUrl: ReturnType<typeof vi.spyOn>;
@@ -24,18 +27,37 @@ describe('Settings', () => {
   beforeEach(async () => {
     signOut.mockReset().mockResolvedValue('https://auth.example/oidc/session/end');
     assign.mockReset();
+    soundsOn.set(true);
+    setEnabled.mockClear();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         { provide: AuthStore, useValue: { user, signOut } },
         { provide: BROWSER_LOCATION, useValue: { assign } },
         { provide: SYNAPSE_ACCOUNT_URL, useValue: 'https://auth.example/account' },
+        { provide: SoundEffects, useValue: { enabled: soundsOn, setEnabled } },
       ],
     });
     navigateByUrl = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     fixture = TestBed.createComponent(Settings);
     host = fixture.nativeElement as HTMLElement;
     await fixture.whenStable();
+  });
+
+  it('should turn the answer sounds off and on again', async () => {
+    const toggle = host.querySelector<HTMLInputElement>('.settings__toggle input')!;
+    expect(textOf(host, '.settings__toggle')).toBe('Sons des réponses');
+    expect(toggle.checked).toBe(true);
+
+    toggle.click();
+    await settle(fixture);
+    expect(setEnabled).toHaveBeenCalledExactlyOnceWith(false);
+    expect(toggle.checked).toBe(false);
+
+    toggle.click();
+    await settle(fixture);
+    expect(setEnabled).toHaveBeenLastCalledWith(true);
+    expect(setEnabled).toHaveBeenCalledTimes(2);
   });
 
   it('should show the account e-mail', () => {

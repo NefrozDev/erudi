@@ -135,6 +135,14 @@
     },
     "quiz": "Réviser ({{count}})",
     "practice": "S'entraîner",
+    "quizHint": "Réviser : les cartes prévues aujourd'hui. Elles changent de boîte selon ta réponse.",
+    "practiceHint": "S'entraîner : des cartes au hasard, quand tu veux. Leurs boîtes ne bougent pas.",
+    "direction": {
+      "label": "Sens des cartes",
+      "front": "Recto → verso",
+      "back": "Verso → recto",
+      "mixed": "Au hasard"
+    },
     "upToDate": "Rien à réviser aujourd'hui dans ce paquet.",
     "published": "Publié dans l'Explorer",
     "viewPublic": "Voir",
@@ -191,6 +199,8 @@
       "again": "à revoir",
       "practiceNote": "Les cartes n'ont pas changé de boîte.",
       "finish": "Terminer",
+      "moreDue": "D'autres cartes t'attendent encore aujourd'hui.",
+      "continue": "Continuer",
       "testText": "Test terminé",
       "score": "Score :",
       "percent": "{{score}} %",
@@ -327,6 +337,7 @@
   "settings": {
     "title": "Réglages",
     "account": "Compte",
+    "sounds": "Sons des réponses",
     "terms": "Conditions d'utilisation",
     "signOut": "Se déconnecter",
     "manageAccount": "Gérer mon compte Synapse",

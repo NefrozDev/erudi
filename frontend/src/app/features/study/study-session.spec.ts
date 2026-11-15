@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { buttonNamed, linkNamed, query, settle, textOf } from '../../../testing/dom';
 import { ExploreApi, TestCard, TestResult } from '../../core/explore/explore-api';
+import { SoundEffects } from '../../core/sound/sound-effects';
 import { AnswerResult, StudyApi, StudyCard } from '../../core/study/study-api';
 import { SessionMode, StudySession } from './study-session';
 
@@ -47,10 +48,15 @@ describe('StudySession', () => {
     testCards: vi.fn<(deckId: string) => Observable<TestCard[]>>(),
     saveResult: vi.fn<(deckId: string, known: number, total: number) => Observable<TestResult>>(),
   };
+  const sounds = { play: vi.fn<(sound: 'knew' | 'again') => void>() };
   let fixture: ComponentFixture<StudySession>;
   let host: HTMLElement;
+  let random: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    // Just under 1: shuffling keeps the order and "mixed" asks the front, unless a test says.
+    random = vi.spyOn(Math, 'random').mockReturnValue(0.999);
+    sounds.play.mockReset();
     api.cards.mockReset().mockReturnValue(of(cards));
     api.answer.mockReset().mockReturnValue(of({ box: 3, dueOn: '2026-11-11' }));
     exploreApi.testCards.mockReset().mockReturnValue(of(testCards));
@@ -60,13 +66,19 @@ describe('StudySession', () => {
         provideRouter([]),
         { provide: StudyApi, useValue: api },
         { provide: ExploreApi, useValue: exploreApi },
+        { provide: SoundEffects, useValue: sounds },
       ],
     });
   });
 
-  async function render(mode: SessionMode, deckId?: string): Promise<void> {
+  afterEach(() => vi.restoreAllMocks());
+
+  async function render(mode: SessionMode, deckId?: string, direction?: string): Promise<void> {
     fixture = TestBed.createComponent(StudySession);
     fixture.componentRef.setInput('mode', mode);
+    if (direction !== undefined) {
+      fixture.componentRef.setInput('direction', direction);
+    }
     if (deckId !== undefined) {
       fixture.componentRef.setInput('deckId', deckId);
     }
@@ -87,6 +99,85 @@ describe('StudySession', () => {
   function cardText(): string {
     return textOf(host, '.flashcard__text');
   }
+
+  describe('the order and side of the cards', () => {
+    it('should shuffle the quiz cards', async () => {
+      random.mockReturnValue(0);
+
+      await render('quiz');
+
+      // Each card swapped with the first one: c1, c2, c3 become c2, c3, c1.
+      expect(cardText()).toBe('a deadline');
+    });
+
+    it('should keep the order of practice cards, already random', async () => {
+      random.mockReturnValue(0);
+
+      await render('practice');
+
+      expect(cardText()).toBe('to run out of');
+    });
+
+    it('should ask the back and answer with the front when asked from the back', async () => {
+      await render('quiz', undefined, 'back');
+
+      expect(cardText()).toBe('manquer de');
+      await click(buttonNamed(host, 'Retourner la carte'));
+      expect(cardText()).toBe('to run out of');
+      expect(textOf(host, '.flashcard__hint')).toBe('manquer de');
+    });
+
+    it('should pick a side per card when mixed', async () => {
+      // Shuffling draws first (2 numbers), then one per card: front, back, front.
+      random
+        .mockReturnValueOnce(0.999)
+        .mockReturnValueOnce(0.999)
+        .mockReturnValueOnce(0.7)
+        .mockReturnValueOnce(0.2)
+        .mockReturnValueOnce(0.7);
+
+      await render('quiz', undefined, 'mixed');
+
+      expect(cardText()).toBe('to run out of');
+      await flipAndAnswer('Je savais');
+      expect(cardText()).toBe('une échéance');
+      await flipAndAnswer('Je savais');
+      expect(cardText()).toBe('1830');
+    });
+
+    it('should ask the front for an unknown direction', async () => {
+      await render('practice', undefined, 'sideways');
+
+      expect(cardText()).toBe('to run out of');
+    });
+  });
+
+  describe('a quiz of 50 cards', () => {
+    const many = (prefix: string): StudyCard[] =>
+      Array.from({ length: 50 }, (_, i) => ({
+        ...cards[0],
+        id: `${prefix}${i}`,
+        front: `${prefix}${i}`,
+      }));
+
+    it('should offer the next due cards, then start over from the first one', async () => {
+      api.cards.mockReturnValueOnce(of(many('a'))).mockReturnValueOnce(of(many('b')));
+      await render('quiz', 'd1');
+      for (let i = 0; i < 50; i++) {
+        await flipAndAnswer('Je savais');
+      }
+
+      expect(textOf(host, 'h1')).toBe('Bravo !');
+      expect(api.cards).toHaveBeenCalledTimes(1);
+      await click(buttonNamed(host, 'Continuer'));
+
+      expect(api.cards).toHaveBeenCalledTimes(2);
+      expect(api.cards).toHaveBeenLastCalledWith('quiz', 'd1');
+      expect(cardText()).toBe('b0');
+      expect(textOf(host, '.study__count')).toBe('1/50');
+      expect(document.activeElement).toBe(query(host, 'button.flashcard'));
+    });
+  });
 
   describe('a quiz over every deck', () => {
     beforeEach(() => render('quiz'));
@@ -167,6 +258,22 @@ describe('StudySession', () => {
       expect(linkNamed(host, 'Terminer').getAttribute('href')).toBe('/');
       expect(document.activeElement).toBe(query(host, 'h1'));
       expect(api.answer).toHaveBeenCalledTimes(3);
+    });
+
+    it('should play a sound for each answer', async () => {
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je ne savais pas');
+
+      expect(sounds.play.mock.calls).toEqual([['knew'], ['again']]);
+    });
+
+    it('should not offer more cards after a quiz shorter than 50', async () => {
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je savais');
+
+      expect(host.textContent).not.toContain('Continuer');
+      expect(api.cards).toHaveBeenCalledTimes(1);
     });
 
     it('should not answer twice while an answer is being saved', async () => {

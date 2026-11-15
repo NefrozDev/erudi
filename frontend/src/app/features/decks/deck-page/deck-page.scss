@@ -92,3 +92,50 @@
 .card-row__box {
   color: var(--color-text-secondary);
 }
+
+.deck-page__hint {
+  margin-top: -4px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+// Which side the study links ask: three options side by side, wrapping on narrow screens.
+.deck-page__direction {
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: 8px;
+    padding: 0;
+  }
+}
+
+.deck-page__direction-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.deck-page__direction-option {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-weight: 500;
+  cursor: pointer;
+
+  input {
+    accent-color: var(--color-violet);
+  }
+
+  &:has(input:checked) {
+    border-color: var(--color-violet);
+    box-shadow: 0 0 0 3px var(--color-violet-soft);
+  }
+}

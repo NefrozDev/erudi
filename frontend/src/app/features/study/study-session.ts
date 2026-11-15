@@ -15,11 +15,13 @@ import { NgTemplateOutlet } from '@angular/common';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { httpStatus } from '../../core/api/api-errors';
 import { ExploreApi, TestResult } from '../../core/explore/explore-api';
-import { StudyApi, StudyMode } from '../../core/study/study-api';
+import { SoundEffects } from '../../core/sound/sound-effects';
+import { CardDirection, QUIZ_SIZE, StudyApi, StudyMode } from '../../core/study/study-api';
 import { countKey } from '../../shared/i18n/count-key';
+import { shuffle } from '../../shared/random/shuffle';
 import { BoxMeter } from '../../shared/ui/box-meter/box-meter';
 import { Plic } from '../../shared/ui/plic/plic';
 
@@ -33,13 +35,18 @@ interface SessionCard {
   front: string;
   back: string;
   box?: number;
+  /** Asked from the back: the back is the question, the front the answer. */
+  reversed: boolean;
 }
+
+const DIRECTIONS: readonly CardDirection[] = ['front', 'back', 'mixed'];
 
 /**
  * Screens 10 to 12: one card at a time, question then answer, then the session's results.
  * A quiz answer is saved before the next card shows, so leaving midway keeps the progress.
  * Practice keeps its answers in the page and moves no card. A test does the same, then saves
- * its score.
+ * its score. Quiz cards come shuffled (the server picks the 50 most urgent, in order), and a
+ * full quiz offers the next ones. `?direction=` asks the front, the back or either.
  */
 @Component({
   selector: 'app-study-session',
@@ -52,6 +59,7 @@ export class StudySession {
   private readonly api = inject(StudyApi);
   private readonly exploreApi = inject(ExploreApi);
   private readonly injector = inject(Injector);
+  private readonly sounds = inject(SoundEffects);
 
   /** From the route's data. */
   readonly mode = input.required<SessionMode>();
@@ -60,13 +68,36 @@ export class StudySession {
    * public deck from the route.
    */
   readonly deckId = input<string>();
+  /** From the query string; anything else than `back` or `mixed` asks the front. */
+  readonly direction = input<string>();
 
-  protected readonly cards = rxResource<SessionCard[], { mode: SessionMode; deckId?: string }>({
-    params: () => ({ mode: this.mode(), deckId: this.deckId() }),
+  /** Moves on to load the next quiz cards. */
+  private readonly round = signal(0);
+
+  protected readonly cards = rxResource<
+    SessionCard[],
+    { mode: SessionMode; deckId?: string; direction: CardDirection; round: number }
+  >({
+    params: () => ({
+      mode: this.mode(),
+      deckId: this.deckId(),
+      direction: DIRECTIONS.find((known) => known === this.direction()) ?? 'front',
+      round: this.round(),
+    }),
     stream: ({ params }) =>
-      params.mode === 'test'
+      (params.mode === 'test'
         ? this.exploreApi.testCards(params.deckId ?? '')
-        : this.api.cards(params.mode, params.deckId),
+        : this.api.cards(params.mode, params.deckId)
+      ).pipe(
+        map((cards) => (params.mode === 'quiz' ? shuffle(cards) : cards)),
+        map((cards) =>
+          cards.map((card) => ({
+            ...card,
+            reversed:
+              params.direction === 'back' || (params.direction === 'mixed' && Math.random() < 0.5),
+          })),
+        ),
+      ),
   });
 
   protected readonly index = signal(0);
@@ -88,6 +119,19 @@ export class StudySession {
   protected readonly finished = computed(() => this.total() > 0 && this.index() >= this.total());
   protected readonly progress = computed(() =>
     this.total() === 0 ? 0 : (100 * this.index()) / this.total(),
+  );
+  /** The side asked, then the side shown as the answer. */
+  protected readonly question = computed(() => {
+    const card = this.current();
+    return card === undefined ? '' : card.reversed ? card.back : card.front;
+  });
+  protected readonly reply = computed(() => {
+    const card = this.current();
+    return card === undefined ? '' : card.reversed ? card.front : card.back;
+  });
+  /** A full quiz may have left due cards behind. */
+  protected readonly canContinue = computed(
+    () => this.mode() === 'quiz' && this.total() === QUIZ_SIZE,
   );
   protected readonly notFound = computed(() => httpStatus(this.cards.error()) === 404);
   /** Shown as soon as the test ends, before it is saved. */
@@ -137,6 +181,7 @@ export class StudySession {
       }
     }
 
+    this.sounds.play(knew ? 'knew' : 'again');
     (knew ? this.knew : this.toReview).update((count) => count + 1);
     this.index.update((index) => index + 1);
     this.flipped.set(false);
@@ -145,6 +190,17 @@ export class StudySession {
     if (this.finished() && this.mode() === 'test') {
       await this.saveResult();
     }
+  }
+
+  /** Loads the next due cards; the answered ones have moved and are no longer due. */
+  protected continueQuiz(): void {
+    this.index.set(0);
+    this.knew.set(0);
+    this.toReview.set(0);
+    this.flipped.set(false);
+    this.round.update((round) => round + 1);
+    // The front of the new first card takes the focus from the button that disappears.
+    this.focusAfterRender(this.frontFace);
   }
 
   protected async saveResult(): Promise<void> {

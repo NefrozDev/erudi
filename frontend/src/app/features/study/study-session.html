@@ -72,12 +72,24 @@
         }
 
         <div class="study__actions">
-          <a class="button button--accent" [routerLink]="exitLink()" replaceUrl>
+          @if (canContinue()) {
+            <p class="study__end-text">{{ 'study.done.moreDue' | transloco }}</p>
+            <button type="button" class="button button--accent" (click)="continueQuiz()">
+              {{ 'study.done.continue' | transloco }}
+            </button>
+          }
+          <a
+            class="button"
+            [class.button--accent]="!canContinue()"
+            [class.study__ghost]="canContinue()"
+            [routerLink]="exitLink()"
+            replaceUrl
+          >
             {{ 'study.done.finish' | transloco }}
           </a>
         </div>
       </section>
-    } @else if (current(); as card) {
+    } @else if (current()) {
       <!-- The bar and the card say where we are; screen readers still get a page heading. -->
       <h1 class="visually-hidden">{{ 'titles.' + mode() | transloco }}</h1>
       <header class="study__bar">
@@ -110,7 +122,7 @@
       @if (!flipped()) {
         <button type="button" class="flashcard" #frontFace (click)="flip()">
           <ng-container *ngTemplateOutlet="chip" />
-          <span class="flashcard__text">{{ card.front }}</span>
+          <span class="flashcard__text">{{ question() }}</span>
           <span class="flashcard__hint">{{ 'study.tapToFlip' | transloco }}</span>
         </button>
         <div class="study__actions">
@@ -126,8 +138,8 @@
           [attr.aria-label]="'study.answer' | transloco"
         >
           <ng-container *ngTemplateOutlet="chip" />
-          <p class="flashcard__text">{{ card.back }}</p>
-          <p class="flashcard__hint">{{ card.front }}</p>
+          <p class="flashcard__text">{{ reply() }}</p>
+          <p class="flashcard__hint">{{ question() }}</p>
         </section>
 
         @if (answerFailed()) {
