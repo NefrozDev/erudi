@@ -282,7 +282,7 @@
     "deck": {
       "publishedTitle": "Paquet publié !",
       "publishedText": "Les autres peuvent maintenant le trouver dans l'Explorer.",
-      "byline":"par {{author}} · mis à jour {{when}}",
+      "byline": "par {{author}} · mis à jour {{when}}",
       "description": "Description",
       "preview": "Aperçu",
       "answer": "Réponse :",
@@ -367,21 +367,21 @@
     "contact": "Contact :",
     "about": {
       "title": "1. Erudi",
-      "text": "Erudi est une application de révision par boîtes de Leitner, éditée par Synapse Engineering, établie en Belgique. Ces conditions encadrent son utilisation : elles te sont demandées à ta première visite."
+      "text": "Erudi est une application de révision par la méthode des boîtes de Leitner, éditée par Synapse Engineering, établie en Belgique. Les présentes conditions régissent son utilisation ; elles sont soumises à ton acceptation lors de ta première connexion."
     },
     "account": {
       "title": "2. Ton compte",
-      "age": "Tu dois avoir au moins 13 ans pour créer un compte.",
-      "email": "Tu te connectes avec ton compte Synapse, le même pour toutes les applications de Synapse Engineering. Il a ses propres conditions, sur auth.synapseengineering.dev.",
-      "secret": "Le mot de passe de ton compte est personnel. Tu es responsable de ce qui est fait avec ton compte.",
-      "one": "Un compte correspond à une seule personne."
+      "age": "L'utilisation d'Erudi est réservée aux personnes âgées d'au moins 13 ans.",
+      "email": "La connexion se fait avec ton compte Synapse, commun à toutes les applications de Synapse Engineering et régi par ses propres conditions, disponibles sur auth.synapseengineering.dev.",
+      "secret": "Tes identifiants sont personnels et confidentiels. Tu es responsable de l'usage qui est fait de ton compte.",
+      "one": "Un compte ne peut être utilisé que par une seule personne."
     },
     "content": {
-      "title": "3. Tes paquets et l'Explorer",
-      "yours": "Tes paquets et tes cartes t'appartiennent. Tant que tu ne les publies pas, toi seul peux les voir.",
-      "publish": "Quand tu publies un paquet, tout utilisateur d'Erudi peut le lire, s'y tester et le copier dans ses paquets, avec ton pseudo comme auteur : tu nous autorises à l'afficher pour cela. Une copie appartient à celui qui l'a faite et reste chez lui, même si tu retires ta publication ou supprimes ton compte.",
-      "rights": "Ne publie que ce que tu as le droit de partager : pas de contenu copié sans autorisation, comme un manuel ou un site payant.",
-      "check": "Les paquets publics sont écrits par d'autres utilisateurs et nous ne vérifions pas leurs réponses : vérifie avant d'apprendre."
+      "title": "3. Tes paquets et leur publication",
+      "yours": "Tu restes propriétaire des paquets et des cartes que tu crées. Tant qu'un paquet n'est pas publié, il n'est accessible qu'à toi.",
+      "publish": "La publication d'un paquet le rend accessible à tous les utilisateurs d'Erudi, qui peuvent le consulter, s'y tester et le copier dans leurs propres paquets ; ton pseudo est indiqué comme auteur. En publiant, tu autorises Synapse Engineering à afficher ce paquet à ces fins. Une copie appartient à l'utilisateur qui l'a faite et n'est pas supprimée si tu retires la publication ou supprimes ton compte.",
+      "rights": "Tu ne publies que des contenus que tu as le droit de partager, à l'exclusion notamment de contenus repris sans autorisation d'un manuel ou d'un site payant.",
+      "check": "Les paquets publics sont rédigés par d'autres utilisateurs et leur exactitude n'est pas vérifiée. Il t'appartient de contrôler les réponses avant de les apprendre."
     },
     "conduct": {
       "title": "4. Règles de conduite",
@@ -391,46 +391,46 @@
       "impersonate": "te faire passer pour quelqu'un d'autre ;",
       "access": "tenter d'accéder au compte ou aux données d'une autre personne ;",
       "disrupt": "perturber le service : contourner ses limites, l'automatiser de manière abusive ou y introduire du code malveillant.",
-      "reports": "Tu peux signaler un paquet public qui ne respecte pas ces règles. Nous pouvons retirer une publication ou suspendre un compte qui ne les respecte pas."
+      "reports": "Tout paquet public contraire à ces règles peut être signalé. Synapse Engineering peut retirer une publication ou suspendre un compte qui ne les respecte pas."
     },
     "service": {
       "title": "5. Le service",
-      "text": "Erudi est fourni gratuitement, tel quel. Nous faisons de notre mieux pour qu'il reste disponible et que tes données soient conservées, sans pouvoir le garantir. Le service peut évoluer, être interrompu pour maintenance ou s'arrêter ; dans ce dernier cas, nous te préviendrons à l'avance.",
-      "liability": "Dans les limites permises par la loi, Synapse Engineering n'est pas responsable des dommages indirects liés à l'utilisation d'Erudi, ni des contenus publiés par les autres utilisateurs. Rien dans ces conditions ne limite les droits que la loi t'accorde en tant que consommateur."
+      "text": "Erudi est fourni gratuitement et en l'état. Synapse Engineering s'efforce d'en assurer la disponibilité et la conservation des données, sans pouvoir le garantir. Le service peut évoluer, être interrompu pour maintenance ou prendre fin.",
+      "liability": "Synapse Engineering n'est pas responsable des dommages indirects liés à l'utilisation d'Erudi, ni des contenus publiés par les autres utilisateurs."
     },
     "deletion": {
       "title": "6. Supprimer ton compte",
-      "text": "Tu peux supprimer ton compte à tout moment depuis la page de ton compte Synapse (Réglages, « Gérer mon compte Synapse »). Erudi est alors prévenu et efface tout de suite ton compte, tes paquets, tes cartes, ta progression, tes publications, tes scores et tes signalements ; les sauvegardes du serveur les gardent encore 14 jours au plus."
+      "text": "Tu peux supprimer ton compte à tout moment depuis la page de ton compte Synapse (Réglages, « Gérer mon compte Synapse »). Erudi en est informé et efface immédiatement ton compte, tes paquets, tes cartes, ta progression, tes publications, tes scores et tes signalements. Les sauvegardes automatiques du serveur, conservées 14 jours, en gardent une copie jusqu'à leur expiration."
     },
     "privacy": {
       "title": "7. Politique de confidentialité",
-      "controller": "Synapse Engineering est responsable du traitement de tes données personnelles, conformément au Règlement général sur la protection des données (RGPD).",
-      "keptTitle": "Ce que nous conservons",
+      "controller": "Synapse Engineering est responsable du traitement de tes données personnelles, conformément au Règlement général sur la protection des données (RGPD), qui impose d'indiquer quelles données sont traitées, pourquoi et pendant combien de temps.",
+      "keptTitle": "Données traitées",
       "kept": {
-        "identity": "Ton pseudo et ton adresse email, recopiés de ton compte Synapse à chaque connexion, et ta langue.",
-        "password": "Aucun mot de passe : seul ton compte Synapse le garde.",
-        "content": "Tes paquets, tes cartes, tes réponses et leurs dates (pour savoir quand revoir chaque carte), tes publications, tes scores aux tests, tes signalements et la date à laquelle tu as accepté ces conditions.",
-        "ip": "Ton adresse IP, le temps de limiter les abus (trop de tentatives de connexion par exemple). Elle n'est pas enregistrée avec ton compte."
+        "identity": "Ton pseudo et ton adresse e-mail, repris de ton compte Synapse à chaque connexion, ainsi que ta langue.",
+        "password": "Aucun mot de passe : il est conservé uniquement par ton compte Synapse.",
+        "content": "Tes paquets, tes cartes, tes réponses et leurs dates (nécessaires pour planifier les révisions), tes publications, tes scores aux tests, tes signalements et la date d'acceptation de ces conditions.",
+        "ip": "Ton adresse IP, uniquement le temps de limiter les abus (par exemple un trop grand nombre de tentatives de connexion). Elle n'est pas associée à ton compte."
       },
-      "timeZone": "Ton appareil indique aussi son fuseau horaire à chaque échange, pour que « aujourd'hui » soit ton jour à toi. Nous ne le conservons pas.",
-      "publicTitle": "Ce que les autres voient",
-      "public": "Seulement ce que tu publies, avec ton pseudo. Ton adresse email, tes boîtes et tes scores ne sont jamais montrés aux autres, et l'auteur d'un paquet ne sait pas qui l'a signalé.",
-      "whyTitle": "Pourquoi",
-      "why": "Pour faire fonctionner le service que tu demandes (article 6.1.b du RGPD) et pour le protéger contre les abus (intérêt légitime, article 6.1.f). Nous ne vendons pas tes données, il n'y a pas de publicité et l'application ne contient aucun traceur ni service tiers.",
-      "cookiesTitle": "Cookies",
-      "cookies": "Uniquement des cookies indispensables : celui qui te garde connecté, pendant 30 jours au plus, et ceux qui protègent une connexion en cours, pendant 15 minutes au plus. Ton navigateur retient aussi sur ton appareil que tu as déjà vu l'introduction.",
-      "whereTitle": "Où et combien de temps",
-      "where": "Tes données sont hébergées sur un serveur loué à OVHcloud (OVH SAS, France). Nous gardons tes données tant que ton compte existe.",
+      "timeZone": "Ton appareil transmet aussi son fuseau horaire à chaque échange, afin que les révisions suivent ta journée. Il n'est pas conservé.",
+      "publicTitle": "Données visibles par les autres utilisateurs",
+      "public": "Uniquement les paquets que tu publies, avec ton pseudo. Ton adresse e-mail, tes boîtes et tes scores ne sont jamais montrés, et l'auteur d'un paquet n'est pas informé de l'identité de la personne qui l'a signalé.",
+      "whyTitle": "Finalités et bases légales",
+      "why": "Ces données servent à fournir le service que tu demandes (article 6.1.b du RGPD) et à le protéger contre les abus (intérêt légitime, article 6.1.f). Elles ne sont pas vendues. Erudi n'affiche actuellement aucune publicité et ne contient aucun traceur ni service tiers ; tout changement sur ce point fera l'objet d'une mise à jour préalable de ces conditions.",
+      "cookiesTitle": "Cookies et stockage sur ton appareil",
+      "cookies": "Seuls des cookies strictement nécessaires sont utilisés : celui qui maintient ta connexion, pendant 30 jours au plus, et ceux qui sécurisent une connexion en cours, pendant 15 minutes au plus. Ton navigateur conserve aussi sur ton appareil le fait que tu as vu l'introduction et, le cas échéant, ton choix de couper les sons.",
+      "whereTitle": "Hébergement et durée de conservation",
+      "where": "Les données sont hébergées sur un serveur loué à OVHcloud (OVH SAS, France) et conservées tant que ton compte existe.",
       "rightsTitle": "Tes droits",
-      "rights": "Tu peux accéder à tes données, les corriger, les recevoir dans un format réutilisable, demander leur effacement, en limiter l'usage ou t'y opposer : écris à l'adresse de contact. Tu peux aussi introduire une plainte auprès de l'Autorité de protection des données :"
+      "rights": "Tu disposes d'un droit d'accès, de rectification, de portabilité, d'effacement, de limitation et d'opposition, que tu peux exercer en écrivant à l'adresse de contact. Tu peux également introduire une réclamation auprès de l'Autorité de protection des données :"
     },
     "changes": {
       "title": "8. Modifications",
-      "text": "Nous pouvons modifier ces conditions. La date en haut de cette page indique la dernière version ; en cas de changement important, nous te prévenons dans l'application."
+      "text": "Ces conditions peuvent être modifiées. La date indiquée en haut de cette page correspond à la dernière version ; en cas de changement important, tu en es informé dans l'application."
     },
     "law": {
       "title": "9. Droit applicable",
-      "text": "Ces conditions sont soumises au droit belge. En cas de litige, et à défaut d'accord amiable, les tribunaux de Bruxelles sont compétents, sans préjudice des règles qui te permettent, en tant que consommateur, de saisir les tribunaux de ton domicile."
+      "text": "Ces conditions sont régies par le droit belge. En cas de litige, et à défaut d'accord amiable, les tribunaux de Bruxelles sont compétents, sans préjudice des règles qui te permettent, en tant que consommateur, de saisir les tribunaux de ton domicile."
     }
   }
 }

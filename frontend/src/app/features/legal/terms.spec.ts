@@ -40,11 +40,11 @@ describe('Terms', () => {
     await open('/terms');
 
     expect(textOf(host, 'h1')).toBe("Conditions d'utilisation et confidentialité");
-    expect(textOf(host, 'header .subtitle')).toBe('Dernière mise à jour : 8 novembre 2026');
+    expect(textOf(host, 'header .subtitle')).toBe('Dernière mise à jour : 15 novembre 2026');
     expect([...host.querySelectorAll('h2')].map((title) => title.textContent?.trim())).toEqual([
       '1. Erudi',
       '2. Ton compte',
-      "3. Tes paquets et l'Explorer",
+      "3. Tes paquets et leur publication",
       '4. Règles de conduite',
       '5. Le service',
       '6. Supprimer ton compte',
@@ -74,8 +74,12 @@ describe('Terms', () => {
     expect(text).toContain('pendant 15 minutes au plus');
     expect(text).toContain('ton compte Synapse');
     expect(text).toContain('Aucun mot de passe');
-    expect(text).toContain('14 jours au plus');
+    expect(text).toContain('conservées 14 jours');
     expect(text).toContain('aucun traceur ni service tiers');
+    expect(text).toContain('ton choix de couper les sons');
+    // Promises the owner chose not to make.
+    expect(text).not.toContain('nous te préviendrons');
+    expect(text).not.toContain("il n'y a pas de publicité");
     expect(text).toContain('OVHcloud');
   });
 
