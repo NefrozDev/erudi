@@ -133,6 +133,7 @@
 }
 
 .flashcard__text {
+  font-family: var(--font-card);
   margin: 0;
   font-size: clamp(1.6rem, 7vw, 2.4rem);
   font-weight: 700;

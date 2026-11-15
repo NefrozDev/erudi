@@ -78,6 +78,7 @@
 
 // Long fronts stay on two lines in the list; the whole text shows when studying.
 .card-row__front {
+  font-family: var(--font-card);
   display: -webkit-box;
   overflow: hidden;
   font-size: 1.1rem;

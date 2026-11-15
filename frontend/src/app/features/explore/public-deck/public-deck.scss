@@ -32,6 +32,7 @@
 
 // A long card stays a preview.
 .public-deck__preview {
+  font-family: var(--font-card);
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;

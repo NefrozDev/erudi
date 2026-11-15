@@ -1,3 +1,8 @@
 .card-editor__box {
   font-size: 0.95rem;
 }
+
+// The card text in the font of the study screen.
+.card-editor__side {
+  font-family: var(--font-card);
+}

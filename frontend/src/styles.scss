@@ -25,6 +25,9 @@
   --radius-control: 14px;
   // Served with the app (angular.json), so no visitor's address reaches a font provider.
   --font-family: 'Outfit Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  // Card text: letters stay distinct (no "fl" ligature), easier for dyslexic learners.
+  --font-card:
+    'Atkinson Hyperlegible Next Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --page-max-width: 440px;
   --page-gutter: 20px;
 
@@ -323,4 +326,12 @@ textarea.field__input {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+// A one-line text that wraps instead of scrolling out of sight (deck names): grows with its
+// text where `field-sizing` is supported, two lines otherwise.
+textarea.field__input--line {
+  min-height: 0;
+  field-sizing: content;
+  resize: none;
 }
