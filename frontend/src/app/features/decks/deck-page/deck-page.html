@@ -112,6 +112,22 @@
         }
       </ul>
     }
+
+    <app-delete-confirmation
+      class="deck-page__delete"
+      [label]="'decks.form.delete' | transloco"
+      [question]="
+        (deck.value().published ? 'decks.form.deletePublishedConfirm' : 'decks.form.deleteConfirm')
+          | transloco: { name: deck.value().name }
+      "
+      [confirmLabel]="'decks.form.deleteConfirmButton' | transloco"
+      [keepLabel]="'decks.form.keep' | transloco"
+      [busy]="deleting()"
+      (confirmed)="delete()"
+    />
+    @if (deleteFailed()) {
+      <p class="alert" role="alert">{{ 'common.saveError' | transloco }}</p>
+    }
   } @else if (failed()) {
     <div class="alert alert--retry" role="alert">
       <p>{{ 'common.loadError' | transloco }}</p>

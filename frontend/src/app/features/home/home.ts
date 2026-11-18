@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -7,6 +17,8 @@ import { Deck, DecksApi } from '../../core/decks/decks-api';
 import { StudyApi, StudySummary } from '../../core/study/study-api';
 import { countKey } from '../../shared/i18n/count-key';
 import { BoxMeter } from '../../shared/ui/box-meter/box-meter';
+import { DeleteConfirmation } from '../../shared/ui/delete-confirmation/delete-confirmation';
+import { deleteDeck } from '../decks/deck-deletion';
 import { Plic } from '../../shared/ui/plic/plic';
 
 type DeckTone = 'violet' | 'yellow' | 'mint' | 'coral';
@@ -33,12 +45,16 @@ interface DeckRow {
   statusKey: string;
   dueCount: number;
   level: number;
+  published: boolean;
 }
 
-/** Screen 7: the daily goal, which starts the quiz, and the learner's decks. */
+/**
+ * Screen 7: the daily goal, which starts the quiz, and the learner's decks. "Gérer" shows a
+ * delete button under each deck.
+ */
 @Component({
   selector: 'app-home',
-  imports: [BoxMeter, Plic, RouterLink, TranslocoPipe],
+  imports: [BoxMeter, DeleteConfirmation, Plic, RouterLink, TranslocoPipe],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +63,7 @@ export class Home {
   private readonly auth = inject(AuthStore);
   private readonly decksApi = inject(DecksApi);
   private readonly studyApi = inject(StudyApi);
+  private readonly injector = inject(Injector);
 
   protected readonly username = computed(() => this.auth.user()?.username ?? '');
   protected readonly decks = rxResource({ stream: () => this.decksApi.list() });
@@ -58,6 +75,40 @@ export class Home {
   protected readonly rows = computed(() =>
     this.decks.hasValue() ? this.decks.value().map(toRow) : [],
   );
+
+  protected readonly managing = signal(false);
+  /** The deck being deleted, then the one whose deletion failed. */
+  protected readonly deletingId = signal<string | null>(null);
+  protected readonly failedId = signal<string | null>(null);
+  /** Read out once a deck is gone: its row disappears silently otherwise. */
+  protected readonly deletedName = signal<string | null>(null);
+
+  private readonly manageButton = viewChild<ElementRef<HTMLButtonElement>>('manageButton');
+
+  protected toggleManaging(): void {
+    this.managing.update((managing) => !managing);
+    this.failedId.set(null);
+    this.deletedName.set(null);
+  }
+
+  protected async delete(deck: DeckRow): Promise<void> {
+    this.failedId.set(null);
+    this.deletedName.set(null);
+    this.deletingId.set(deck.id);
+    const deleted = await deleteDeck(this.decksApi, deck.id);
+    this.deletingId.set(null);
+    if (!deleted) {
+      this.failedId.set(deck.id);
+      return;
+    }
+
+    this.deletedName.set(deck.name);
+    // Its cards leave the goal and the boxes too.
+    this.decks.reload();
+    this.summary.reload();
+    // The pressed button is gone with its row: the keyboard carries on from "Terminé".
+    afterNextRender(() => this.manageButton()?.nativeElement.focus(), { injector: this.injector });
+  }
 }
 
 /** Hidden until there are cards: the deck list explains how to start. */
@@ -88,6 +139,7 @@ function toRow(deck: Deck): DeckRow {
     statusKey: statusKey(deck),
     dueCount: deck.dueCount,
     level: deck.level,
+    published: deck.published,
   };
 }
 

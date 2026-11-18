@@ -106,6 +106,17 @@
   gap: 14px;
 }
 
+.home__decks-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+
+  .text-link {
+    min-height: 24px;
+  }
+}
+
 .home__section-title {
   margin-top: 8px;
   font-size: 1.25rem;
@@ -119,6 +130,16 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.home__deck-list > li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deck-row__delete {
+  padding: 0 16px;
 }
 
 .deck-row {

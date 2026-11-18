@@ -31,6 +31,14 @@ export const screens: Screen[] = [
   { name: 'accept terms', url: '/accept-terms', mock: { session: 'terms-pending' } },
   { name: 'home', url: '/' },
   { name: 'home without decks', url: '/', mock: { noDecks: true } },
+  {
+    name: 'home, managing decks',
+    url: '/',
+    act: async (page) => {
+      await page.getByRole('button', { name: 'Gérer' }).click();
+      await page.getByRole('button', { name: 'Supprimer « Code de la route »' }).click();
+    },
+  },
   { name: 'explore', url: '/explore' },
   { name: 'explore without results', url: '/explore?q=zzz', mock: { noResults: true } },
   { name: 'progress', url: '/progress' },
@@ -46,6 +54,13 @@ export const screens: Screen[] = [
   },
   { name: 'deck', url: '/decks/d1' },
   { name: 'empty deck', url: '/decks/d1', mock: { emptyDeck: true } },
+  {
+    name: 'deck, deleting',
+    url: '/decks/d1',
+    act: async (page) => {
+      await page.getByRole('button', { name: 'Supprimer le paquet' }).click();
+    },
+  },
   { name: 'deck not found', url: '/decks/nope' },
   { name: 'edit deck', url: '/decks/d1/edit' },
   {

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { buttonNamed, linkNamed, settle, textOf } from '../../../../testing/dom';
 import { CardSummary, Deck, DecksApi } from '../../../core/decks/decks-api';
@@ -22,14 +22,21 @@ describe('DeckPage', () => {
   ];
   const get = vi.fn<(deckId: string) => Observable<Deck>>();
   const listCards = vi.fn<(deckId: string) => Observable<CardSummary[]>>();
+  const deleteDeck = vi.fn<(deckId: string) => Observable<void>>();
   let fixture: ComponentFixture<DeckPage>;
+  let navigateByUrl: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     get.mockReset().mockReturnValue(of(deck));
     listCards.mockReset().mockReturnValue(of(cards));
+    deleteDeck.mockReset().mockReturnValue(of(undefined));
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: DecksApi, useValue: { get, listCards } }],
+      providers: [
+        provideRouter([]),
+        { provide: DecksApi, useValue: { get, listCards, delete: deleteDeck } },
+      ],
     });
+    navigateByUrl = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
   });
 
   async function render(deckId = 'd1'): Promise<HTMLElement> {
@@ -208,5 +215,75 @@ describe('DeckPage', () => {
     expect(get).toHaveBeenCalledTimes(2);
     expect(listCards).toHaveBeenCalledTimes(2);
     expect(cardLinks(host)).toHaveLength(3);
+  });
+
+  describe('deletion', () => {
+    async function confirmDeletion(host: HTMLElement): Promise<void> {
+      buttonNamed(host, 'Supprimer le paquet').click();
+      await settle(fixture);
+      buttonNamed(host, 'Supprimer définitivement').click();
+      await settle(fixture);
+    }
+
+    it('should ask before deleting, and delete nothing when the learner keeps the deck', async () => {
+      const host = await render();
+
+      buttonNamed(host, 'Supprimer le paquet').click();
+      await settle(fixture);
+      expect(textOf(host, 'app-delete-confirmation [role="alert"]')).toBe(
+        "Supprimer « Anglais » et ses cartes ? C'est définitif.",
+      );
+      buttonNamed(host, 'Garder le paquet').click();
+      await settle(fixture);
+
+      expect(deleteDeck).not.toHaveBeenCalled();
+      expect(navigateByUrl).not.toHaveBeenCalled();
+    });
+
+    it('should warn that a published deck leaves the Explorer too', async () => {
+      get.mockReturnValue(of({ ...deck, published: true }));
+      const host = await render();
+
+      buttonNamed(host, 'Supprimer le paquet').click();
+      await settle(fixture);
+
+      expect(textOf(host, 'app-delete-confirmation [role="alert"]')).toContain(
+        "Il sera aussi retiré de l'Explorer.",
+      );
+    });
+
+    it('should delete the deck once confirmed, then go home in place of it', async () => {
+      const host = await render();
+
+      await confirmDeletion(host);
+
+      expect(deleteDeck).toHaveBeenCalledExactlyOnceWith('d1');
+      expect(navigateByUrl).toHaveBeenCalledExactlyOnceWith('/', { replaceUrl: true });
+    });
+
+    it('should go home when another device already deleted the deck', async () => {
+      deleteDeck.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+      const host = await render();
+
+      await confirmDeletion(host);
+
+      expect(navigateByUrl).toHaveBeenCalledExactlyOnceWith('/', { replaceUrl: true });
+    });
+
+    it('should stay and say so when the deletion fails, letting the learner try again', async () => {
+      deleteDeck.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 500 })));
+      const host = await render();
+
+      await confirmDeletion(host);
+
+      expect(navigateByUrl).not.toHaveBeenCalled();
+      expect(textOf(host, 'p.alert')).toBe("L'enregistrement a échoué. Réessaie dans un instant.");
+      expect(buttonNamed(host, 'Supprimer définitivement').disabled).toBe(false);
+
+      buttonNamed(host, 'Supprimer définitivement').click();
+      await settle(fixture);
+      expect(deleteDeck).toHaveBeenCalledTimes(2);
+      expect(navigateByUrl).toHaveBeenCalledExactlyOnceWith('/', { replaceUrl: true });
+    });
   });
 });

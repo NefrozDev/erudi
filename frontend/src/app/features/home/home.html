@@ -40,9 +40,19 @@
       </section>
     } @else {
       <section class="home__decks" aria-labelledby="home-decks-title">
-        <h2 class="home__section-title" id="home-decks-title">
-          {{ 'home.decksTitle' | transloco }}
-        </h2>
+        <div class="home__decks-head">
+          <h2 class="home__section-title" id="home-decks-title">
+            {{ 'home.decksTitle' | transloco }}
+          </h2>
+          <button type="button" class="text-link" #manageButton (click)="toggleManaging()">
+            {{ (managing() ? 'home.doneManaging' : 'home.manage') | transloco }}
+          </button>
+        </div>
+        <p class="visually-hidden" role="status">
+          @if (deletedName(); as name) {
+            {{ 'home.deleted' | transloco: { name } }}
+          }
+        </p>
         <ul class="home__deck-list">
           @for (deck of rows(); track deck.id) {
             <li>
@@ -61,6 +71,25 @@
                   {{ 'home.mastery' | transloco: { level: deck.level } }}
                 </span>
               </a>
+              @if (managing()) {
+                <app-delete-confirmation
+                  class="deck-row__delete"
+                  [label]="'home.deleteDeck' | transloco: { name: deck.name }"
+                  [question]="
+                    (deck.published
+                      ? 'decks.form.deletePublishedConfirm'
+                      : 'decks.form.deleteConfirm'
+                    ) | transloco: { name: deck.name }
+                  "
+                  [confirmLabel]="'decks.form.deleteConfirmButton' | transloco"
+                  [keepLabel]="'decks.form.keep' | transloco"
+                  [busy]="deletingId() === deck.id"
+                  (confirmed)="delete(deck)"
+                />
+                @if (failedId() === deck.id) {
+                  <p class="alert" role="alert">{{ 'common.saveError' | transloco }}</p>
+                }
+              }
             </li>
           }
         </ul>

@@ -19,6 +19,7 @@ describe('Home', () => {
   });
   const list = vi.fn<() => Observable<Deck[]>>();
   const summary = vi.fn<() => Observable<StudySummary>>();
+  const deleteDeck = vi.fn<(deckId: string) => Observable<void>>();
   const decks: Deck[] = [
     { id: 'd1', name: 'anglais', cardCount: 120, dueCount: 12, level: 3, published: false, masteredCount: 0 },
     { id: 'd2', name: 'Permis', cardCount: 8, dueCount: 1, level: 2, published: false, masteredCount: 0 },
@@ -30,11 +31,12 @@ describe('Home', () => {
   beforeEach(() => {
     list.mockReset().mockReturnValue(of(decks));
     summary.mockReset().mockReturnValue(of(summaryOf(12, 12)));
+    deleteDeck.mockReset().mockReturnValue(of(undefined));
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         { provide: AuthStore, useValue: { user } },
-        { provide: DecksApi, useValue: { list } },
+        { provide: DecksApi, useValue: { list, delete: deleteDeck } },
         { provide: StudyApi, useValue: { summary } },
       ],
     });
@@ -205,6 +207,88 @@ describe('Home', () => {
       expect(host.querySelector('.goal')).toBeNull();
       expect(host.querySelector('[role="alert"]')).toBeNull();
       expect(rows(host)).toHaveLength(4);
+    });
+  });
+
+  describe('managing decks', () => {
+    async function manage(): Promise<HTMLElement> {
+      const host = await render();
+      buttonNamed(host, 'Gérer').click();
+      await settle(fixture);
+      return host;
+    }
+
+    async function confirmDeletion(host: HTMLElement, name: string): Promise<void> {
+      buttonNamed(host, `Supprimer « ${name} »`).click();
+      await settle(fixture);
+      buttonNamed(host, 'Supprimer définitivement').click();
+      await settle(fixture);
+    }
+
+    it('should hide the delete buttons until the learner manages the decks', async () => {
+      const host = await render();
+
+      expect(host.querySelector('app-delete-confirmation')).toBeNull();
+
+      buttonNamed(host, 'Gérer').click();
+      await settle(fixture);
+      expect(host.querySelectorAll('app-delete-confirmation')).toHaveLength(4);
+      expect(buttonNamed(host, 'Supprimer « Permis »')).toBeTruthy();
+
+      buttonNamed(host, 'Terminé').click();
+      await settle(fixture);
+      expect(host.querySelector('app-delete-confirmation')).toBeNull();
+    });
+
+    it('should ask before deleting and keep the deck on second thought', async () => {
+      const host = await manage();
+
+      buttonNamed(host, 'Supprimer « Permis »').click();
+      await settle(fixture);
+      expect(textOf(host, 'app-delete-confirmation [role="alert"]')).toBe(
+        "Supprimer « Permis » et ses cartes ? C'est définitif.",
+      );
+      buttonNamed(host, 'Garder le paquet').click();
+      await settle(fixture);
+
+      expect(deleteDeck).not.toHaveBeenCalled();
+    });
+
+    it('should delete the deck, then refresh the decks and the goal and say so', async () => {
+      const host = await manage();
+      list.mockReturnValue(of(decks.filter((deck) => deck.id !== 'd2')));
+
+      await confirmDeletion(host, 'Permis');
+
+      expect(deleteDeck).toHaveBeenCalledExactlyOnceWith('d2');
+      expect(list).toHaveBeenCalledTimes(2);
+      expect(summary).toHaveBeenCalledTimes(2);
+      expect(rows(host).map((row) => textOf(row, '.deck-row__name'))).not.toContain('Permis');
+      expect(textOf(host, '[role="status"]')).toBe('« Permis » a été supprimé.');
+      expect(document.activeElement).toBe(buttonNamed(host, 'Terminé'));
+    });
+
+    it('should treat a deck deleted on another device as deleted', async () => {
+      deleteDeck.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+      const host = await manage();
+
+      await confirmDeletion(host, 'Permis');
+
+      expect(list).toHaveBeenCalledTimes(2);
+      expect(host.querySelector('p.alert')).toBeNull();
+    });
+
+    it('should say when the deletion fails and keep the list as it was', async () => {
+      deleteDeck.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+      const host = await manage();
+
+      await confirmDeletion(host, 'Permis');
+
+      expect(textOf(host, 'p.alert')).toBe("L'enregistrement a échoué. Réessaie dans un instant.");
+      expect(list).toHaveBeenCalledTimes(1);
+      expect(summary).toHaveBeenCalledTimes(1);
+      expect(rows(host)).toHaveLength(4);
+      expect(textOf(host, '[role="status"]')).toBe('');
     });
   });
 });

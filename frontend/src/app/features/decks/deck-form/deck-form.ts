@@ -18,6 +18,7 @@ import { visibleError } from '../../../shared/forms/field-errors';
 import { DeleteConfirmation } from '../../../shared/ui/delete-confirmation/delete-confirmation';
 import { SubmitOnEnter } from '../../../shared/forms/submit-on-enter';
 import { Plic } from '../../../shared/ui/plic/plic';
+import { deleteDeck } from '../deck-deletion';
 import { DECK_NAME_MAX_LENGTH, NOT_BLANK } from '../deck-rules';
 
 /** Creates a deck (`decks/new`), or renames and deletes one (`decks/:deckId/edit`). */
@@ -82,15 +83,10 @@ export class DeckForm {
 
     this.formError.set(null);
     this.deleting.set(true);
-    try {
-      await firstValueFrom(this.api.delete(deckId));
-    } catch (error) {
-      // Already gone (deleted from another device): the outcome is the same.
-      if (httpStatus(error) !== 404) {
-        this.deleting.set(false);
-        this.formError.set('common.saveError');
-        return;
-      }
+    if (!(await deleteDeck(this.api, deckId))) {
+      this.deleting.set(false);
+      this.formError.set('common.saveError');
+      return;
     }
 
     await this.router.navigateByUrl('/', { replaceUrl: true });

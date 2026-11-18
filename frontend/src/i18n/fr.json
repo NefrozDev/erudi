@@ -81,6 +81,10 @@
     "title": "Envie de réviser ?",
     "decksTitle": "Mes paquets",
     "newDeck": "+ Nouveau paquet",
+    "manage": "Gérer",
+    "doneManaging": "Terminé",
+    "deleteDeck": "Supprimer « {{name}} »",
+    "deleted": "« {{name}} » a été supprimé.",
     "deckStatus": {
       "empty": "Aucune carte",
       "upToDate": "Rien à réviser aujourd'hui",
