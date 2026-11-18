@@ -61,10 +61,20 @@
           class="button"
           routerLink="/study/quiz"
           [queryParams]="quizParams()"
-          aria-describedby="deck-quiz-hint"
+          [attr.aria-describedby]="
+            quizDuration() ? 'deck-quiz-estimate deck-quiz-hint' : 'deck-quiz-hint'
+          "
         >
           {{ 'decks.quiz' | transloco: { count: deck.value().dueCount } }}
         </a>
+        @if (quizDuration(); as duration) {
+          <p class="deck-page__estimate" id="deck-quiz-estimate">
+            {{
+              'decks.estimate'
+                | transloco: { duration: (duration.key | transloco: duration.params) }
+            }}
+          </p>
+        }
         <p class="deck-page__hint" id="deck-quiz-hint">{{ 'decks.quizHint' | transloco }}</p>
       } @else if (deck.value().cardCount > 0) {
         <p class="deck-page__up-to-date">{{ 'decks.upToDate' | transloco }}</p>
@@ -118,6 +128,79 @@
       >
         {{ 'decks.publish' | transloco }}
       </a>
+    }
+
+    @if (deck.value().cardCount > 0 && stats.hasValue()) {
+      <section class="deck-stats" aria-labelledby="deck-stats-title">
+        <h2 class="deck-stats__title" id="deck-stats-title">
+          {{ 'decks.stats.title' | transloco }}
+        </h2>
+        <dl class="deck-stats__tiles">
+          <div class="deck-stats__tile">
+            <dt>{{ 'progress.tiles.mastered' | transloco }}</dt>
+            <dd>
+              {{
+                'progress.tiles.outOf'
+                  | transloco
+                    : {
+                        count: numberFormat.format(deck.value().masteredCount),
+                        total: numberFormat.format(deck.value().cardCount),
+                      }
+              }}
+            </dd>
+          </div>
+          <div class="deck-stats__tile">
+            <dt>{{ 'progress.tiles.successRate' | transloco }}</dt>
+            <dd>
+              @let rate = stats.value().successRate;
+              @if (rate === null) {
+                {{ 'progress.tiles.noAnswer' | transloco }}
+              } @else {
+                {{ 'progress.tiles.percent' | transloco: { rate } }}
+              }
+            </dd>
+          </div>
+          <div class="deck-stats__tile">
+            <dt>{{ 'progress.tiles.answers' | transloco }}</dt>
+            <dd>{{ numberFormat.format(stats.value().totalReviews) }}</dd>
+          </div>
+          <div class="deck-stats__tile">
+            <dt>{{ 'decks.stats.lastStudied' | transloco }}</dt>
+            <dd>{{ lastStudied() ?? ('decks.stats.never' | transloco) }}</dd>
+          </div>
+        </dl>
+
+        <ol class="deck-stats__boxes">
+          @for (box of boxRows(); track box.number) {
+            <li class="deck-stats__box">
+              <span class="deck-stats__box-name">{{
+                'common.box' | transloco: { box: box.number }
+              }}</span>
+              <span class="deck-stats__bar" aria-hidden="true">
+                <span class="deck-stats__bar-fill" [style.width.%]="box.percent"></span>
+              </span>
+              <span class="deck-stats__count">
+                {{ box.count }}
+                <span class="visually-hidden">{{ box.countKey | transloco }}</span>
+              </span>
+              @if (box.count > 0) {
+                <a
+                  class="text-link deck-stats__practice"
+                  routerLink="/study/practice"
+                  [queryParams]="{ deckId: deckId(), box: box.number, count: 'all' }"
+                >
+                  {{ 'progress.practiceBox' | transloco }}
+                  <span class="visually-hidden">
+                    {{ 'progress.practiceBoxName' | transloco: { box: box.number } }}
+                  </span>
+                </a>
+              } @else {
+                <span aria-hidden="true"></span>
+              }
+            </li>
+          }
+        </ol>
+      </section>
     }
 
     @if (cards.value().length === 0) {

@@ -143,3 +143,92 @@
 .deck-page__delete {
   margin-top: 8px;
 }
+
+.deck-page__estimate {
+  margin-top: -4px;
+  font-weight: 700;
+}
+
+.deck-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.deck-stats__title {
+  font-size: 1.2rem;
+}
+
+.deck-stats__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+// The figure reads first; the label stays first in the markup.
+.deck-stats__tile {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+
+  dt {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+}
+
+.deck-stats__boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Name, bar, count and practice link on one line; the bar gives way on narrow screens.
+.deck-stats__box {
+  display: grid;
+  grid-template-columns: auto minmax(40px, 1fr) 3ch auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.deck-stats__box-name {
+  font-weight: 700;
+}
+
+.deck-stats__bar {
+  display: block;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--color-violet-soft);
+}
+
+.deck-stats__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-violet);
+}
+
+.deck-stats__count {
+  font-weight: 700;
+  text-align: right;
+}
+
+.deck-stats__practice {
+  min-height: 24px;
+}

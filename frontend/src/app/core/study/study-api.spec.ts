@@ -27,12 +27,36 @@ describe('StudyApi', () => {
   afterEach(() => controller.verify());
 
   it('should get the summary', async () => {
-    const summary = { reviewedToday: 3, dueCount: 9, boxes: [4, 3, 2, 1, 0] };
+    const summary = {
+      reviewedToday: 3,
+      dueCount: 9,
+      boxes: [4, 3, 2, 1, 0],
+      secondsPerCard: 8,
+      currentStreak: 2,
+    };
     const result = firstValueFrom(api.summary());
 
     controller.expectOne({ method: 'GET', url: '/api/study/summary' }).flush(summary);
 
     expect(await result).toEqual(summary);
+  });
+
+  it('should get the learner’s statistics', async () => {
+    const result = firstValueFrom(api.stats());
+
+    controller.expectOne({ method: 'GET', url: '/api/study/stats' }).flush({ totalReviews: 3 });
+
+    expect(await result).toEqual({ totalReviews: 3 });
+  });
+
+  it('should get a deck’s statistics, encoding its id', async () => {
+    const result = firstValueFrom(api.deckStats('d1/../x'));
+
+    controller
+      .expectOne({ method: 'GET', url: '/api/study/decks/d1%2F..%2Fx/stats' })
+      .flush({ totalReviews: 1 });
+
+    expect(await result).toEqual({ totalReviews: 1 });
   });
 
   it.each(['quiz', 'practice'] as const)('should get the %s cards of every deck', async (mode) => {

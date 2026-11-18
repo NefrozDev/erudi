@@ -64,6 +64,30 @@
   font-weight: 700;
 }
 
+.goal__streak {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px 4px 8px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.15);
+  color: var(--color-surface);
+  font-weight: 700;
+  text-decoration: none;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--color-yellow);
+  }
+
+  &:hover {
+    background: rgb(255 255 255 / 0.25);
+  }
+}
+
 .goal__practice {
   align-self: center;
   color: var(--color-surface);

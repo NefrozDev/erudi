@@ -125,9 +125,67 @@ export async function mockApi(page: Page, options: MockOptions = {}): Promise<vo
     if (pathname === '/api/study/summary') {
       return json(
         options.noDecks
-          ? { reviewedToday: 0, dueCount: 0, boxes: [0, 0, 0, 0, 0] }
-          : { reviewedToday: 4, dueCount: 2, boxes: [1, 1, 1, 0, 2] },
+          ? {
+              reviewedToday: 0,
+              dueCount: 0,
+              boxes: [0, 0, 0, 0, 0],
+              secondsPerCard: 10,
+              currentStreak: 0,
+            }
+          : {
+              reviewedToday: 4,
+              dueCount: 2,
+              boxes: [1, 1, 1, 0, 2],
+              secondsPerCard: 9,
+              currentStreak: 3,
+            },
       );
+    }
+    if (pathname === '/api/study/stats') {
+      const lastDays = Array.from({ length: 14 }, (_, i) => ({
+        day: `2026-11-${String(5 + i).padStart(2, '0')}`,
+        reviews: options.noDecks ? 0 : (i * 7) % 12,
+        known: options.noDecks ? 0 : (i * 5) % 7,
+      }));
+      return json(
+        options.noDecks
+          ? {
+              currentStreak: 0,
+              bestStreak: 0,
+              studiedToday: false,
+              studyDays: 0,
+              totalReviews: 0,
+              successRate: null,
+              cardCount: 0,
+              masteredCount: 0,
+              lastDays,
+              secondsPerCard: 10,
+            }
+          : {
+              currentStreak: 3,
+              bestStreak: 8,
+              studiedToday: true,
+              studyDays: 21,
+              totalReviews: 2300,
+              successRate: 76,
+              cardCount: 5,
+              masteredCount: 2,
+              lastDays,
+              secondsPerCard: 9,
+            },
+      );
+    }
+    const deckStats = /^\/api\/study\/decks\/([^/]+)\/stats$/.exec(pathname);
+    if (deckStats) {
+      const found = myDecks.find((d) => d.id === decodeURIComponent(deckStats[1]));
+      if (!found) return notFound();
+      return json({
+        boxes: [1, 1, 1, 0, 0],
+        totalReviews: 42,
+        successRate: 64,
+        lastStudiedOn: '2026-11-15',
+        secondsPerCard: 9,
+      });
     }
     if (pathname === '/api/study/quiz' || pathname === '/api/study/practice') {
       return json(

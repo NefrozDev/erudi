@@ -48,8 +48,13 @@ describe('Home', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  function summaryOf(reviewedToday: number, dueCount: number, cards = 132): StudySummary {
-    return { reviewedToday, dueCount, boxes: [cards, 0, 0, 0, 0] };
+  function summaryOf(
+    reviewedToday: number,
+    dueCount: number,
+    cards = 132,
+    currentStreak = 0,
+  ): StudySummary {
+    return { reviewedToday, dueCount, boxes: [cards, 0, 0, 0, 0], secondsPerCard: 10, currentStreak };
   }
 
   function rows(host: HTMLElement): HTMLAnchorElement[] {
@@ -171,6 +176,32 @@ describe('Home', () => {
       );
     });
 
+    it('should estimate the time the due cards still take', async () => {
+      const host = await render();
+
+      // 12 cards at 10 seconds each.
+      expect([...host.querySelectorAll('.goal__progress')].map((p) => p.textContent?.trim())).toEqual([
+        '12 sur 24 cartes révisées',
+        'Encore environ 2 minutes',
+      ]);
+    });
+
+    it('should show the streak, leading to the progress screen', async () => {
+      summary.mockReturnValue(of(summaryOf(12, 12, 132, 4)));
+
+      const host = await render();
+
+      const streak = linkNamed(host, "4 jours d'affilée");
+      expect(streak.getAttribute('href')).toBe('/progress');
+      expect(streak.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should leave out a streak of zero', async () => {
+      const host = await render();
+
+      expect(host.querySelector('.goal__streak')).toBeNull();
+    });
+
     it('should start the session when nothing is answered yet', async () => {
       summary.mockReturnValue(of(summaryOf(0, 1)));
 
@@ -186,6 +217,7 @@ describe('Home', () => {
       const host = await render();
 
       expect(textOf(host, '.goal__rest')).toBe("Tout est révisé pour aujourd'hui. Bravo !");
+      expect(host.textContent).not.toContain('Encore');
       expect(host.querySelector('a[href="/study/quiz"]')).toBeNull();
       expect(host.querySelector('a[href="/study/practice"]')).not.toBeNull();
     });

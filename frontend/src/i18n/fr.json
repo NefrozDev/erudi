@@ -74,7 +74,15 @@
     "required": "Ce champ est obligatoire.",
     "loadError": "Impossible de charger cette page. Vérifie ta connexion.",
     "saveError": "L'enregistrement a échoué. Réessaie dans un instant.",
-    "box": "Boîte {{box}}"
+    "box": "Boîte {{box}}",
+    "duration": {
+      "underAMinute": "moins d'une minute",
+      "minutes": {
+        "one": "environ {{minutes}} minute",
+        "other": "environ {{minutes}} minutes"
+      },
+      "hours": "environ {{hours}} h {{minutes}}"
+    }
   },
   "home": {
     "greeting": "Bonjour {{username}}",
@@ -108,7 +116,8 @@
       "continue": "Continuer la session",
       "allDone": "Tout est révisé pour aujourd'hui. Bravo !",
       "nothingDue": "Rien à réviser aujourd'hui. Reviens demain !",
-      "practice": "S'entraîner sans changer les boîtes"
+      "practice": "S'entraîner sans changer les boîtes",
+      "estimate": "Encore {{duration}}"
     }
   },
   "decks": {
@@ -153,6 +162,12 @@
       "mixed": "Au hasard"
     },
     "upToDate": "Rien à réviser aujourd'hui dans ce paquet.",
+    "estimate": "Durée estimée : {{duration}}.",
+    "stats": {
+      "title": "Progression du paquet",
+      "lastStudied": "Dernière révision",
+      "never": "Jamais"
+    },
     "published": "Publié dans l'Explorer",
     "viewPublic": "Voir",
     "editPublication": "Modifier la publication",
@@ -250,6 +265,82 @@
   },
   "progress": {
     "title": "Progression",
+    "streak": {
+      "days": {
+        "one": "{{count}} jour d'affilée",
+        "other": "{{count}} jours d'affilée"
+      },
+      "start": "Réponds à une révision aujourd'hui pour lancer ta série.",
+      "keep": "Révise aujourd'hui pour garder ta série !",
+      "done": "Ta série continue : bravo pour aujourd'hui !",
+      "best": {
+        "one": "Record : {{count}} jour",
+        "other": "Record : {{count}} jours"
+      }
+    },
+    "tiles": {
+      "answers": "Réponses en révision",
+      "successRate": "Réussite sur 30 jours",
+      "noAnswer": "Pas encore",
+      "percent": "{{rate}} %",
+      "mastered": "Cartes maîtrisées",
+      "outOf": "{{count}} sur {{total}}",
+      "studyDays": "Jours de révision"
+    },
+    "activity": {
+      "title": "Tes 14 derniers jours",
+      "week": {
+        "one": "{{count}} réponse ces 7 derniers jours",
+        "other": "{{count}} réponses ces 7 derniers jours"
+      },
+      "day": {
+        "one": "{{count}} réponse, dont {{known}} bonne",
+        "other": "{{count}} réponses, dont {{known}} bonnes"
+      },
+      "known": "Bonnes réponses",
+      "again": "À revoir"
+    },
+    "boxesTitle": "Tes boîtes",
+    "practiceBox": "S'entraîner",
+    "practiceBoxName": "sur la boîte {{box}}",
+    "badges": {
+      "title": "Badges",
+      "count": "{{earned}} sur {{total}} obtenus",
+      "earned": "Obtenu",
+      "progress": "{{current}} / {{goal}}",
+      "firstAnswer": {
+        "title": "Premier pas",
+        "text": "Répondre à une première révision"
+      },
+      "streak3": {
+        "title": "Sur la lancée",
+        "text": "Réviser 3 jours d'affilée"
+      },
+      "streak7": {
+        "title": "Une semaine pile",
+        "text": "Réviser 7 jours d'affilée"
+      },
+      "streak30": {
+        "title": "Inarrêtable",
+        "text": "Réviser 30 jours d'affilée"
+      },
+      "answers100": {
+        "title": "Centurion",
+        "text": "Donner 100 réponses en révision"
+      },
+      "answers1000": {
+        "title": "Mille bravos",
+        "text": "Donner 1 000 réponses en révision"
+      },
+      "days10": {
+        "title": "Habitué",
+        "text": "Réviser pendant 10 jours"
+      },
+      "days50": {
+        "title": "Fidèle",
+        "text": "Réviser pendant 50 jours"
+      }
+    },
     "subtitle": {
       "one": "{{count}} carte répartie dans 5 boîtes",
       "other": "{{count}} cartes réparties dans 5 boîtes"
@@ -264,11 +355,6 @@
     "cards": {
       "one": "carte",
       "other": "cartes"
-    },
-    "decks": {
-      "title": "Par paquet",
-      "text": "Une carte est maîtrisée en boîte 4 ou 5.",
-      "mastered": "{{mastered}} / {{total}} maîtrisées"
     }
   },
   "explore": {

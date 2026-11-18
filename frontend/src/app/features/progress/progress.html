@@ -1,64 +1,136 @@
 <main class="page progress">
   <h1 class="title">{{ 'progress.title' | transloco }}</h1>
 
-  @if (summary.hasValue()) {
-    <p class="subtitle">{{ subtitleKey() | transloco: { count: total() } }}</p>
-
-    <ol class="progress__boxes">
-      @for (box of boxes(); track box.number) {
-        <li class="progress__box">
-          <span class="progress__box-text">
-            <span class="progress__box-name">{{
-              'common.box' | transloco: { box: box.number }
-            }}</span>
-            <span class="progress__box-interval">
-              {{ 'progress.intervals.' + box.number | transloco }}
-            </span>
-          </span>
-          <span class="progress__count">
-            {{ box.count }}
-            <span class="visually-hidden">{{ box.countKey | transloco }}</span>
-          </span>
-        </li>
-      }
-    </ol>
-
-    @if (deckRows().length > 0) {
-      <section class="progress__decks" aria-labelledby="progress-decks-title">
-        <h2 class="progress__section-title" id="progress-decks-title">
-          {{ 'progress.decks.title' | transloco }}
+  @if (stats.hasValue()) {
+    @let figures = stats.value();
+    <section class="progress__streak" aria-labelledby="progress-streak-title">
+      <svg class="progress__flame" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 1-9.5z" />
+      </svg>
+      <div class="progress__streak-text">
+        <h2 class="progress__streak-title" id="progress-streak-title">
+          {{ streakKey() | transloco: { count: figures.currentStreak } }}
         </h2>
-        <p class="subtitle">{{ 'progress.decks.text' | transloco }}</p>
-        <ul class="progress__deck-list">
-          @for (deck of deckRows(); track deck.id) {
-            <li>
-              <a class="progress__deck" [routerLink]="['/decks', deck.id]">
-                <span class="progress__deck-head">
-                  <span class="progress__deck-name">{{ deck.name }}</span>
-                  <span class="progress__deck-count">
-                    {{
-                      'progress.decks.mastered'
-                        | transloco: { mastered: deck.masteredCount, total: deck.cardCount }
-                    }}
-                  </span>
-                </span>
-                <!-- The text above says it all; the bar repeats it for the eye. -->
-                <span class="progress__bar" aria-hidden="true">
-                  <span class="progress__bar-fill" [style.width.%]="deck.percent"></span>
-                </span>
-              </a>
-            </li>
-          }
-        </ul>
-      </section>
-    } @else if (decks.error()) {
-      <div class="alert alert--retry" role="alert">
-        <p>{{ 'common.loadError' | transloco }}</p>
-        <button type="button" class="text-link" (click)="decks.reload()">
-          {{ 'common.retry' | transloco }}
-        </button>
+        <p>{{ streakMessageKey() | transloco }}</p>
+        @if (figures.bestStreak > 0) {
+          <p class="progress__streak-best">
+            {{ bestKey() | transloco: { count: figures.bestStreak } }}
+          </p>
+        }
       </div>
-    }
+    </section>
+
+    <dl class="progress__tiles">
+      <div class="progress__tile">
+        <dt>{{ 'progress.tiles.answers' | transloco }}</dt>
+        <dd>{{ numberFormat().format(figures.totalReviews) }}</dd>
+      </div>
+      <div class="progress__tile">
+        <dt>{{ 'progress.tiles.successRate' | transloco }}</dt>
+        <dd>
+          @if (figures.successRate === null) {
+            <span class="progress__tile-none">{{ 'progress.tiles.noAnswer' | transloco }}</span>
+          } @else {
+            {{ 'progress.tiles.percent' | transloco: { rate: figures.successRate } }}
+          }
+        </dd>
+      </div>
+      <div class="progress__tile">
+        <dt>{{ 'progress.tiles.mastered' | transloco }}</dt>
+        <dd>
+          {{
+            'progress.tiles.outOf'
+              | transloco
+                : {
+                    count: numberFormat().format(figures.masteredCount),
+                    total: numberFormat().format(figures.cardCount),
+                  }
+          }}
+        </dd>
+      </div>
+      <div class="progress__tile">
+        <dt>{{ 'progress.tiles.studyDays' | transloco }}</dt>
+        <dd>{{ numberFormat().format(figures.studyDays) }}</dd>
+      </div>
+    </dl>
+
+    <section class="progress__section" aria-labelledby="progress-activity-title">
+      <h2 class="progress__section-title" id="progress-activity-title">
+        {{ 'progress.activity.title' | transloco }}
+      </h2>
+      <p class="subtitle">
+        {{ weekKey() | transloco: { count: weekTotal() } }}
+      </p>
+      <ol class="progress__activity">
+        @for (day of days(); track day.day) {
+          <li class="progress__day">
+            <span class="progress__day-bar" aria-hidden="true">
+              <span class="progress__day-fill" [style.height.%]="day.percent">
+                <span class="progress__day-known" [style.height.%]="day.knownPercent"></span>
+              </span>
+            </span>
+            <span class="progress__day-initial" aria-hidden="true">{{ day.initial }}</span>
+            <span class="visually-hidden">
+              {{ day.label }} :
+              {{ day.countKey | transloco: { count: day.reviews, known: day.known } }}
+            </span>
+          </li>
+        }
+      </ol>
+      <p class="progress__legend" aria-hidden="true">
+        <span class="progress__legend-known"></span>{{ 'progress.activity.known' | transloco }}
+        <span class="progress__legend-again"></span>{{ 'progress.activity.again' | transloco }}
+      </p>
+    </section>
+  } @else if (stats.error()) {
+    <div class="alert alert--retry" role="alert">
+      <p>{{ 'common.loadError' | transloco }}</p>
+      <button type="button" class="text-link" (click)="stats.reload()">
+        {{ 'common.retry' | transloco }}
+      </button>
+    </div>
+  }
+
+  @if (summary.hasValue()) {
+    <section class="progress__section" aria-labelledby="progress-boxes-title">
+      <h2 class="progress__section-title" id="progress-boxes-title">
+        {{ 'progress.boxesTitle' | transloco }}
+      </h2>
+      <p class="subtitle">{{ subtitleKey() | transloco: { count: total() } }}</p>
+
+      <ol class="progress__boxes">
+        @for (box of boxes(); track box.number) {
+          <li class="progress__box">
+            <span class="progress__box-text">
+              <span class="progress__box-name">{{
+                'common.box' | transloco: { box: box.number }
+              }}</span>
+              <span class="progress__box-interval">
+                {{ 'progress.intervals.' + box.number | transloco }}
+              </span>
+            </span>
+            <span class="progress__box-side">
+              <span class="progress__count">
+                {{ box.count }}
+                <span class="visually-hidden">{{ box.countKey | transloco }}</span>
+              </span>
+              @if (box.count > 0) {
+                <a
+                  class="text-link progress__practice"
+                  routerLink="/study/practice"
+                  [queryParams]="{ box: box.number, count: 'all' }"
+                >
+                  {{ 'progress.practiceBox' | transloco }}
+                  <span class="visually-hidden">
+                    {{ 'progress.practiceBoxName' | transloco: { box: box.number } }}
+                  </span>
+                </a>
+              }
+            </span>
+          </li>
+        }
+      </ol>
+    </section>
   } @else if (summary.error()) {
     <div class="alert alert--retry" role="alert">
       <p>{{ 'common.loadError' | transloco }}</p>
@@ -66,5 +138,46 @@
         {{ 'common.retry' | transloco }}
       </button>
     </div>
+  }
+
+  @if (stats.hasValue()) {
+    <section class="progress__section" aria-labelledby="progress-badges-title">
+      <h2 class="progress__section-title" id="progress-badges-title">
+        {{ 'progress.badges.title' | transloco }}
+      </h2>
+      <p class="subtitle">
+        {{ 'progress.badges.count' | transloco: { earned: earnedCount(), total: badges().length } }}
+      </p>
+      <ul class="progress__badges">
+        @for (badge of badges(); track badge.id) {
+          <li class="badge" [class.badge--earned]="badge.earned">
+            <svg class="badge__medal" viewBox="0 0 24 24" aria-hidden="true">
+              <path class="badge__ribbon" d="M8 2h3l1 6-3 1zM16 2h-3l-1 6 3 1z" />
+              <circle class="badge__disc" cx="12" cy="15" r="6.5" />
+              <path
+                class="badge__star"
+                d="M12 11.5l1.1 2.2 2.4.3-1.8 1.7.5 2.4-2.2-1.2-2.2 1.2.5-2.4-1.8-1.7 2.4-.3z"
+              />
+            </svg>
+            <span class="badge__title">{{
+              'progress.badges.' + badge.id + '.title' | transloco
+            }}</span>
+            <span class="badge__text">{{
+              'progress.badges.' + badge.id + '.text' | transloco
+            }}</span>
+            <span class="badge__status">
+              @if (badge.earned) {
+                {{ 'progress.badges.earned' | transloco }}
+              } @else {
+                {{
+                  'progress.badges.progress'
+                    | transloco: { current: badge.current, goal: badge.goal }
+                }}
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
   }
 </main>

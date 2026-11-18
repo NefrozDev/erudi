@@ -4,6 +4,7 @@ import { Router, provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { buttonNamed, linkNamed, query, settle, textOf } from '../../../../testing/dom';
 import { CardSummary, Deck, DecksApi } from '../../../core/decks/decks-api';
+import { DeckStats, StudyApi } from '../../../core/study/study-api';
 import { DeckPage } from './deck-page';
 
 describe('DeckPage', () => {
@@ -23,6 +24,14 @@ describe('DeckPage', () => {
   const get = vi.fn<(deckId: string) => Observable<Deck>>();
   const listCards = vi.fn<(deckId: string) => Observable<CardSummary[]>>();
   const deleteDeck = vi.fn<(deckId: string) => Observable<void>>();
+  const deckStats = vi.fn<(deckId: string) => Observable<DeckStats>>();
+  const stats: DeckStats = {
+    boxes: [1, 1, 0, 1, 0],
+    totalReviews: 1234,
+    successRate: 64,
+    lastStudiedOn: '2026-11-15',
+    secondsPerCard: 12,
+  };
   let fixture: ComponentFixture<DeckPage>;
   let navigateByUrl: ReturnType<typeof vi.spyOn>;
 
@@ -30,10 +39,15 @@ describe('DeckPage', () => {
     get.mockReset().mockReturnValue(of(deck));
     listCards.mockReset().mockReturnValue(of(cards));
     deleteDeck.mockReset().mockReturnValue(of(undefined));
+    deckStats.mockReset().mockReturnValue(of(stats));
+    // Only the date is faked: Angular's timers keep running.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 18, 9, 30));
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         { provide: DecksApi, useValue: { get, listCards, delete: deleteDeck } },
+        { provide: StudyApi, useValue: { deckStats } },
       ],
     });
     navigateByUrl = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
@@ -80,7 +94,8 @@ describe('DeckPage', () => {
 
     const quiz = linkNamed(host, 'Réviser (1)');
     const practice = linkNamed(host, "S'entraîner");
-    expect(textOf(host, `#${quiz.getAttribute('aria-describedby')}`)).toContain(
+    const quizHints = (quiz.getAttribute('aria-describedby') ?? '').split(' ');
+    expect(quizHints.map((id) => textOf(host, `#${id}`)).join(' ')).toContain(
       'Elles changent de boîte',
     );
     expect(textOf(host, `#${practice.getAttribute('aria-describedby')}`)).toContain(
@@ -257,6 +272,114 @@ describe('DeckPage', () => {
     expect(get).toHaveBeenCalledTimes(2);
     expect(listCards).toHaveBeenCalledTimes(2);
     expect(cardLinks(host)).toHaveLength(3);
+  });
+
+  describe('progress and estimate', () => {
+    afterEach(() => vi.useRealTimers());
+
+    function tiles(host: HTMLElement): string[][] {
+      return [...host.querySelectorAll('.deck-stats__tile')].map((tile) => [
+        textOf(tile, 'dt'),
+        textOf(tile, 'dd'),
+      ]);
+    }
+
+    it('should load the deck’s statistics once', async () => {
+      await render();
+
+      expect(deckStats).toHaveBeenCalledExactlyOnceWith('d1');
+    });
+
+    it('should estimate the quiz from the due cards and the learner’s pace, tied to the link', async () => {
+      get.mockReturnValue(of({ ...deck, dueCount: 30 }));
+      const host = await render();
+
+      // 20 cards picked by default, 12 seconds each.
+      expect(textOf(host, '#deck-quiz-estimate')).toBe('Durée estimée : environ 4 minutes.');
+      expect(linkNamed(host, 'Réviser (30)').getAttribute('aria-describedby')).toBe(
+        'deck-quiz-estimate deck-quiz-hint',
+      );
+
+      query<HTMLInputElement>(host, 'input[name="size"][value="all"]').click();
+      await settle(fixture);
+      expect(textOf(host, '#deck-quiz-estimate')).toBe('Durée estimée : environ 6 minutes.');
+
+      query<HTMLInputElement>(host, 'input[name="size"][value="10"]').click();
+      await settle(fixture);
+      expect(textOf(host, '#deck-quiz-estimate')).toBe('Durée estimée : environ 2 minutes.');
+    });
+
+    it('should say a short quiz takes less than a minute', async () => {
+      const host = await render();
+
+      expect(textOf(host, '#deck-quiz-estimate')).toBe("Durée estimée : moins d'une minute.");
+    });
+
+    it('should show the deck’s progress, numbers in French format', async () => {
+      const host = await render();
+
+      expect(textOf(host, '#deck-stats-title')).toBe('Progression du paquet');
+      expect(tiles(host)).toEqual([
+        ['Cartes maîtrisées', '0 sur 3'],
+        ['Réussite sur 30 jours', '64 %'],
+        ['Réponses en révision', '1 234'],
+        ['Dernière révision', 'il y a 3 jours'],
+      ]);
+    });
+
+    it('should say a deck never asked in a quiz has no answers yet', async () => {
+      deckStats.mockReturnValue(
+        of({ ...stats, totalReviews: 0, successRate: null, lastStudiedOn: null }),
+      );
+      const host = await render();
+
+      expect(tiles(host).slice(1)).toEqual([
+        ['Réussite sur 30 jours', 'Pas encore'],
+        ['Réponses en révision', '0'],
+        ['Dernière révision', 'Jamais'],
+      ]);
+    });
+
+    it('should show each box with a bar and offer to practise the boxes holding cards', async () => {
+      const host = await render();
+      const boxes = [...host.querySelectorAll('.deck-stats__box')];
+
+      expect(boxes.map((box) => textOf(box, '.deck-stats__count').replace(/s+/g, ' '))).toEqual([
+        '1 carte',
+        '1 carte',
+        '0 carte',
+        '1 carte',
+        '0 carte',
+      ]);
+      expect(
+        boxes.map((box) => box.querySelector<HTMLElement>('.deck-stats__bar-fill')?.style.width),
+      ).toEqual(['33%', '33%', '0%', '33%', '0%']);
+      expect(
+        [...host.querySelectorAll('.deck-stats__practice')].map((link) => link.getAttribute('href')),
+      ).toEqual([
+        '/study/practice?deckId=d1&box=1&count=all',
+        '/study/practice?deckId=d1&box=2&count=all',
+        '/study/practice?deckId=d1&box=4&count=all',
+      ]);
+    });
+
+    it('should leave out the progress and the estimate when the statistics fail', async () => {
+      deckStats.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+      const host = await render();
+
+      expect(host.querySelector('.deck-stats')).toBeNull();
+      expect(host.querySelector('#deck-quiz-estimate')).toBeNull();
+      expect(linkNamed(host, 'Réviser (1)').getAttribute('aria-describedby')).toBe('deck-quiz-hint');
+      expect(host.querySelector('[role="alert"]')).toBeNull();
+    });
+
+    it('should leave out the progress of an empty deck', async () => {
+      get.mockReturnValue(of({ ...deck, cardCount: 0, dueCount: 0 }));
+      listCards.mockReturnValue(of([]));
+      const host = await render();
+
+      expect(host.querySelector('.deck-stats')).toBeNull();
+    });
   });
 
   describe('deletion', () => {

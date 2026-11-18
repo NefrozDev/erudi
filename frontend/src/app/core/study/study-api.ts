@@ -15,6 +15,49 @@ export interface StudySummary {
   dueCount: number;
   /** How many cards each box holds, from box 1 to box 5. */
   boxes: number[];
+  /** The learner's usual time on a card, to estimate a session. */
+  secondsPerCard: number;
+  /** Days in a row with a quiz answer, up to today or yesterday. */
+  currentStreak: number;
+}
+
+export interface DayActivity {
+  /** `yyyy-MM-dd`, the learner's day. */
+  day: string;
+  /** Quiz answers that day. */
+  reviews: number;
+  /** Answers "I knew" among them. */
+  known: number;
+}
+
+/** The learner's whole progress. */
+export interface StudyStats {
+  currentStreak: number;
+  bestStreak: number;
+  studiedToday: boolean;
+  /** Days with at least one quiz answer. */
+  studyDays: number;
+  totalReviews: number;
+  /** Known answers of the last 30 days in percent; `null` without any. */
+  successRate: number | null;
+  cardCount: number;
+  /** Cards in box 4 or 5. */
+  masteredCount: number;
+  /** The last 14 days, oldest first, today last. */
+  lastDays: DayActivity[];
+  secondsPerCard: number;
+}
+
+export interface DeckStats {
+  /** How many of the deck's cards each box holds, from box 1 to box 5. */
+  boxes: number[];
+  /** Quiz answers about the deck's current cards. */
+  totalReviews: number;
+  /** Known answers of the last 30 days in percent; `null` without any. */
+  successRate: number | null;
+  /** `yyyy-MM-dd`; `null` when never asked in a quiz. */
+  lastStudiedOn: string | null;
+  secondsPerCard: number;
 }
 
 export interface StudyCard {
@@ -49,6 +92,15 @@ export class StudyApi {
 
   summary(): Observable<StudySummary> {
     return this.http.get<StudySummary>('/api/study/summary');
+  }
+
+  stats(): Observable<StudyStats> {
+    return this.http.get<StudyStats>('/api/study/stats');
+  }
+
+  /** Fails with 404 when the deck is not the learner's. */
+  deckStats(deckId: string): Observable<DeckStats> {
+    return this.http.get<DeckStats>(`/api/study/decks/${encodeURIComponent(deckId)}/stats`);
   }
 
   /**

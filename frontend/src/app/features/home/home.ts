@@ -16,6 +16,7 @@ import { AuthStore } from '../../core/auth/auth-store';
 import { Deck, DecksApi } from '../../core/decks/decks-api';
 import { StudyApi, StudySummary } from '../../core/study/study-api';
 import { countKey } from '../../shared/i18n/count-key';
+import { Duration, sessionDuration } from '../../shared/i18n/duration';
 import { BoxMeter } from '../../shared/ui/box-meter/box-meter';
 import { DeleteConfirmation } from '../../shared/ui/delete-confirmation/delete-confirmation';
 import { deleteDeck } from '../decks/deck-deletion';
@@ -35,6 +36,10 @@ interface DailyGoal {
   /** Without anything due: the day is done, or there was nothing to do. */
   restKey: string;
   startKey: string;
+  /** How long the cards still due take at the learner's pace. */
+  duration: Duration;
+  streak: number;
+  streakKey: string;
 }
 
 interface DeckRow {
@@ -112,7 +117,13 @@ export class Home {
 }
 
 /** Hidden until there are cards: the deck list explains how to start. */
-function toGoal({ reviewedToday, dueCount, boxes }: StudySummary): DailyGoal | null {
+function toGoal({
+  reviewedToday,
+  dueCount,
+  boxes,
+  secondsPerCard,
+  currentStreak,
+}: StudySummary): DailyGoal | null {
   if (boxes.every((count) => count === 0)) {
     return null;
   }
@@ -126,6 +137,9 @@ function toGoal({ reviewedToday, dueCount, boxes }: StudySummary): DailyGoal | n
     progressKey: countKey('home.goal.progress', goal),
     restKey: reviewedToday > 0 ? 'home.goal.allDone' : 'home.goal.nothingDue',
     startKey: reviewedToday > 0 ? 'home.goal.continue' : 'home.goal.start',
+    duration: sessionDuration(dueCount, secondsPerCard),
+    streak: currentStreak,
+    streakKey: countKey('progress.streak.days', currentStreak),
   };
 }
 
