@@ -128,8 +128,8 @@ namespace Erudi.Api.Data.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("character varying(60)")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
                         .HasColumnName("name");
 
                     b.Property<Guid>("OwnerId")
@@ -173,8 +173,8 @@ namespace Erudi.Api.Data.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("character varying(60)")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
                         .HasColumnName("title");
 
                     b.Property<DateTimeOffset>("UpdatedAt")

@@ -164,7 +164,7 @@ describe('PublishForm', () => {
 
   it.each([
     ['#publish-title', ' ', '#publish-title-error', 'Ce champ est obligatoire.'],
-    ['#publish-title', 'a'.repeat(61), '#publish-title-error', '60 caractères maximum.'],
+    ['#publish-title', 'a'.repeat(121), '#publish-title-error', '120 caractères maximum.'],
     [
       '#publish-description',
       'a'.repeat(301),

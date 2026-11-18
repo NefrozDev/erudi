@@ -1,7 +1,7 @@
 import { DeckCategory, ReportReason } from '../../core/explore/explore-api';
 
 // The backend's limits (ExploreRules), checked here first so the learner sees why.
-export const PUBLIC_TITLE_MAX_LENGTH = 60;
+export const PUBLIC_TITLE_MAX_LENGTH = 120;
 export const DESCRIPTION_MAX_LENGTH = 300;
 export const REPORT_DETAILS_MAX_LENGTH = 500;
 export const SEARCH_MAX_LENGTH = 100;

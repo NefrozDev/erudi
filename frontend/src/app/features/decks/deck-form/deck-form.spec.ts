@@ -73,7 +73,7 @@ describe('DeckForm', () => {
     it.each([
       ['', 'Ce champ est obligatoire.'],
       ['   ', 'Ce champ est obligatoire.'],
-      ['a'.repeat(61), '60 caractères maximum.'],
+      ['a'.repeat(121), '120 caractères maximum.'],
     ])('should refuse %j and send nothing', async (name, message) => {
       await saveWith(name);
 
