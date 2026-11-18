@@ -108,6 +108,12 @@ describe('DeckForm', () => {
       expect(api.create).toHaveBeenCalledExactlyOnceWith('Vocabulaire anglais');
     });
 
+    it('should join Windows line breaks and skip blank pasted lines', async () => {
+      await saveWith('Vocabulaire \r\n\r\n\t anglais\r\n');
+
+      expect(api.create).toHaveBeenCalledExactlyOnceWith('Vocabulaire anglais');
+    });
+
     it.each([
       [409, 'Tu as atteint la limite de 200 paquets.'],
       [500, "L'enregistrement a échoué. Réessaie dans un instant."],

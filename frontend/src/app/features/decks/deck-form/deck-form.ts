@@ -99,8 +99,12 @@ export class DeckForm {
   private async save(): Promise<void> {
     this.formError.set(null);
     const deckId = this.deckId();
-    // A pasted name may hold line breaks: a deck name is one line.
-    const name = this.model().name.replace(/\s*\n\s*/g, ' ');
+    // A pasted name may hold line breaks: a deck name is one line. Split and trim rather than
+    // /\s*\n\s*/, whose overlapping \s and \n backtrack quadratically on long whitespace runs.
+    const raw = this.model().name;
+    const name = raw.includes('\n')
+      ? raw.split('\n').map((line) => line.trim()).filter(Boolean).join(' ')
+      : raw;
 
     let savedId: string;
     try {
