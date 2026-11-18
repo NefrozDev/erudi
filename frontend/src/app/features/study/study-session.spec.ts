@@ -5,6 +5,7 @@ import { Observable, Subject, of, throwError } from 'rxjs';
 import { buttonNamed, linkNamed, query, settle, textOf } from '../../../testing/dom';
 import { ExploreApi, TestCard, TestResult } from '../../core/explore/explore-api';
 import { SoundEffects } from '../../core/sound/sound-effects';
+import { Card, CardContent, DecksApi } from '../../core/decks/decks-api';
 import { AnswerResult, StudyApi, StudyCard, StudyFilter } from '../../core/study/study-api';
 import { SessionMode, StudySession } from './study-session';
 
@@ -49,6 +50,9 @@ describe('StudySession', () => {
     saveResult: vi.fn<(deckId: string, known: number, total: number) => Observable<TestResult>>(),
   };
   const sounds = { play: vi.fn<(sound: 'knew' | 'again') => void>() };
+  const decksApi = {
+    updateCard: vi.fn<(cardId: string, content: CardContent) => Observable<Card>>(),
+  };
   let fixture: ComponentFixture<StudySession>;
   let host: HTMLElement;
   let random: ReturnType<typeof vi.spyOn>;
@@ -60,6 +64,19 @@ describe('StudySession', () => {
     api.cards.mockReset().mockReturnValue(of(cards));
     api.answer.mockReset().mockReturnValue(of({ box: 3, dueOn: '2026-11-11' }));
     exploreApi.testCards.mockReset().mockReturnValue(of(testCards));
+    decksApi.updateCard
+      .mockReset()
+      .mockImplementation((cardId, content) =>
+        of({ id: cardId, deckId: 'd1', box: 2, ...content }),
+      );
+    // jsdom has no modal dialogs: open and close them as the browser would.
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+      this.open = true;
+    });
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+      this.open = false;
+      this.dispatchEvent(new Event('close'));
+    });
     exploreApi.saveResult.mockReset().mockReturnValue(of({ score: 67, bestScore: 67 }));
     TestBed.configureTestingModule({
       providers: [
@@ -67,6 +84,7 @@ describe('StudySession', () => {
         { provide: StudyApi, useValue: api },
         { provide: ExploreApi, useValue: exploreApi },
         { provide: SoundEffects, useValue: sounds },
+        { provide: DecksApi, useValue: decksApi },
       ],
     });
   });
@@ -176,6 +194,172 @@ describe('StudySession', () => {
       expect(cardText()).toBe('b0');
       expect(textOf(host, '.study__count')).toBe('1/50');
       expect(document.activeElement).toBe(query(host, 'button.flashcard'));
+    });
+  });
+
+  describe('the size of the card text', () => {
+    it('should size the question and the answer by their length', async () => {
+      api.cards.mockReturnValue(of([{ ...cards[0], front: 'Lima', back: 'a'.repeat(400) }]));
+      await render('practice');
+
+      expect(query(host, '.flashcard__text').getAttribute('data-size')).toBe('xl');
+      await click(buttonNamed(host, 'Retourner la carte'));
+      expect(query(host, '.flashcard__text').getAttribute('data-size')).toBe('xs');
+    });
+  });
+
+  describe('asking the failed cards again', () => {
+    it('should ask the failed cards again as practice, posting nothing', async () => {
+      await render('quiz');
+      await flipAndAnswer('Je ne savais pas');
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je ne savais pas');
+      expect(api.answer).toHaveBeenCalledTimes(3);
+
+      await click(buttonNamed(host, 'Revoir les 2 cartes ratées'));
+
+      expect(textOf(host, '.study__count')).toBe('1/2');
+      expect(document.activeElement).toBe(query(host, 'button.flashcard'));
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je ne savais pas');
+      expect(api.answer).toHaveBeenCalledTimes(3);
+      expect(api.cards).toHaveBeenCalledTimes(1);
+
+      const texts = [...host.querySelectorAll('.study__end-text')].map((p) =>
+        p.textContent?.trim(),
+      );
+      expect(texts[0]).toBe('Entraînement terminé');
+      expect(texts).toContain("Les cartes n'ont pas changé de boîte.");
+      expect(
+        [...host.querySelectorAll('.study__stat dt')].map((dt) => dt.textContent?.trim()),
+      ).toEqual(['bonne réponse', 'à revoir']);
+      expect(buttonNamed(host, 'Revoir la carte ratée')).toBeTruthy();
+    });
+
+    it('should not offer it when every card was known', async () => {
+      await render('practice');
+      for (const card of cards) {
+        expect(cardText()).toBe(card.front);
+        await flipAndAnswer('Je savais');
+      }
+
+      expect(host.textContent).not.toContain('Revoir');
+      expect(linkNamed(host, 'Terminer').classList).toContain('button--accent');
+    });
+
+    it('should not save a test score again after asking the failed cards', async () => {
+      await render('test', 'p1');
+      await flipAndAnswer('Je ne savais pas');
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je savais');
+      expect(exploreApi.saveResult).toHaveBeenCalledTimes(1);
+
+      await click(buttonNamed(host, 'Revoir la carte ratée'));
+      await flipAndAnswer('Je savais');
+
+      expect(exploreApi.saveResult).toHaveBeenCalledTimes(1);
+      expect(textOf(host, 'h1')).toBe('Bravo !');
+    });
+
+    it('should still offer the next due cards of a full quiz', async () => {
+      api.cards.mockReturnValueOnce(of(cards.slice(0, 2)));
+      fixture = TestBed.createComponent(StudySession);
+      fixture.componentRef.setInput('mode', 'quiz');
+      fixture.componentRef.setInput('count', '2');
+      host = fixture.nativeElement as HTMLElement;
+      await fixture.whenStable();
+      await flipAndAnswer('Je ne savais pas');
+      await flipAndAnswer('Je savais');
+      await click(buttonNamed(host, 'Revoir la carte ratée'));
+      await flipAndAnswer('Je savais');
+
+      await click(buttonNamed(host, 'Continuer'));
+
+      expect(api.cards).toHaveBeenCalledTimes(2);
+      expect(textOf(host, '.study__count')).toBe('1/3');
+    });
+  });
+
+  describe('correcting a card during the session', () => {
+    it('should correct the card in place, keeping the session where it was', async () => {
+      await render('quiz');
+      await click(buttonNamed(host, 'Retourner la carte'));
+
+      await click(query(host, 'button[aria-label="Modifier la carte"]'));
+      expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalledTimes(1);
+      expect(query<HTMLTextAreaElement>(host, '#quick-edit-back').value).toBe('manquer de');
+      const back = query<HTMLTextAreaElement>(host, '#quick-edit-back');
+      back.value = 'manquer de (qqch)';
+      back.dispatchEvent(new Event('input'));
+      await click(buttonNamed(host, 'Enregistrer'));
+
+      expect(decksApi.updateCard).toHaveBeenCalledExactlyOnceWith('c1', {
+        front: 'to run out of',
+        back: 'manquer de (qqch)',
+      });
+      expect(host.querySelector('app-card-quick-edit')).toBeNull();
+      expect(cardText()).toBe('manquer de (qqch)');
+      expect(textOf(host, '.study__count')).toBe('1/3');
+      expect(document.activeElement).toBe(query(host, 'button[aria-label="Modifier la carte"]'));
+      expect(api.answer).not.toHaveBeenCalled();
+    });
+
+    it('should save nothing when the learner cancels', async () => {
+      await render('practice');
+
+      await click(query(host, 'button[aria-label="Modifier la carte"]'));
+      await click(buttonNamed(host, 'Annuler'));
+
+      expect(decksApi.updateCard).not.toHaveBeenCalled();
+      expect(host.querySelector('app-card-quick-edit')).toBeNull();
+      expect(cardText()).toBe('to run out of');
+    });
+
+    it('should refuse an empty side without calling the API', async () => {
+      await render('practice');
+      await click(query(host, 'button[aria-label="Modifier la carte"]'));
+      const front = query<HTMLTextAreaElement>(host, '#quick-edit-front');
+      front.value = '  ';
+      front.dispatchEvent(new Event('input'));
+
+      await click(buttonNamed(host, 'Enregistrer'));
+
+      expect(decksApi.updateCard).not.toHaveBeenCalled();
+      expect(textOf(host, '#quick-edit-front-error')).toBe('Ce champ est obligatoire.');
+      expect(front.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('should say when the card was deleted meanwhile, keeping the dialog open', async () => {
+      decksApi.updateCard.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+      await render('practice');
+      await click(query(host, 'button[aria-label="Modifier la carte"]'));
+
+      await click(buttonNamed(host, 'Enregistrer'));
+
+      expect(textOf(host, 'app-card-quick-edit [role="alert"]')).toBe("Cette carte n'existe plus.");
+      expect(host.querySelector('app-card-quick-edit')).not.toBeNull();
+    });
+
+    it('should keep the correction when the card comes back in a retry round', async () => {
+      await render('practice');
+      await click(query(host, 'button[aria-label="Modifier la carte"]'));
+      const front = query<HTMLTextAreaElement>(host, '#quick-edit-front');
+      front.value = 'to run short of';
+      front.dispatchEvent(new Event('input'));
+      await click(buttonNamed(host, 'Enregistrer'));
+      await flipAndAnswer('Je ne savais pas');
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je savais');
+
+      await click(buttonNamed(host, 'Revoir la carte ratée'));
+
+      expect(cardText()).toBe('to run short of');
+    });
+
+    it('should not offer corrections in a test of someone else’s deck', async () => {
+      await render('test', 'p1');
+
+      expect(host.querySelector('button[aria-label="Modifier la carte"]')).toBeNull();
     });
   });
 
@@ -329,7 +513,7 @@ describe('StudySession', () => {
       ]);
       expect(stats).toEqual([
         ['2', 'cartes montent'],
-        ['1', 'à revoir'],
+        ['1', 'carte descend'],
       ]);
       expect(host.querySelector('app-plic')?.getAttribute('data-mood')).toBe('proud');
       expect(linkNamed(host, 'Terminer').getAttribute('href')).toBe('/');
@@ -472,7 +656,11 @@ describe('StudySession', () => {
       const texts = [...host.querySelectorAll('.study__end-text')].map((p) =>
         p.textContent?.trim(),
       );
-      expect(texts).toEqual(['Entraînement terminé', "Les cartes n'ont pas changé de boîte."]);
+      expect(texts).toEqual([
+        'Entraînement terminé',
+        "Les cartes n'ont pas changé de boîte.",
+        'Un entraînement : les boîtes ne bougent pas.',
+      ]);
       expect(textOf(host, '.study__stat dt')).toBe('bonne réponse');
       expect(textOf(host, '.study__stat dd')).toBe('1');
       expect(linkNamed(host, 'Terminer').getAttribute('href')).toBe('/decks/d1');

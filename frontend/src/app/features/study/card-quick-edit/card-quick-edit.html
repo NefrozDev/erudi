@@ -1,0 +1,51 @@
+<dialog class="quick-edit" #dialog aria-labelledby="quick-edit-title" (close)="onClose()">
+  <form class="quick-edit__form" [formRoot]="form">
+    <h2 class="quick-edit__title" id="quick-edit-title">{{ 'study.edit.title' | transloco }}</h2>
+
+    <div class="field">
+      <label class="field__label" for="quick-edit-front">{{ 'cards.front' | transloco }}</label>
+      <textarea
+        id="quick-edit-front"
+        class="field__input"
+        rows="3"
+        appSubmitOnEnter
+        [formField]="form.front"
+        [attr.aria-invalid]="!!visibleError(form.front)"
+        [attr.aria-describedby]="visibleError(form.front) ? 'quick-edit-front-error' : null"
+      ></textarea>
+      @if (visibleError(form.front); as error) {
+        <p class="form-error" id="quick-edit-front-error">{{ error | transloco }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="quick-edit-back">{{ 'cards.back' | transloco }}</label>
+      <textarea
+        id="quick-edit-back"
+        class="field__input"
+        rows="3"
+        appSubmitOnEnter
+        [formField]="form.back"
+        [attr.aria-invalid]="!!visibleError(form.back)"
+        [attr.aria-describedby]="visibleError(form.back) ? 'quick-edit-back-error' : null"
+      ></textarea>
+      @if (visibleError(form.back); as error) {
+        <p class="form-error" id="quick-edit-back-error">{{ error | transloco }}</p>
+      }
+    </div>
+
+    <p class="subtitle">{{ 'study.edit.keepsBox' | transloco }}</p>
+
+    @if (formError(); as error) {
+      <p class="alert" role="alert">{{ error | transloco }}</p>
+    }
+    <div class="quick-edit__actions">
+      <button type="button" class="button button--secondary" (click)="cancel()">
+        {{ 'common.cancel' | transloco }}
+      </button>
+      <button type="submit" class="button" [disabled]="form().submitting()">
+        {{ 'common.save' | transloco }}
+      </button>
+    </div>
+  </form>
+</dialog>

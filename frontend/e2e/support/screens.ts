@@ -91,8 +91,32 @@ export const screens: Screen[] = [
       await expect(page.getByText('Bravo !')).toBeVisible();
     },
   },
+  {
+    name: 'quiz, done with failed cards',
+    url: '/study/quiz',
+    act: async (page) => {
+      for (let i = 0; i < 2; i++) {
+        await page.getByRole('button', { name: 'Retourner la carte' }).click();
+        await page.getByRole('button', { name: 'Je ne savais pas' }).click();
+      }
+      await expect(page.getByRole('button', { name: 'Revoir les 2 cartes ratées' })).toBeVisible();
+    },
+  },
+  {
+    name: 'quiz, correcting a card',
+    url: '/study/quiz',
+    act: async (page) => {
+      await page.getByRole('button', { name: 'Modifier la carte' }).click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+    },
+  },
   { name: 'quiz, nothing due', url: '/study/quiz', mock: { noDecks: true } },
   { name: 'practice', url: '/study/practice' },
+  {
+    name: 'practice, no failed card',
+    url: '/study/practice?failed=true',
+    mock: { noDecks: true },
+  },
   { name: 'public deck', url: '/explore/p1' },
   { name: 'public deck not found', url: '/explore/nope' },
   { name: 'public test', url: '/explore/p1/test' },

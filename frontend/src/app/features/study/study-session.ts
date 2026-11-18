@@ -29,8 +29,11 @@ import {
 } from '../../core/study/study-api';
 import { countKey } from '../../shared/i18n/count-key';
 import { shuffle } from '../../shared/random/shuffle';
+import { CardContent } from '../../core/decks/decks-api';
 import { BoxMeter } from '../../shared/ui/box-meter/box-meter';
 import { Plic } from '../../shared/ui/plic/plic';
+import { CardQuickEdit } from './card-quick-edit/card-quick-edit';
+import { cardTextSize } from './card-text-size';
 
 /** `test` asks 20 cards of a public deck (`explore/:deckId/test`) and saves the score. */
 export type SessionMode = StudyMode | 'test';
@@ -55,11 +58,12 @@ const DIRECTIONS: readonly CardDirection[] = ['front', 'back', 'mixed'];
  * its score. Quiz cards come shuffled (the server picks the 50 most urgent, in order), and a
  * full quiz offers the next ones. `?direction=` asks the front, the back or either, `?count=`
  * how many cards (`all` for every one), and practice can keep to one `?box=` or to the cards
- * failed at the last quiz (`?failed=true`).
+ * failed at the last quiz (`?failed=true`). At the end, the failed cards can be asked again,
+ * as practice. The learner's own cards can be corrected at any time.
  */
 @Component({
   selector: 'app-study-session',
-  imports: [BoxMeter, NgTemplateOutlet, Plic, RouterLink, TranslocoPipe],
+  imports: [BoxMeter, CardQuickEdit, NgTemplateOutlet, Plic, RouterLink, TranslocoPipe],
   templateUrl: './study-session.html',
   styleUrl: './study-session.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -137,12 +141,34 @@ export class StudySession {
   protected readonly result = signal<TestResult | null>(null);
   protected readonly resultFailed = signal(false);
 
-  protected readonly total = computed(() =>
-    this.cards.hasValue() ? this.cards.value().length : 0,
+  /** The failed cards asked again, as practice: nothing is saved. */
+  private readonly retry = signal<SessionCard[] | null>(null);
+  /** This round's failed cards, for another round. */
+  private readonly failedCards = signal<SessionCard[]>([]);
+  /** Texts corrected during the session, by card id. */
+  private readonly corrections = signal<Readonly<Record<string, CardContent>>>({});
+
+  /** What this round counts as: a retry round is practice, whatever the session. */
+  protected readonly kind = computed<SessionMode>(() =>
+    this.retry() === null ? this.mode() : 'practice',
   );
-  protected readonly current = computed(() =>
-    this.cards.hasValue() ? this.cards.value()[this.index()] : undefined,
+  private readonly roundCards = computed(
+    () => this.retry() ?? (this.cards.hasValue() ? this.cards.value() : []),
   );
+  protected readonly total = computed(() => this.roundCards().length);
+  protected readonly current = computed(() => {
+    const card = this.roundCards()[this.index()];
+    const correction = card === undefined ? undefined : this.corrections()[card.id];
+    return correction === undefined ? card : { ...card, ...correction };
+  });
+  protected readonly failedCount = computed(() => this.failedCards().length);
+  /** Public deck cards are not the learner's to correct. */
+  protected readonly canEdit = computed(() => this.mode() !== 'test');
+  protected readonly editing = signal(false);
+  protected readonly editedContent = computed<CardContent | null>(() => {
+    const card = this.current();
+    return card === undefined ? null : { front: card.front, back: card.back };
+  });
   protected readonly finished = computed(() => this.total() > 0 && this.index() >= this.total());
   protected readonly progress = computed(() =>
     this.total() === 0 ? 0 : (100 * this.index()) / this.total(),
@@ -156,9 +182,14 @@ export class StudySession {
     const card = this.current();
     return card === undefined ? '' : card.reversed ? card.front : card.back;
   });
-  /** A full quiz may have left due cards behind. */
+  protected readonly questionSize = computed(() => cardTextSize(this.question()));
+  protected readonly replySize = computed(() => cardTextSize(this.reply()));
+  /** A full quiz may have left due cards behind, even after asking the failed ones again. */
   protected readonly canContinue = computed(
-    () => this.mode() === 'quiz' && this.total() === (this.filter().count ?? QUIZ_SIZE),
+    () =>
+      this.mode() === 'quiz' &&
+      this.cards.hasValue() &&
+      this.cards.value().length === (this.filter().count ?? QUIZ_SIZE),
   );
   /** Practice kept to a box or to the failed cards: an empty session says so. */
   protected readonly filtered = computed(
@@ -177,12 +208,17 @@ export class StudySession {
     return deckId === undefined ? ['/'] : ['/decks', deckId];
   });
   protected readonly knewKey = computed(() =>
-    countKey(this.mode() === 'quiz' ? 'study.done.movedUp' : 'study.done.knew', this.knew()),
+    countKey(this.kind() === 'quiz' ? 'study.done.movedUp' : 'study.done.knew', this.knew()),
   );
+  protected readonly againKey = computed(() =>
+    countKey(this.kind() === 'quiz' ? 'study.done.movedDown' : 'study.done.again', this.toReview()),
+  );
+  protected readonly retryKey = computed(() => countKey('study.done.retry', this.failedCount()));
 
   private readonly frontFace = viewChild<ElementRef<HTMLElement>>('frontFace');
   private readonly backFace = viewChild<ElementRef<HTMLElement>>('backFace');
   private readonly doneTitle = viewChild<ElementRef<HTMLElement>>('doneTitle');
+  private readonly editButton = viewChild<ElementRef<HTMLElement>>('editButton');
 
   protected flip(): void {
     this.flipped.set(true);
@@ -196,7 +232,7 @@ export class StudySession {
       return;
     }
 
-    if (this.mode() === 'quiz') {
+    if (this.kind() === 'quiz') {
       this.answering.set(true);
       this.answerFailed.set(false);
       try {
@@ -214,22 +250,51 @@ export class StudySession {
 
     this.sounds.play(knew ? 'knew' : 'again');
     (knew ? this.knew : this.toReview).update((count) => count + 1);
+    if (!knew) {
+      this.failedCards.update((failed) => [...failed, card]);
+    }
     this.index.update((index) => index + 1);
     this.flipped.set(false);
     this.focusAfterRender(this.finished() ? this.doneTitle : this.frontFace);
 
-    if (this.finished() && this.mode() === 'test') {
+    if (this.finished() && this.kind() === 'test') {
       await this.saveResult();
     }
   }
 
   /** Loads the next due cards; the answered ones have moved and are no longer due. */
   protected continueQuiz(): void {
+    this.retry.set(null);
+    this.startRound();
+    this.round.update((round) => round + 1);
+  }
+
+  /** Asks this round's failed cards again, in a new order, as practice. */
+  protected retryFailed(): void {
+    this.retry.set(shuffle(this.failedCards()));
+    this.startRound();
+  }
+
+  /** The corrected text shows at once, on both faces and in a later retry round. */
+  protected edited(content: CardContent): void {
+    const card = this.current();
+    if (card !== undefined) {
+      this.corrections.update((corrections) => ({ ...corrections, [card.id]: content }));
+    }
+    this.stopEditing();
+  }
+
+  protected stopEditing(): void {
+    this.editing.set(false);
+    this.focusAfterRender(this.editButton);
+  }
+
+  private startRound(): void {
     this.index.set(0);
     this.knew.set(0);
     this.toReview.set(0);
+    this.failedCards.set([]);
     this.flipped.set(false);
-    this.round.update((round) => round + 1);
     // The front of the new first card takes the focus from the button that disappears.
     this.focusAfterRender(this.frontFace);
   }

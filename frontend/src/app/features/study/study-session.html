@@ -35,14 +35,14 @@
           tabindex="-1"
           #doneTitle
         >
-          @if (mode() === 'test') {
+          @if (kind() === 'test') {
             <span class="visually-hidden">{{ 'study.done.score' | transloco }}</span>
             {{ 'study.done.percent' | transloco: { score: score() } }}
           } @else {
             {{ 'study.done.title' | transloco }}
           }
         </h1>
-        <p class="study__end-text">{{ 'study.done.' + mode() + 'Text' | transloco }}</p>
+        <p class="study__end-text">{{ 'study.done.' + kind() + 'Text' | transloco }}</p>
 
         <dl class="study__stats">
           <div class="study__stat">
@@ -50,14 +50,14 @@
             <dd class="study__stat-value study__stat-value--knew">{{ knew() }}</dd>
           </div>
           <div class="study__stat">
-            <dt class="study__stat-label">{{ 'study.done.again' | transloco }}</dt>
+            <dt class="study__stat-label">{{ againKey() | transloco }}</dt>
             <dd class="study__stat-value study__stat-value--again">{{ toReview() }}</dd>
           </div>
         </dl>
-        @if (mode() === 'practice') {
+        @if (kind() === 'practice') {
           <p class="study__end-text">{{ 'study.done.practiceNote' | transloco }}</p>
         }
-        @if (mode() === 'test') {
+        @if (kind() === 'test') {
           @if (result(); as result) {
             <p class="study__best">
               @if (result.score >= result.bestScore) {
@@ -83,10 +83,25 @@
               {{ 'study.done.continue' | transloco }}
             </button>
           }
+          @if (failedCount() > 0) {
+            <button
+              type="button"
+              class="button"
+              [class.button--accent]="!canContinue()"
+              [class.study__ghost]="canContinue()"
+              aria-describedby="study-retry-note"
+              (click)="retryFailed()"
+            >
+              {{ retryKey() | transloco: { count: failedCount() } }}
+            </button>
+            <p class="study__end-text study__note" id="study-retry-note">
+              {{ 'study.done.retryNote' | transloco }}
+            </p>
+          }
           <a
             class="button"
-            [class.button--accent]="!canContinue()"
-            [class.study__ghost]="canContinue()"
+            [class.button--accent]="!canContinue() && failedCount() === 0"
+            [class.study__ghost]="canContinue() || failedCount() > 0"
             [routerLink]="exitLink()"
             replaceUrl
           >
@@ -122,12 +137,25 @@
           <span class="study__progress-fill" [style.width.%]="progress()"></span>
         </div>
         <span class="study__count" aria-hidden="true">{{ index() + 1 }}/{{ total() }}</span>
+        @if (canEdit()) {
+          <button
+            type="button"
+            class="study__icon-button"
+            #editButton
+            [attr.aria-label]="'study.edit.open' | transloco"
+            (click)="editing.set(true)"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" />
+            </svg>
+          </button>
+        }
       </header>
 
       @if (!flipped()) {
         <button type="button" class="flashcard" #frontFace (click)="flip()">
           <ng-container *ngTemplateOutlet="chip" />
-          <span class="flashcard__text">{{ question() }}</span>
+          <span class="flashcard__text" [attr.data-size]="questionSize()">{{ question() }}</span>
           <span class="flashcard__hint">{{ 'study.tapToFlip' | transloco }}</span>
         </button>
         <div class="study__actions">
@@ -143,7 +171,7 @@
           [attr.aria-label]="'study.answer' | transloco"
         >
           <ng-container *ngTemplateOutlet="chip" />
-          <p class="flashcard__text">{{ reply() }}</p>
+          <p class="flashcard__text" [attr.data-size]="replySize()">{{ reply() }}</p>
           <p class="flashcard__hint">{{ question() }}</p>
         </section>
 
@@ -203,6 +231,17 @@
     </section>
   }
 </main>
+
+@if (editing() && current(); as card) {
+  @if (editedContent(); as content) {
+    <app-card-quick-edit
+      [cardId]="card.id"
+      [content]="content"
+      (saved)="edited($event)"
+      (closed)="stopEditing()"
+    />
+  }
+}
 
 <!--
   The card's deck (when the session mixes decks, or in a test) and box (the learner's own

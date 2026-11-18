@@ -1,0 +1,36 @@
+// Dark text on white, over the violet session.
+.quick-edit {
+  width: calc(100% - 2 * var(--page-gutter));
+  max-width: var(--page-max-width);
+  max-height: calc(100dvh - 32px);
+  padding: 24px 20px;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-night);
+
+  &::backdrop {
+    background: rgb(23 21 59 / 0.6);
+  }
+
+  :focus-visible {
+    outline-color: var(--color-violet);
+  }
+}
+
+.quick-edit__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quick-edit__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.quick-edit__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}

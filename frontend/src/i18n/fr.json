@@ -193,6 +193,12 @@
     "knew": "Je savais",
     "didNotKnow": "Je ne savais pas",
     "answerError": "Ta réponse n'a pas été enregistrée. Réessaie.",
+    "edit": {
+      "open": "Modifier la carte",
+      "title": "Modifier la carte",
+      "keepsBox": "La carte reste dans sa boîte : corriger le texte ne la fait pas reculer.",
+      "gone": "Cette carte n'existe plus."
+    },
     "done": {
       "title": "Bravo !",
       "quizText": "Session terminée",
@@ -205,7 +211,19 @@
         "one": "bonne réponse",
         "other": "bonnes réponses"
       },
-      "again": "à revoir",
+      "again": {
+        "one": "à revoir",
+        "other": "à revoir"
+      },
+      "movedDown": {
+        "one": "carte descend",
+        "other": "cartes descendent"
+      },
+      "retry": {
+        "one": "Revoir la carte ratée",
+        "other": "Revoir les {{count}} cartes ratées"
+      },
+      "retryNote": "Un entraînement : les boîtes ne bougent pas.",
       "practiceNote": "Les cartes n'ont pas changé de boîte.",
       "finish": "Terminer",
       "moreDue": "D'autres cartes t'attendent encore aujourd'hui.",
