@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { httpStatus } from '../../../core/api/api-errors';
 import { DecksApi } from '../../../core/decks/decks-api';
-import { CardDirection } from '../../../core/study/study-api';
+import { CardDirection, SESSION_SIZES, SessionSize } from '../../../core/study/study-api';
 import { countKey } from '../../../shared/i18n/count-key';
 import { DeleteConfirmation } from '../../../shared/ui/delete-confirmation/delete-confirmation';
 import { Plic } from '../../../shared/ui/plic/plic';
@@ -38,11 +38,21 @@ export class DeckPage {
   });
 
   protected readonly directions: readonly CardDirection[] = ['front', 'back', 'mixed'];
+  protected readonly sizes = SESSION_SIZES;
   /** For both study links; the front, the default, stays out of the address. */
   protected readonly direction = signal<CardDirection>('front');
-  protected readonly studyParams = computed(() => ({
+  /** How many cards both study links ask. */
+  protected readonly size = signal<SessionSize>(20);
+  /** Practice only: the cards failed at the last quiz. */
+  protected readonly onlyFailed = signal(false);
+  protected readonly quizParams = computed(() => ({
     deckId: this.deckId(),
     direction: this.direction() === 'front' ? null : this.direction(),
+    count: this.size(),
+  }));
+  protected readonly practiceParams = computed(() => ({
+    ...this.quizParams(),
+    failed: this.onlyFailed() ? true : null,
   }));
 
   protected readonly notFound = computed(

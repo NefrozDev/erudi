@@ -83,6 +83,39 @@ public sealed class StudyEndpointsTests(ErudiApiFactory factory) : IClassFixture
         Assert.Equal(StudyService.QuizSize, cards.Length);
     }
 
+    [Fact]
+    public async Task Quiz_AsksTheNumberOfCardsTheLearnerPicks_MostUrgentFirst()
+    {
+        using var learner = await factory.SignInNewLearnerAsync();
+        var deck = await learner.Client.CreateDeckAsync();
+        await SeedCardsAsync(deck.Id, StudyService.QuizSize + 10);
+
+        var all = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>($"/api/study/quiz?count={StudyService.MaxSessionSize}", Cancellation) ?? [];
+        var few = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>("/api/study/quiz?count=5", Cancellation) ?? [];
+
+        Assert.Equal(StudyService.QuizSize + 10, all.Length);
+        Assert.Equal(all.Take(5).Select(c => c.Id), few.Select(c => c.Id));
+        Assert.All(few, c => Assert.Equal(1, c.Box));
+    }
+
+    [Theory]
+    [InlineData("/api/study/quiz?count=0", "Count")]
+    [InlineData("/api/study/quiz?count=2001", "Count")]
+    [InlineData("/api/study/practice?count=0", "Count")]
+    [InlineData("/api/study/practice?count=2001", "Count")]
+    [InlineData("/api/study/practice?box=0", "Box")]
+    [InlineData("/api/study/practice?box=6", "Box")]
+    public async Task Sessions_RefuseASizeOrBoxOutOfRange(string url, string field)
+    {
+        using var learner = await factory.SignInNewLearnerAsync();
+
+        using var response = await learner.Client.GetAsync(url, Cancellation);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(Cancellation);
+        Assert.Equal([field], problem!.Errors.Keys);
+    }
+
     [Theory]
     [MemberData(nameof(KnownMoves))]
     public async Task Answer_KnownCardMovesUpABox_AndComesBackAfterItsInterval(int box, int expectedBox, int expectedDays)
@@ -257,6 +290,68 @@ public sealed class StudyEndpointsTests(ErudiApiFactory factory) : IClassFixture
     }
 
     [Fact]
+    public async Task Practice_AsksTheNumberOfCardsTheLearnerPicks()
+    {
+        using var learner = await factory.SignInNewLearnerAsync();
+        var deck = await learner.Client.CreateDeckAsync();
+        await SeedCardsAsync(deck.Id, 30);
+
+        var few = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>("/api/study/practice?count=7", Cancellation) ?? [];
+        var all = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>($"/api/study/practice?deckId={deck.Id}&count={StudyService.MaxSessionSize}", Cancellation) ?? [];
+
+        Assert.Equal(7, few.Length);
+        Assert.Equal(30, all.Select(c => c.Id).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Practice_CanBeLimitedToOneBox()
+    {
+        using var learner = await factory.SignInNewLearnerAsync();
+        using var stranger = await factory.SignInNewLearnerAsync();
+        var english = await learner.Client.CreateDeckAsync("Anglais");
+        var history = await learner.Client.CreateDeckAsync("Histoire");
+        var englishBox3 = await learner.Client.AddCardAsync(english.Id, "to run out of");
+        var historyBox3 = await learner.Client.AddCardAsync(history.Id, "1830");
+        await learner.Client.AddCardAsync(english.Id, "a deadline");
+        await MoveAsync(englishBox3.Id, box: 3, factory.Today().AddDays(4));
+        await MoveAsync(historyBox3.Id, box: 3, factory.Today());
+        var strangerCard = await stranger.Client.AddCardAsync((await stranger.Client.CreateDeckAsync()).Id);
+        await MoveAsync(strangerCard.Id, box: 3, factory.Today());
+
+        var everyDeck = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>("/api/study/practice?box=3", Cancellation) ?? [];
+        var oneDeck = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>($"/api/study/practice?deckId={english.Id}&box=3", Cancellation) ?? [];
+        var emptyBox = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>("/api/study/practice?box=5", Cancellation) ?? [];
+
+        Assert.Equal(new[] { englishBox3.Id, historyBox3.Id }.Order(), everyDeck.Select(c => c.Id).Order());
+        Assert.Equal([englishBox3.Id], oneDeck.Select(c => c.Id));
+        Assert.Empty(emptyBox);
+    }
+
+    [Fact]
+    public async Task Practice_CanBeLimitedToTheCardsLastAnsweredWrong_WithoutMovingThem()
+    {
+        using var learner = await factory.SignInNewLearnerAsync();
+        using var stranger = await factory.SignInNewLearnerAsync();
+        var deck = await learner.Client.CreateDeckAsync();
+        var failedLastTime = await learner.Client.AddCardAsync(deck.Id, "failed last time");
+        var fixedSince = await learner.Client.AddCardAsync(deck.Id, "fixed since");
+        await learner.Client.AddCardAsync(deck.Id, "never asked");
+        await AnswerTwiceAsync(learner.Client, failedLastTime.Id, true, false);
+        await AnswerTwiceAsync(learner.Client, fixedSince.Id, false, true);
+        var strangerCard = await stranger.Client.AddCardAsync((await stranger.Client.CreateDeckAsync()).Id);
+        (await AnswerAsync(stranger.Client, strangerCard.Id, knew: false)).Dispose();
+        var before = await BoxesAsync(learner.Id);
+
+        var cards = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>("/api/study/practice?failed=true", Cancellation) ?? [];
+        var inBox2 = await learner.Client.GetFromJsonAsync<StudyCardResponse[]>("/api/study/practice?failed=true&box=2", Cancellation) ?? [];
+
+        Assert.Equal([failedLastTime.Id], cards.Select(c => c.Id));
+        Assert.Empty(inBox2);
+        Assert.Equal(before, await BoxesAsync(learner.Id));
+        Assert.Equal(4, (await ReviewsAsync(learner.Id)).Count);
+    }
+
+    [Fact]
     public async Task Summary_CountsTodaysAnswersTheDueCardsAndEachBox()
     {
         using var learner = await factory.SignInNewLearnerAsync();
@@ -311,6 +406,7 @@ public sealed class StudyEndpointsTests(ErudiApiFactory factory) : IClassFixture
     [InlineData("GET", "/api/study/summary")]
     [InlineData("GET", "/api/study/quiz")]
     [InlineData("GET", "/api/study/practice")]
+    [InlineData("GET", "/api/study/practice?failed=true")]
     [InlineData("POST", "/api/study/answers")]
     public async Task Endpoints_RequireASession(string method, string url)
     {
@@ -327,6 +423,15 @@ public sealed class StudyEndpointsTests(ErudiApiFactory factory) : IClassFixture
 
     private static Task<HttpResponseMessage> AnswerAsync(HttpClient client, Guid cardId, bool knew) =>
         client.PostAsJsonAsync("/api/study/answers", new AnswerRequest { CardId = cardId, Knew = knew }, Cancellation);
+
+    /// <summary>Two quiz answers a minute apart: the card is made due again in between.</summary>
+    private async Task AnswerTwiceAsync(HttpClient client, Guid cardId, bool first, bool second)
+    {
+        (await AnswerAsync(client, cardId, first)).Dispose();
+        await MoveAsync(cardId, box: 2, factory.Today());
+        factory.Clock.Advance(TimeSpan.FromMinutes(1));
+        (await AnswerAsync(client, cardId, second)).Dispose();
+    }
 
     private async Task WaitUntilAQueryWaitsForALockAsync()
     {

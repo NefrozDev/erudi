@@ -2,6 +2,30 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Erudi.Api.Study.Contracts;
 
+public sealed class QuizQuery
+{
+    /// <summary>One of the learner's decks; every deck when absent.</summary>
+    public Guid? DeckId { get; init; }
+
+    [Range(1, StudyService.MaxSessionSize)]
+    public int? Count { get; init; }
+}
+
+public sealed class PracticeQuery
+{
+    /// <summary>One of the learner's decks; every deck when absent.</summary>
+    public Guid? DeckId { get; init; }
+
+    [Range(1, StudyService.MaxSessionSize)]
+    public int? Count { get; init; }
+
+    [Range(LeitnerSchedule.FirstBox, LeitnerSchedule.LastBox)]
+    public int? Box { get; init; }
+
+    /// <summary>Only the cards whose last quiz answer was "I did not know".</summary>
+    public bool Failed { get; init; }
+}
+
 public sealed class AnswerRequest
 {
     // Nullable so that a missing value is a validation error rather than a silent default:

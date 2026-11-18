@@ -21,11 +21,28 @@
 
     <div class="deck-page__actions">
       @if (deck.value().cardCount > 0) {
-        <fieldset class="deck-page__direction">
+        <fieldset class="deck-page__choice">
+          <legend class="field__label">{{ 'decks.size.label' | transloco }}</legend>
+          <div class="deck-page__choice-options">
+            @for (option of sizes; track option) {
+              <label class="deck-page__choice-option">
+                <input
+                  type="radio"
+                  name="size"
+                  [value]="option"
+                  [checked]="size() === option"
+                  (change)="size.set(option)"
+                />
+                {{ option === 'all' ? ('decks.size.all' | transloco) : option }}
+              </label>
+            }
+          </div>
+        </fieldset>
+        <fieldset class="deck-page__choice">
           <legend class="field__label">{{ 'decks.direction.label' | transloco }}</legend>
-          <div class="deck-page__direction-options">
+          <div class="deck-page__choice-options">
             @for (option of directions; track option) {
-              <label class="deck-page__direction-option">
+              <label class="deck-page__choice-option">
                 <input
                   type="radio"
                   name="direction"
@@ -43,7 +60,7 @@
         <a
           class="button"
           routerLink="/study/quiz"
-          [queryParams]="studyParams()"
+          [queryParams]="quizParams()"
           aria-describedby="deck-quiz-hint"
         >
           {{ 'decks.quiz' | transloco: { count: deck.value().dueCount } }}
@@ -57,7 +74,7 @@
           <a
             class="button button--secondary"
             routerLink="/study/practice"
-            [queryParams]="studyParams()"
+            [queryParams]="practiceParams()"
             aria-describedby="deck-practice-hint"
           >
             {{ 'decks.practice' | transloco }}
@@ -71,6 +88,15 @@
         <p class="deck-page__hint" id="deck-practice-hint">
           {{ 'decks.practiceHint' | transloco }}
         </p>
+        <label class="checkbox">
+          <input
+            type="checkbox"
+            #failedBox
+            [checked]="onlyFailed()"
+            (change)="onlyFailed.set(failedBox.checked)"
+          />
+          {{ 'decks.onlyFailed' | transloco }}
+        </label>
       }
     </div>
 

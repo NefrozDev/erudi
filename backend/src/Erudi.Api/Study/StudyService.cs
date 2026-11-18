@@ -26,10 +26,16 @@ public abstract record AnswerResult
 /// </summary>
 public sealed class StudyService(ErudiDbContext db, StudyCalendar calendar, TimeProvider clock)
 {
-    /// <summary>Longer sessions tire more than they teach; the learner can start another one.</summary>
+    /// <summary>
+    /// A quiz's size unless the learner picks one: longer sessions tire more than they teach, and
+    /// the learner can go on with another one.
+    /// </summary>
     public const int QuizSize = 50;
 
     public const int PracticeSize = 20;
+
+    /// <summary>The most cards a learner can ask for: a whole deck.</summary>
+    public const int MaxSessionSize = DeckRules.MaxCardsPerDeck;
 
     private static readonly Expression<Func<Card, StudyCardResponse>> ToResponse =
         c => new StudyCardResponse(c.Id, c.DeckId, c.Deck.Name, c.Front, c.Back, c.Box);
@@ -55,8 +61,11 @@ public sealed class StudyService(ErudiDbContext db, StudyCalendar calendar, Time
         return new StudySummaryResponse(reviewedToday, dueCount, boxes);
     }
 
-    /// <returns>The due cards, or <c>null</c> when <paramref name="deckId"/> is not the learner's deck.</returns>
-    public async Task<IReadOnlyList<StudyCardResponse>?> QuizAsync(Guid userId, Guid? deckId, CancellationToken cancellationToken)
+    /// <returns>
+    /// At most <paramref name="count"/> due cards (<see cref="QuizSize"/> by default), or
+    /// <c>null</c> when <paramref name="deckId"/> is not the learner's deck.
+    /// </returns>
+    public async Task<IReadOnlyList<StudyCardResponse>?> QuizAsync(Guid userId, Guid? deckId, int? count, CancellationToken cancellationToken)
     {
         if (await ScopeAsync(userId, deckId, cancellationToken) is not { } cards)
         {
@@ -68,22 +77,49 @@ public sealed class StudyService(ErudiDbContext db, StudyCalendar calendar, Time
             .Where(c => c.DueOn <= today)
             // The least known cards first, then the longest overdue.
             .OrderBy(c => c.Box).ThenBy(c => c.DueOn).ThenBy(c => c.CreatedAt).ThenBy(c => c.Id)
-            .Take(QuizSize)
+            .Take(count ?? QuizSize)
             .Select(ToResponse)
             .ToListAsync(cancellationToken);
     }
 
-    /// <returns>Random cards, due or not, or <c>null</c> when <paramref name="deckId"/> is not the learner's deck.</returns>
-    public async Task<IReadOnlyList<StudyCardResponse>?> PracticeAsync(Guid userId, Guid? deckId, CancellationToken cancellationToken)
+    /// <param name="box">Only the cards of this box.</param>
+    /// <param name="onlyFailed">Only the cards whose last quiz answer was "I did not know".</param>
+    /// <returns>
+    /// At most <paramref name="count"/> random cards (<see cref="PracticeSize"/> by default), due
+    /// or not, or <c>null</c> when <paramref name="deckId"/> is not the learner's deck.
+    /// </returns>
+    public async Task<IReadOnlyList<StudyCardResponse>?> PracticeAsync(
+        Guid userId,
+        Guid? deckId,
+        int? count,
+        int? box,
+        bool onlyFailed,
+        CancellationToken cancellationToken)
     {
         if (await ScopeAsync(userId, deckId, cancellationToken) is not { } cards)
         {
             return null;
         }
 
+        if (box is { } only)
+        {
+            cards = cards.Where(c => c.Box == only);
+        }
+
+        if (onlyFailed)
+        {
+            // A card never answered, or answered right last time, stays out. Practice answers
+            // are not stored, so only the quiz counts.
+            cards = cards.Where(c => db.CardReviews
+                .Where(r => r.CardId == c.Id)
+                .OrderByDescending(r => r.ReviewedAt).ThenByDescending(r => r.Id)
+                .Select(r => (bool?)r.Knew)
+                .FirstOrDefault() == false);
+        }
+
         return await cards
             .OrderBy(_ => EF.Functions.Random())
-            .Take(PracticeSize)
+            .Take(count ?? PracticeSize)
             .Select(ToResponse)
             .ToListAsync(cancellationToken);
     }

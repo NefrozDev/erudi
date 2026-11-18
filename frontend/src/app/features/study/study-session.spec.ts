@@ -5,7 +5,7 @@ import { Observable, Subject, of, throwError } from 'rxjs';
 import { buttonNamed, linkNamed, query, settle, textOf } from '../../../testing/dom';
 import { ExploreApi, TestCard, TestResult } from '../../core/explore/explore-api';
 import { SoundEffects } from '../../core/sound/sound-effects';
-import { AnswerResult, StudyApi, StudyCard } from '../../core/study/study-api';
+import { AnswerResult, StudyApi, StudyCard, StudyFilter } from '../../core/study/study-api';
 import { SessionMode, StudySession } from './study-session';
 
 describe('StudySession', () => {
@@ -41,7 +41,7 @@ describe('StudySession', () => {
     { id: 't3', deckName: 'Capitales', front: 'Canada', back: 'Ottawa' },
   ];
   const api = {
-    cards: vi.fn<(mode: 'quiz' | 'practice', deckId?: string) => Observable<StudyCard[]>>(),
+    cards: vi.fn<(mode: 'quiz' | 'practice', filter?: StudyFilter) => Observable<StudyCard[]>>(),
     answer: vi.fn<(cardId: string, knew: boolean) => Observable<AnswerResult>>(),
   };
   const exploreApi = {
@@ -172,10 +172,87 @@ describe('StudySession', () => {
       await click(buttonNamed(host, 'Continuer'));
 
       expect(api.cards).toHaveBeenCalledTimes(2);
-      expect(api.cards).toHaveBeenLastCalledWith('quiz', 'd1');
+      expect(api.cards).toHaveBeenLastCalledWith('quiz', { deckId: 'd1' });
       expect(cardText()).toBe('b0');
       expect(textOf(host, '.study__count')).toBe('1/50');
       expect(document.activeElement).toBe(query(host, 'button.flashcard'));
+    });
+  });
+
+  describe('session options from the address', () => {
+    async function renderWith(mode: SessionMode, inputs: Record<string, string>): Promise<void> {
+      fixture = TestBed.createComponent(StudySession);
+      fixture.componentRef.setInput('mode', mode);
+      for (const [name, value] of Object.entries(inputs)) {
+        fixture.componentRef.setInput(name, value);
+      }
+      host = fixture.nativeElement as HTMLElement;
+      await fixture.whenStable();
+    }
+
+    it.each([
+      ['10', { count: 10 }],
+      ['all', { count: 2000 }],
+      ['0', {}],
+      ['2001', {}],
+      ['abc', {}],
+    ])('should ask the quiz for count=%s as %o', async (count, filter) => {
+      await renderWith('quiz', { count });
+
+      expect(api.cards).toHaveBeenCalledExactlyOnceWith('quiz', filter);
+    });
+
+    it('should practise one box or the failed cards only', async () => {
+      await renderWith('practice', { deckId: 'd1', count: '50', box: '3', failed: 'true' });
+
+      expect(api.cards).toHaveBeenCalledExactlyOnceWith('practice', {
+        deckId: 'd1',
+        count: 50,
+        box: 3,
+        failed: true,
+      });
+    });
+
+    it('should ignore an unknown box, and the box and failed filters in a quiz', async () => {
+      await renderWith('practice', { box: '6', failed: 'yes' });
+      await renderWith('quiz', { box: '2', failed: 'true' });
+
+      expect(api.cards.mock.calls).toEqual([
+        ['practice', {}],
+        ['quiz', {}],
+      ]);
+    });
+
+    it('should offer more due cards after a quiz as long as the size asked', async () => {
+      api.cards.mockReturnValueOnce(of(cards.slice(0, 2)));
+      await renderWith('quiz', { count: '2' });
+
+      await flipAndAnswer('Je savais');
+      await flipAndAnswer('Je savais');
+
+      expect(buttonNamed(host, 'Continuer')).toBeTruthy();
+    });
+
+    it('should not offer more after a quiz shorter than the size asked', async () => {
+      await renderWith('quiz', { count: '10' });
+
+      for (const card of cards) {
+        expect(cardText()).toBe(card.front);
+        await flipAndAnswer('Je savais');
+      }
+
+      expect(host.textContent).not.toContain('Continuer');
+    });
+
+    it('should say when no card matches the practice filter', async () => {
+      api.cards.mockReturnValue(of([]));
+
+      await renderWith('practice', { failed: 'true' });
+
+      expect(textOf(host, 'h1')).toBe("Aucune carte à t'entraîner ici");
+      expect(textOf(host, '.study__end-text')).toBe(
+        "Aucune carte ne correspond à ce choix pour l'instant.",
+      );
     });
   });
 
@@ -183,7 +260,7 @@ describe('StudySession', () => {
     beforeEach(() => render('quiz'));
 
     it('should load the due cards of every deck once', () => {
-      expect(api.cards).toHaveBeenCalledExactlyOnceWith('quiz', undefined);
+      expect(api.cards).toHaveBeenCalledExactlyOnceWith('quiz', {});
     });
 
     it('should show the first question with its deck and box (screen 10)', () => {
@@ -331,7 +408,7 @@ describe('StudySession', () => {
     it("should load that deck's cards, hide the deck's name and lead back to it", async () => {
       await render('quiz', 'd1');
 
-      expect(api.cards).toHaveBeenCalledExactlyOnceWith('quiz', 'd1');
+      expect(api.cards).toHaveBeenCalledExactlyOnceWith('quiz', { deckId: 'd1' });
       expect(textOf(host, '.flashcard__chip')).toBe('Boîte 2');
       expect(host.querySelector('.study__close')?.getAttribute('href')).toBe('/decks/d1');
     });
@@ -383,7 +460,7 @@ describe('StudySession', () => {
       await flipAndAnswer('Je savais');
       await flipAndAnswer('Je ne savais pas');
 
-      expect(api.cards).toHaveBeenCalledExactlyOnceWith('practice', 'd1');
+      expect(api.cards).toHaveBeenCalledExactlyOnceWith('practice', { deckId: 'd1' });
       expect(api.answer).not.toHaveBeenCalled();
     });
 

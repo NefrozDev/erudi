@@ -16,19 +16,23 @@ public sealed class StudyController(StudyService study) : ControllerBase
     public async Task<StudySummaryResponse> Summary(CancellationToken cancellationToken) =>
         await study.SummarizeAsync(User.GetUserId(), cancellationToken);
 
-    /// <summary>The due cards of every deck, or of <paramref name="deckId"/> only.</summary>
+    /// <summary>The most urgent due cards of every deck, or of one deck only.</summary>
     [HttpGet("quiz")]
     [ProducesResponseType<IReadOnlyList<StudyCardResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<StudyCardResponse>>> Quiz([FromQuery] Guid? deckId, CancellationToken cancellationToken) =>
-        await study.QuizAsync(User.GetUserId(), deckId, cancellationToken) is { } cards ? Ok(cards) : NotFound();
+    public async Task<ActionResult<IReadOnlyList<StudyCardResponse>>> Quiz([FromQuery] QuizQuery query, CancellationToken cancellationToken) =>
+        await study.QuizAsync(User.GetUserId(), query.DeckId, query.Count, cancellationToken) is { } cards ? Ok(cards) : NotFound();
 
-    /// <summary>Random cards of every deck, or of <paramref name="deckId"/> only. Answers stay in the app.</summary>
+    /// <summary>Random cards of every deck, or of one deck, box or set of failed cards. Answers stay in the app.</summary>
     [HttpGet("practice")]
     [ProducesResponseType<IReadOnlyList<StudyCardResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyList<StudyCardResponse>>> Practice([FromQuery] Guid? deckId, CancellationToken cancellationToken) =>
-        await study.PracticeAsync(User.GetUserId(), deckId, cancellationToken) is { } cards ? Ok(cards) : NotFound();
+    public async Task<ActionResult<IReadOnlyList<StudyCardResponse>>> Practice([FromQuery] PracticeQuery query, CancellationToken cancellationToken) =>
+        await study.PracticeAsync(User.GetUserId(), query.DeckId, query.Count, query.Box, query.Failed, cancellationToken) is { } cards
+            ? Ok(cards)
+            : NotFound();
 
     /// <summary>A quiz answer: moves the card to its next box.</summary>
     [HttpPost("answers")]

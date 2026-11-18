@@ -221,9 +221,16 @@ describe('app routes', () => {
   });
 
   it.each([
-    ['/study/quiz', 'quiz', undefined, 'Révision · Erudi'],
-    ['/study/practice?deckId=d1', 'practice', 'd1', 'Entraînement · Erudi'],
-  ])('should open %s full screen, in the right mode', async (url, mode, deckId, title) => {
+    ['/study/quiz', 'quiz', {}, 'Révision · Erudi'],
+    ['/study/quiz?count=all', 'quiz', { count: 2000 }, 'Révision · Erudi'],
+    ['/study/practice?deckId=d1', 'practice', { deckId: 'd1' }, 'Entraînement · Erudi'],
+    [
+      '/study/practice?deckId=d1&count=10&box=2&failed=true',
+      'practice',
+      { deckId: 'd1', count: 10, box: 2, failed: true },
+      'Entraînement · Erudi',
+    ],
+  ])('should open %s full screen, in the right mode', async (url, mode, filter, title) => {
     signIn();
     studyApi.cards.mockClear();
 
@@ -231,7 +238,7 @@ describe('app routes', () => {
     const root = harness.fixture.nativeElement as HTMLElement;
     expect(root.querySelector('app-study-session .flashcard')).not.toBeNull();
     expect(root.querySelector('app-tab-shell')).toBeNull();
-    expect(studyApi.cards).toHaveBeenCalledExactlyOnceWith(mode, deckId);
+    expect(studyApi.cards).toHaveBeenCalledExactlyOnceWith(mode, filter);
     expect(TestBed.inject(Title).getTitle()).toBe(title);
   });
 

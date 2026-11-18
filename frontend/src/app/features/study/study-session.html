@@ -3,8 +3,13 @@
     @if (total() === 0) {
       <section class="study__end">
         <app-plic mood="sleepy" />
-        <h1 class="study__end-title">{{ 'study.empty.' + mode() + 'Title' | transloco }}</h1>
-        <p class="study__end-text">{{ 'study.empty.' + mode() + 'Text' | transloco }}</p>
+        @if (filtered()) {
+          <h1 class="study__end-title">{{ 'study.empty.filteredTitle' | transloco }}</h1>
+          <p class="study__end-text">{{ 'study.empty.filteredText' | transloco }}</p>
+        } @else {
+          <h1 class="study__end-title">{{ 'study.empty.' + mode() + 'Title' | transloco }}</h1>
+          <p class="study__end-text">{{ 'study.empty.' + mode() + 'Text' | transloco }}</p>
+        }
         <div class="study__actions">
           @if (mode() === 'quiz') {
             <a

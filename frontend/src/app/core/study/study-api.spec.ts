@@ -47,7 +47,7 @@ describe('StudyApi', () => {
   });
 
   it("should get one deck's cards, without letting the id add a parameter", async () => {
-    const result = firstValueFrom(api.cards('quiz', 'd1&deckId=d2'));
+    const result = firstValueFrom(api.cards('quiz', { deckId: 'd1&deckId=d2' }));
 
     const request = controller.expectOne((r) => r.url === '/api/study/quiz');
     expect(request.request.params.getAll('deckId')).toEqual(['d1&deckId=d2']);
@@ -56,6 +56,38 @@ describe('StudyApi', () => {
     request.flush([]);
 
     expect(await result).toEqual([]);
+  });
+
+  it('should ask for a number of cards', async () => {
+    const result = firstValueFrom(api.cards('quiz', { deckId: 'd1', count: 100 }));
+
+    const request = controller.expectOne((r) => r.url === '/api/study/quiz');
+    expect(request.request.urlWithParams).toBe('/api/study/quiz?deckId=d1&count=100');
+    request.flush([card]);
+
+    expect(await result).toEqual([card]);
+  });
+
+  it('should practise one box or the failed cards only', async () => {
+    const result = firstValueFrom(api.cards('practice', { count: 10, box: 3, failed: true }));
+
+    const request = controller.expectOne((r) => r.url === '/api/study/practice');
+    expect(request.request.urlWithParams).toBe('/api/study/practice?count=10&box=3&failed=true');
+    request.flush([]);
+
+    expect(await result).toEqual([]);
+  });
+
+  it('should leave the box and failed filters out of a quiz, and send no false filter', () => {
+    api.cards('quiz', { box: 3, failed: true }).subscribe();
+    api.cards('practice', { failed: false }).subscribe();
+
+    const quiz = controller.expectOne('/api/study/quiz');
+    const practice = controller.expectOne('/api/study/practice');
+    expect(quiz.request.params.keys()).toEqual([]);
+    expect(practice.request.params.keys()).toEqual([]);
+    quiz.flush([]);
+    practice.flush([]);
   });
 
   it('should send a quiz answer', async () => {

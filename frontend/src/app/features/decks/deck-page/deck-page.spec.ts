@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
-import { buttonNamed, linkNamed, settle, textOf } from '../../../../testing/dom';
+import { buttonNamed, linkNamed, query, settle, textOf } from '../../../../testing/dom';
 import { CardSummary, Deck, DecksApi } from '../../../core/decks/decks-api';
 import { DeckPage } from './deck-page';
 
@@ -70,8 +70,8 @@ describe('DeckPage', () => {
   it("should start a quiz on the deck's due cards, or practice on any of them", async () => {
     const host = await render();
 
-    expect(linkNamed(host, 'Réviser (1)').getAttribute('href')).toBe('/study/quiz?deckId=d1');
-    expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe('/study/practice?deckId=d1');
+    expect(linkNamed(host, 'Réviser (1)').getAttribute('href')).toBe('/study/quiz?deckId=d1&count=20');
+    expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe('/study/practice?deckId=d1&count=20');
     expect(host.querySelector('.deck-page__up-to-date')).toBeNull();
   });
 
@@ -102,16 +102,58 @@ describe('DeckPage', () => {
     await settle(fixture);
 
     expect(linkNamed(host, 'Réviser (1)').getAttribute('href')).toBe(
-      '/study/quiz?deckId=d1&direction=back',
+      '/study/quiz?deckId=d1&direction=back&count=20',
     );
     expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe(
-      '/study/practice?deckId=d1&direction=back',
+      '/study/practice?deckId=d1&direction=back&count=20',
     );
 
     options[2].click();
     await settle(fixture);
     expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe(
-      '/study/practice?deckId=d1&direction=mixed',
+      '/study/practice?deckId=d1&direction=mixed&count=20',
+    );
+  });
+
+  it('should ask 20 cards by default, and pass another size to both study links', async () => {
+    const host = await render();
+    const options = [...host.querySelectorAll<HTMLInputElement>('input[name="size"]')];
+    expect(options.map((option) => option.parentElement?.textContent?.trim())).toEqual([
+      '10',
+      '20',
+      '50',
+      '100',
+      'Toutes',
+    ]);
+    expect(options[1].checked).toBe(true);
+
+    options[4].click();
+    await settle(fixture);
+
+    expect(linkNamed(host, 'Réviser (1)').getAttribute('href')).toBe(
+      '/study/quiz?deckId=d1&count=all',
+    );
+    expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe(
+      '/study/practice?deckId=d1&count=all',
+    );
+  });
+
+  it('should practise the failed cards only on demand, leaving the quiz as it is', async () => {
+    const host = await render();
+    const failed = query<HTMLInputElement>(host, 'input[type="checkbox"]');
+    expect(failed.checked).toBe(false);
+    expect(failed.parentElement?.textContent?.trim()).toBe(
+      "M'entraîner seulement sur les cartes ratées à la dernière révision",
+    );
+
+    failed.click();
+    await settle(fixture);
+
+    expect(linkNamed(host, "S'entraîner").getAttribute('href')).toBe(
+      '/study/practice?deckId=d1&count=20&failed=true',
+    );
+    expect(linkNamed(host, 'Réviser (1)').getAttribute('href')).toBe(
+      '/study/quiz?deckId=d1&count=20',
     );
   });
 

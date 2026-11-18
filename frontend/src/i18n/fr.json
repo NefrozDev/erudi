@@ -141,6 +141,11 @@
     "practice": "S'entraîner",
     "quizHint": "Réviser : les cartes prévues aujourd'hui. Elles changent de boîte selon ta réponse.",
     "practiceHint": "S'entraîner : des cartes au hasard, quand tu veux. Leurs boîtes ne bougent pas.",
+    "size": {
+      "label": "Cartes par session",
+      "all": "Toutes"
+    },
+    "onlyFailed": "M'entraîner seulement sur les cartes ratées à la dernière révision",
     "direction": {
       "label": "Sens des cartes",
       "front": "Recto → verso",
@@ -220,7 +225,9 @@
       "practice": "S'entraîner",
       "back": "Retour",
       "testTitle": "Ce paquet est vide",
-      "testText": "Il n'a plus de cartes à tester pour l'instant."
+      "testText": "Il n'a plus de cartes à tester pour l'instant.",
+      "filteredTitle": "Aucune carte à t'entraîner ici",
+      "filteredText": "Aucune carte ne correspond à ce choix pour l'instant."
     }
   },
   "progress": {

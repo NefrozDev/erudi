@@ -19,7 +19,14 @@ import { firstValueFrom, map } from 'rxjs';
 import { httpStatus } from '../../core/api/api-errors';
 import { ExploreApi, TestResult } from '../../core/explore/explore-api';
 import { SoundEffects } from '../../core/sound/sound-effects';
-import { CardDirection, QUIZ_SIZE, StudyApi, StudyMode } from '../../core/study/study-api';
+import {
+  CardDirection,
+  MAX_SESSION_SIZE,
+  QUIZ_SIZE,
+  StudyApi,
+  StudyFilter,
+  StudyMode,
+} from '../../core/study/study-api';
 import { countKey } from '../../shared/i18n/count-key';
 import { shuffle } from '../../shared/random/shuffle';
 import { BoxMeter } from '../../shared/ui/box-meter/box-meter';
@@ -46,7 +53,9 @@ const DIRECTIONS: readonly CardDirection[] = ['front', 'back', 'mixed'];
  * A quiz answer is saved before the next card shows, so leaving midway keeps the progress.
  * Practice keeps its answers in the page and moves no card. A test does the same, then saves
  * its score. Quiz cards come shuffled (the server picks the 50 most urgent, in order), and a
- * full quiz offers the next ones. `?direction=` asks the front, the back or either.
+ * full quiz offers the next ones. `?direction=` asks the front, the back or either, `?count=`
+ * how many cards (`all` for every one), and practice can keep to one `?box=` or to the cards
+ * failed at the last quiz (`?failed=true`).
  */
 @Component({
   selector: 'app-study-session',
@@ -70,24 +79,42 @@ export class StudySession {
   readonly deckId = input<string>();
   /** From the query string; anything else than `back` or `mixed` asks the front. */
   readonly direction = input<string>();
+  /** From the query string: a number of cards or `all`; the API's default otherwise. */
+  readonly count = input<string>();
+  /** From the query string, practice only: 1 to 5. */
+  readonly box = input<string>();
+  /** From the query string, practice only: `true` asks the cards failed at the last quiz. */
+  readonly failed = input<string>();
+
+  private readonly filter = computed<StudyFilter>(() => {
+    const filter: StudyFilter = {};
+    const deckId = this.deckId();
+    const count = toCount(this.count());
+    const box = toBox(this.box());
+    if (deckId !== undefined) filter.deckId = deckId;
+    if (count !== undefined) filter.count = count;
+    if (this.mode() === 'practice' && box !== undefined) filter.box = box;
+    if (this.mode() === 'practice' && this.failed() === 'true') filter.failed = true;
+    return filter;
+  });
 
   /** Moves on to load the next quiz cards. */
   private readonly round = signal(0);
 
   protected readonly cards = rxResource<
     SessionCard[],
-    { mode: SessionMode; deckId?: string; direction: CardDirection; round: number }
+    { mode: SessionMode; filter: StudyFilter; direction: CardDirection; round: number }
   >({
     params: () => ({
       mode: this.mode(),
-      deckId: this.deckId(),
+      filter: this.filter(),
       direction: DIRECTIONS.find((known) => known === this.direction()) ?? 'front',
       round: this.round(),
     }),
     stream: ({ params }) =>
       (params.mode === 'test'
-        ? this.exploreApi.testCards(params.deckId ?? '')
-        : this.api.cards(params.mode, params.deckId)
+        ? this.exploreApi.testCards(params.filter.deckId ?? '')
+        : this.api.cards(params.mode, params.filter)
       ).pipe(
         map((cards) => (params.mode === 'quiz' ? shuffle(cards) : cards)),
         map((cards) =>
@@ -131,7 +158,11 @@ export class StudySession {
   });
   /** A full quiz may have left due cards behind. */
   protected readonly canContinue = computed(
-    () => this.mode() === 'quiz' && this.total() === QUIZ_SIZE,
+    () => this.mode() === 'quiz' && this.total() === (this.filter().count ?? QUIZ_SIZE),
+  );
+  /** Practice kept to a box or to the failed cards: an empty session says so. */
+  protected readonly filtered = computed(
+    () => this.filter().box !== undefined || this.filter().failed === true,
   );
   protected readonly notFound = computed(() => httpStatus(this.cards.error()) === 404);
   /** Shown as soon as the test ends, before it is saved. */
@@ -222,4 +253,17 @@ export class StudySession {
   private focusAfterRender(target: Signal<ElementRef<HTMLElement> | undefined>): void {
     afterNextRender(() => target()?.nativeElement.focus(), { injector: this.injector });
   }
+}
+
+function toCount(value: string | undefined): number | undefined {
+  if (value === 'all') {
+    return MAX_SESSION_SIZE;
+  }
+  const count = Number(value);
+  return Number.isInteger(count) && count >= 1 && count <= MAX_SESSION_SIZE ? count : undefined;
+}
+
+function toBox(value: string | undefined): number | undefined {
+  const box = Number(value);
+  return Number.isInteger(box) && box >= 1 && box <= 5 ? box : undefined;
 }

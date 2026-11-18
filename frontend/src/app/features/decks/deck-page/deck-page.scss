@@ -99,8 +99,8 @@
   font-size: 0.9rem;
 }
 
-// Which side the study links ask: three options side by side, wrapping on narrow screens.
-.deck-page__direction {
+// The study links' options (side, size): side by side, wrapping on narrow screens.
+.deck-page__choice {
   margin: 0;
   padding: 0;
   border: 0;
@@ -111,13 +111,13 @@
   }
 }
 
-.deck-page__direction-options {
+.deck-page__choice-options {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.deck-page__direction-option {
+.deck-page__choice-option {
   display: flex;
   flex: 1 1 auto;
   align-items: center;
