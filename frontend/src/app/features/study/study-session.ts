@@ -51,6 +51,17 @@ interface SessionCard {
 
 const DIRECTIONS: readonly CardDirection[] = ['front', 'back', 'mixed'];
 
+/** The answer each arrow key gives once the card is turned over: "knew" on the right. */
+const ANSWER_KEYS: Readonly<Record<string, boolean>> = { ArrowLeft: false, ArrowRight: true };
+
+/** Arrows move the caret in a field: they answer nothing there. */
+function isEditable(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable || target.closest('input, textarea, select') !== null)
+  );
+}
+
 /**
  * Screens 10 to 12: one card at a time, question then answer, then the session's results.
  * A quiz answer is saved before the next card shows, so leaving midway keeps the progress.
@@ -59,10 +70,13 @@ const DIRECTIONS: readonly CardDirection[] = ['front', 'back', 'mixed'];
  * full quiz offers the next ones. `?direction=` asks the front, the back or either, `?count=`
  * how many cards (`all` for every one), and practice can keep to one `?box=` or to the cards
  * failed at the last quiz (`?failed=true`). At the end, the failed cards can be asked again,
- * as practice. The learner's own cards can be corrected at any time.
+ * as practice. The learner's own cards can be corrected at any time. Once a card is turned
+ * over, the left and right arrow keys answer "I did not know" and "I knew" (arrows, not
+ * letters, so no single character key triggers anything: WCAG 2.1.4).
  */
 @Component({
   selector: 'app-study-session',
+  host: { '(document:keydown)': 'onKeydown($event)' },
   imports: [BoxMeter, CardQuickEdit, NgTemplateOutlet, Plic, RouterLink, TranslocoPipe],
   templateUrl: './study-session.html',
   styleUrl: './study-session.scss',
@@ -287,6 +301,24 @@ export class StudySession {
   protected stopEditing(): void {
     this.editing.set(false);
     this.focusAfterRender(this.editButton);
+  }
+
+  protected onKeydown(event: KeyboardEvent): void {
+    const answer = ANSWER_KEYS[event.key];
+    if (
+      answer === undefined ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      !this.flipped() ||
+      this.editing() ||
+      isEditable(event.target)
+    ) {
+      return;
+    }
+    event.preventDefault();
+    void this.answer(answer);
   }
 
   private startRound(): void {

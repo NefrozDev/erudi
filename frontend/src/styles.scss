@@ -30,6 +30,9 @@
     'Atkinson Hyperlegible Next Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --page-max-width: 440px;
   --page-gutter: 20px;
+  // Desktop (1024px and up): lists and dashboards spread out, next to a side navigation.
+  --page-wide-max-width: 1040px;
+  --nav-width: 232px;
 
   color-scheme: light;
 }
@@ -93,6 +96,15 @@ select {
   @media (min-width: 768px) {
     padding-top: 40px;
     padding-bottom: 64px;
+  }
+}
+
+// Lists and dashboards use a desktop window's width; forms keep the phone-width column.
+.page--wide {
+  @media (min-width: 1024px) {
+    max-width: var(--page-wide-max-width);
+    padding-right: 40px;
+    padding-left: 40px;
   }
 }
 

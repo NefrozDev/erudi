@@ -1,6 +1,11 @@
 // The shell's bar sits below: the page fills the height above it, for the empty card to grow into.
 .home {
   min-height: calc(100dvh - 88px - env(safe-area-inset-bottom));
+
+  // The side navigation takes no height.
+  @media (min-width: 1024px) {
+    min-height: 100dvh;
+  }
 }
 
 // The violet card of screen 7.
@@ -16,6 +21,25 @@
   // The global violet outline would vanish on the violet card.
   :focus-visible {
     outline-color: var(--color-surface);
+  }
+}
+
+// Wide: the figures on the left, the actions on the right.
+@media (min-width: 1024px) {
+  .goal {
+    display: grid;
+    grid-template-columns: 1fr minmax(240px, 320px);
+    align-items: center;
+    column-gap: 32px;
+    padding: 28px 32px;
+
+    > :not(.goal__summary, .goal__streak) {
+      grid-column: 2;
+    }
+  }
+
+  .goal__summary {
+    grid-row: span 3;
   }
 }
 
@@ -148,8 +172,8 @@
 }
 
 .home__deck-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;

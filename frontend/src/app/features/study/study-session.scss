@@ -15,6 +15,25 @@
   min-height: 100dvh;
   margin: 0 auto;
   padding: 20px var(--page-gutter) calc(24px + env(safe-area-inset-bottom));
+
+  // A desktop window: a larger card, and room around it.
+  @media (min-width: 1024px) {
+    max-width: 640px;
+    padding-top: 40px;
+    padding-bottom: 48px;
+  }
+}
+
+// Keyboard shortcuts, shown where a keyboard is likely: a desktop window.
+.study__shortcuts {
+  display: none;
+  color: var(--color-violet-soft);
+  font-size: 0.9rem;
+  text-align: center;
+
+  @media (min-width: 1024px) {
+    display: block;
+  }
 }
 
 :focus-visible {

@@ -280,6 +280,72 @@ describe('StudySession', () => {
     });
   });
 
+  describe('keyboard shortcuts', () => {
+    function press(
+      key: string,
+      init: KeyboardEventInit = {},
+      target: EventTarget = document,
+    ): KeyboardEvent {
+      const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init });
+      target.dispatchEvent(event);
+      return event;
+    }
+
+    it('should answer with the arrows once the card is turned over', async () => {
+      await render('quiz');
+      await click(buttonNamed(host, 'Retourner la carte'));
+
+      const right = press('ArrowRight');
+      await settle(fixture);
+      await click(buttonNamed(host, 'Retourner la carte'));
+      press('ArrowLeft');
+      await settle(fixture);
+
+      expect(right.defaultPrevented).toBe(true);
+      expect(api.answer.mock.calls).toEqual([
+        ['c1', true],
+        ['c2', false],
+      ]);
+      expect(textOf(host, '.study__count')).toBe('3/3');
+    });
+
+    it('should not answer before the card is turned over, nor with other keys', async () => {
+      await render('quiz');
+
+      const early = press('ArrowRight');
+      await click(buttonNamed(host, 'Retourner la carte'));
+      press('k');
+      press('ArrowRight', { shiftKey: true });
+      press('ArrowRight', { ctrlKey: true });
+      await settle(fixture);
+
+      expect(early.defaultPrevented).toBe(false);
+      expect(api.answer).not.toHaveBeenCalled();
+    });
+
+    it('should leave the arrows to the fields while a card is corrected', async () => {
+      await render('practice');
+      await click(buttonNamed(host, 'Retourner la carte'));
+      await click(query(host, 'button[aria-label="Modifier la carte"]'));
+
+      press('ArrowRight', {}, query(host, '#quick-edit-front'));
+      press('ArrowLeft');
+      await settle(fixture);
+
+      expect(textOf(host, '.study__count')).toBe('1/3');
+      expect(sounds.play).not.toHaveBeenCalled();
+    });
+
+    it('should name the shortcuts under the answers', async () => {
+      await render('quiz');
+      await click(buttonNamed(host, 'Retourner la carte'));
+
+      expect(textOf(host, '.study__shortcuts')).toBe(
+        'Au clavier : flèche gauche, je ne savais pas ; flèche droite, je savais.',
+      );
+    });
+  });
+
   describe('correcting a card during the session', () => {
     it('should correct the card in place, keeping the session where it was', async () => {
       await render('quiz');

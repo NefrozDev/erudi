@@ -207,6 +207,7 @@
     "answer": "Réponse",
     "knew": "Je savais",
     "didNotKnow": "Je ne savais pas",
+    "shortcuts": "Au clavier : flèche gauche, je ne savais pas ; flèche droite, je savais.",
     "answerError": "Ta réponse n'a pas été enregistrée. Réessaie.",
     "edit": {
       "open": "Modifier la carte",

@@ -49,8 +49,8 @@
 }
 
 .explore__list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;
@@ -93,4 +93,9 @@
 
 .explore__publish {
   margin-top: 8px;
+
+  @media (min-width: 1024px) {
+    align-self: flex-start;
+    width: auto;
+  }
 }

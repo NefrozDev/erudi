@@ -15,7 +15,10 @@ const TABS: readonly Tab[] = [
   { path: '/settings', label: 'shell.settings', exact: false },
 ];
 
-/** The signed-in layout: the current tab above the bottom bar of screen 7. */
+/**
+ * The signed-in layout: the current tab above the bottom bar of screen 7, or, on a desktop
+ * window, beside a side navigation.
+ */
 @Component({
   selector: 'app-tab-shell',
   imports: [RouterLink, RouterLinkActive, RouterOutlet, TranslocoPipe],
