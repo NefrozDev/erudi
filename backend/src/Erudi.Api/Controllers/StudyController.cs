@@ -16,6 +16,19 @@ public sealed class StudyController(StudyService study) : ControllerBase
     public async Task<StudySummaryResponse> Summary(CancellationToken cancellationToken) =>
         await study.SummarizeAsync(User.GetUserId(), cancellationToken);
 
+    /// <summary>The learner's whole progress: streaks, recent activity and success rate.</summary>
+    [HttpGet("stats")]
+    [ProducesResponseType<StudyStatsResponse>(StatusCodes.Status200OK)]
+    public async Task<StudyStatsResponse> Stats(CancellationToken cancellationToken) =>
+        await study.StatsAsync(User.GetUserId(), cancellationToken);
+
+    /// <summary>One deck's boxes and answers.</summary>
+    [HttpGet("decks/{deckId:guid}/stats")]
+    [ProducesResponseType<DeckStatsResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DeckStatsResponse>> DeckStats(Guid deckId, CancellationToken cancellationToken) =>
+        await study.DeckStatsAsync(User.GetUserId(), deckId, cancellationToken) is { } stats ? stats : NotFound();
+
     /// <summary>The most urgent due cards of every deck, or of one deck only.</summary>
     [HttpGet("quiz")]
     [ProducesResponseType<IReadOnlyList<StudyCardResponse>>(StatusCodes.Status200OK)]

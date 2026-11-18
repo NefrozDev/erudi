@@ -37,6 +37,21 @@ public sealed class StudyService(ErudiDbContext db, StudyCalendar calendar, Time
     /// <summary>The most cards a learner can ask for: a whole deck.</summary>
     public const int MaxSessionSize = DeckRules.MaxCardsPerDeck;
 
+    /// <summary>The learner's pace until enough answers tell their own.</summary>
+    public const int DefaultSecondsPerCard = 10;
+
+    /// <summary>The days of activity the statistics show, today included.</summary>
+    public const int ActivityDays = 14;
+
+    /// <summary>The success rate counts the answers of these last days, today included.</summary>
+    public const int SuccessRateDays = 30;
+
+    private const int PaceSampleSize = 500;
+    private const int MinPaceSamples = 10;
+
+    // A longer gap between two answers is a break, not the time a card took.
+    private static readonly TimeSpan MaxSecondsOnACard = TimeSpan.FromMinutes(2);
+
     private static readonly Expression<Func<Card, StudyCardResponse>> ToResponse =
         c => new StudyCardResponse(c.Id, c.DeckId, c.Deck.Name, c.Front, c.Back, c.Box);
 
@@ -58,7 +73,114 @@ public sealed class StudyService(ErudiDbContext db, StudyCalendar calendar, Time
             boxes[box.Box - LeitnerSchedule.FirstBox] = box.Count;
         }
 
-        return new StudySummaryResponse(reviewedToday, dueCount, boxes);
+        var studyDays = await db.CardReviews.Where(r => r.UserId == userId).Select(r => r.StudyDay).Distinct().ToListAsync(cancellationToken);
+
+        return new StudySummaryResponse(
+            reviewedToday,
+            dueCount,
+            boxes,
+            await SecondsPerCardAsync(userId, cancellationToken),
+            StudyStreaks.Of(studyDays, today).Current);
+    }
+
+    /// <summary>The learner's whole progress: streaks, recent activity, success rate and pace.</summary>
+    public async Task<StudyStatsResponse> StatsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var today = calendar.Today();
+        var reviews = db.CardReviews.Where(r => r.UserId == userId);
+
+        var studyDays = await reviews.Select(r => r.StudyDay).Distinct().ToListAsync(cancellationToken);
+        var (currentStreak, bestStreak) = StudyStreaks.Of(studyDays, today);
+
+        var firstActivityDay = today.AddDays(1 - ActivityDays);
+        var perDay = await reviews
+            .Where(r => r.StudyDay >= firstActivityDay)
+            .GroupBy(r => r.StudyDay)
+            .Select(g => new { Day = g.Key, Reviews = g.Count(), Known = g.Count(r => r.Knew) })
+            .ToDictionaryAsync(d => d.Day, cancellationToken);
+        var lastDays = Enumerable.Range(0, ActivityDays)
+            .Select(firstActivityDay.AddDays)
+            .Select(day => perDay.TryGetValue(day, out var d) ? new DayActivityResponse(day, d.Reviews, d.Known) : new DayActivityResponse(day, 0, 0))
+            .ToList();
+
+        var cards = OwnedCards(userId);
+        return new StudyStatsResponse(
+            currentStreak,
+            bestStreak,
+            StudiedToday: studyDays.Contains(today),
+            StudyDays: studyDays.Count,
+            TotalReviews: await reviews.CountAsync(cancellationToken),
+            SuccessRate: await SuccessRateAsync(reviews, today, cancellationToken),
+            CardCount: await cards.CountAsync(cancellationToken),
+            MasteredCount: await cards.CountAsync(c => c.Box >= LeitnerSchedule.MasteredFromBox, cancellationToken),
+            lastDays,
+            await SecondsPerCardAsync(userId, cancellationToken));
+    }
+
+    /// <returns>A deck's boxes and answers, or <c>null</c> when it is not the learner's deck.</returns>
+    public async Task<DeckStatsResponse?> DeckStatsAsync(Guid userId, Guid deckId, CancellationToken cancellationToken)
+    {
+        if (await ScopeAsync(userId, deckId, cancellationToken) is not { } cards)
+        {
+            return null;
+        }
+
+        var perBox = await cards
+            .GroupBy(c => c.Box)
+            .Select(g => new { Box = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(b => b.Box, b => b.Count, cancellationToken);
+        var boxes = Enumerable.Range(LeitnerSchedule.FirstBox, LeitnerSchedule.LastBox)
+            .Select(box => perBox.GetValueOrDefault(box))
+            .ToList();
+
+        // The answers about the deck's current cards: a deleted card's answers lose their card.
+        var reviews = db.CardReviews.Where(r => r.UserId == userId && cards.Any(c => c.Id == r.CardId));
+        var today = calendar.Today();
+
+        return new DeckStatsResponse(
+            boxes,
+            TotalReviews: await reviews.CountAsync(cancellationToken),
+            SuccessRate: await SuccessRateAsync(reviews, today, cancellationToken),
+            LastStudiedOn: await reviews.MaxAsync(r => (DateOnly?)r.StudyDay, cancellationToken),
+            await SecondsPerCardAsync(userId, cancellationToken));
+    }
+
+    /// <returns>The share of known answers of the last <see cref="SuccessRateDays"/> days in percent, or <c>null</c> without answers.</returns>
+    private static async Task<int?> SuccessRateAsync(IQueryable<CardReview> reviews, DateOnly today, CancellationToken cancellationToken)
+    {
+        var since = today.AddDays(1 - SuccessRateDays);
+        var recent = await reviews
+            .Where(r => r.StudyDay >= since)
+            .GroupBy(_ => 1)
+            .Select(g => new { Count = g.Count(), Known = g.Count(r => r.Knew) })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return recent is null ? null : (int)Math.Round(100.0 * recent.Known / recent.Count, MidpointRounding.AwayFromZero);
+    }
+
+    /// <summary>
+    /// The median time between two quiz answers of the learner's latest ones, breaks left out:
+    /// how long a card takes them, to estimate a session's length.
+    /// </summary>
+    private async Task<int> SecondsPerCardAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var times = await db.CardReviews
+            .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.ReviewedAt)
+            .Take(PaceSampleSize)
+            .Select(r => r.ReviewedAt)
+            .ToListAsync(cancellationToken);
+
+        var seconds = times
+            .Zip(times.Skip(1), (later, earlier) => later - earlier)
+            .Where(gap => gap > TimeSpan.Zero && gap <= MaxSecondsOnACard)
+            .Select(gap => gap.TotalSeconds)
+            .Order()
+            .ToList();
+
+        return seconds.Count < MinPaceSamples
+            ? DefaultSecondsPerCard
+            : Math.Max(1, (int)Math.Round(seconds[seconds.Count / 2], MidpointRounding.AwayFromZero));
     }
 
     /// <returns>

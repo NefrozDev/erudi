@@ -370,6 +370,7 @@ public sealed class StudyEndpointsTests(ErudiApiFactory factory) : IClassFixture
         Assert.Equal(1, summary!.ReviewedToday);
         Assert.Equal(1, summary.DueCount);
         Assert.Equal([1, 1, 0, 1, 0], summary.Boxes);
+        Assert.Equal(1, summary.CurrentStreak);
     }
 
     [Fact]
@@ -384,6 +385,8 @@ public sealed class StudyEndpointsTests(ErudiApiFactory factory) : IClassFixture
         var summary = await learner.Client.GetFromJsonAsync<StudySummaryResponse>("/api/study/summary", Cancellation);
 
         Assert.Equal((0, 1), (summary!.ReviewedToday, summary.DueCount));
+        // Yesterday's answer keeps the streak until the end of today.
+        Assert.Equal(1, summary.CurrentStreak);
         Assert.Single(await ReviewsAsync(learner.Id));
     }
 
