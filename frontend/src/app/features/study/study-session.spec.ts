@@ -439,6 +439,9 @@ describe('StudySession', () => {
       expect(front.textContent?.trim()).toBe('?');
       expect(front.getAttribute('aria-hidden')).toBe('true');
       expect(host.querySelector('.flashcard--back')).toBeNull();
+      const frontCorners = [...host.querySelectorAll('button.flashcard--front .flashcard__corner')];
+      expect(frontCorners.map((corner) => corner.textContent?.trim())).toEqual(['?', '?']);
+      expect(frontCorners.every((corner) => corner.getAttribute('aria-hidden') === 'true')).toBe(true);
 
       await click(buttonNamed(host, 'Retourner la carte'));
 
@@ -446,6 +449,8 @@ describe('StudySession', () => {
       expect(back.querySelector('svg')).not.toBeNull();
       expect(back.getAttribute('aria-hidden')).toBe('true');
       expect(host.querySelector('.flashcard--front')).toBeNull();
+      const backCorners = host.querySelectorAll('section.flashcard--back .flashcard__corner[aria-hidden="true"] svg');
+      expect(backCorners).toHaveLength(2);
     });
   });
 

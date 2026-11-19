@@ -156,9 +156,12 @@
         <button type="button" class="flashcard flashcard--front" #frontFace (click)="flip()">
           <!-- Decorative: the button and the section already say which face this is. -->
           <span class="flashcard__badge" aria-hidden="true">?</span>
+          <!-- Playing-card corners, for the eye only. -->
+          <span class="flashcard__corner" aria-hidden="true">?</span>
+          <span class="flashcard__corner flashcard__corner--end" aria-hidden="true">?</span>
           <ng-container *ngTemplateOutlet="chip" />
           <span class="flashcard__text" [attr.data-size]="questionSize()">{{ question() }}</span>
-          <span class="flashcard__hint">{{ 'study.tapToFlip' | transloco }}</span>
+          <span class="flashcard__hint flashcard__hint--flip">{{ 'study.tapToFlip' | transloco }}</span>
         </button>
         <div class="study__actions">
           <button type="button" class="button button--accent" (click)="flip()">
@@ -173,6 +176,16 @@
           [attr.aria-label]="'study.answer' | transloco"
         >
           <span class="flashcard__badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
+            </svg>
+          </span>
+          <span class="flashcard__corner" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
+            </svg>
+          </span>
+          <span class="flashcard__corner flashcard__corner--end" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
               <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
             </svg>
