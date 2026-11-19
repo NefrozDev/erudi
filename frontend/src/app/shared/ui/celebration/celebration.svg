@@ -32,35 +32,80 @@
 
   @switch (scene()) {
     @case ('car') {
-      <!-- Plic drives in in a convertible, stops, gives a thumbs up with a blink, and drives off. -->
-      <path d="M14 214h292" stroke="#f0e2cf" stroke-width="4" stroke-linecap="round" />
+      <!-- Plic drives in in a convertible, brakes with a nose dive and a puff of dust, gives a
+           thumbs up with a blink and a wink of the headlights, then speeds off. -->
+      <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+        <circle cx="270" cy="46" r="18" fill="#ffe08a" />
+        <path d="M40 62q0-12 14-12 4-12 18-10 10-6 18 4 12 0 12 10t-12 8H52q-12 0-12 0z" fill="#ffffff" />
+        <path d="M172 36q0-9 10-9 4-9 14-7 8-4 13 3 9 0 9 8t-9 5h-28q-9 0-9 0z" fill="#ffffff" />
+      </g>
+      <rect x="2" y="208" width="316" height="30" fill="#e9dcc9" />
+      <path d="M2 208h316" stroke="#3b2db0" stroke-width="3" />
+      <path d="M22 224h26M92 224h26M162 224h26M232 224h26M302 224h26" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
       <g class="cel-car">
         <g class="cel-car__lines" stroke="#c9cad8" stroke-width="5" stroke-linecap="round">
-          <path d="M18 140h34M8 162h40M22 184h26" />
+          <path d="M-14 130h38M-24 156h44M-10 182h30" />
         </g>
-        <g transform="translate(95 34) scale(0.62)">
-          <ng-container *ngTemplateOutlet="plic" />
+        <g fill="#ffffff" stroke="#c9cad8" stroke-width="3">
+          @for (puff of [0, 1, 2]; track puff) {
+            <g [attr.transform]="'translate(' + (22 - puff * 6) + ' ' + (186 - puff * 4) + ')'">
+              <circle class="cel-car__puff" [attr.r]="6 + puff * 2" [style.--delay]="puff * 0.08 + 's'" />
+            </g>
+          }
         </g>
-        <g class="cel-car__thumb" stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
-          <ellipse cx="204" cy="118" rx="8" ry="15" fill="#7d63ff" transform="rotate(25 204 118)" />
-          <rect x="207" y="84" width="8" height="18" rx="4" fill="#7d63ff" />
-          <circle cx="212" cy="104" r="10" fill="#7d63ff" />
+        <!-- Everything on the springs: it bounces, dives when braking and squats when leaving. -->
+        <g class="cel-car__ride">
+          <rect x="108" y="112" width="48" height="40" rx="14" fill="#5b3df5" stroke="#3b2db0" stroke-width="3" />
+          <g transform="translate(130 132)">
+            <path class="cel-car__scarf" d="M0-4q-22-6-44 6l6 10q18-8 38-4z" fill="#ffc93c" stroke="#3b2db0" stroke-width="2.5" stroke-linejoin="round" />
+          </g>
+          <g transform="translate(95 34) scale(0.62)">
+            <ng-container *ngTemplateOutlet="plic" />
+          </g>
+          <!-- The left hand rises in a thumbs up; the right one keeps the wheel. -->
+          <g class="cel-car__thumb" stroke="#3b2db0" stroke-width="3" stroke-linejoin="round" fill="#7d63ff">
+            <rect x="100" y="92" width="14" height="34" rx="7" />
+            <circle cx="107" cy="90" r="11" />
+            <rect x="103" y="64" width="9" height="20" rx="4.5" />
+          </g>
+          <path d="M150 140h56" stroke="#17153b" stroke-width="4" stroke-linecap="round" />
+          <ellipse cx="198" cy="128" rx="4.5" ry="12" fill="none" stroke="#17153b" stroke-width="4" transform="rotate(-18 198 128)" />
+          <path d="M184 120l10 6" stroke="#3b2db0" stroke-width="14" stroke-linecap="round" />
+          <path d="M184 120l10 6" stroke="#7d63ff" stroke-width="8" stroke-linecap="round" />
+          <circle cx="196" cy="126" r="7" fill="#7d63ff" stroke="#3b2db0" stroke-width="3" />
+          <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+            <path d="M208 142l-12-30 7-3 16 33z" fill="#8fd3ff" fill-opacity="0.75" />
+            <path d="M30 170q0-24 24-30l70-4h26q6 0 10 6h60q42 0 64 12q16 10 16 28v4q0 6-6 6H36q-6 0-6-6z" fill="#ff8a8a" />
+            <path d="M156 146v36" fill="none" />
+            <path d="M164 154h14" stroke-width="4" stroke-linecap="round" />
+            <rect x="20" y="182" width="18" height="9" rx="4.5" fill="#c9cad8" />
+            <rect x="286" y="182" width="20" height="9" rx="4.5" fill="#c9cad8" />
+            <rect x="30" y="158" width="7" height="14" rx="3" fill="#e0475c" />
+            <ellipse class="cel-car__light" cx="290" cy="168" rx="6" ry="8" fill="#ffe08a" />
+          </g>
+          <path d="M42 176h240" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.7" />
+          <path d="M66 192a26 26 0 0 1 52 0zM212 192a26 26 0 0 1 52 0z" fill="#17153b" />
         </g>
-        <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
-          <path d="M124 136 112 108" stroke="#8fd3ff" stroke-width="6" stroke-linecap="round" />
-          <path d="M56 162q0-24 24-26h168q32 2 38 28v14q0 12-12 12H68q-12 0-12-12z" fill="#ff8a8a" />
-          <path d="M150 140v44" fill="none" />
-          <circle cx="276" cy="160" r="6" fill="#ffc93c" />
-        </g>
-        @for (x of [100, 236]; track x) {
-          <g [attr.transform]="'translate(' + x + ' 194)'">
+        @for (x of [92, 238]; track x) {
+          <g [attr.transform]="'translate(' + x + ' 192)'">
             <g class="cel-car__wheel" stroke="#3b2db0" stroke-width="3">
-              <circle r="18" fill="#17153b" />
-              <circle r="7" fill="#c9cad8" />
-              <path d="M0-14v6M0 8v6M-14 0h6M8 0h6" stroke="#c9cad8" />
+              <circle r="20" fill="#17153b" />
+              <circle r="11" fill="#c9cad8" />
+              <path d="M0-11v22M-10-4 10 4M-10 4 10-4" stroke="#8a8ca3" stroke-width="2.5" />
+              <circle r="4" fill="#ffc93c" stroke-width="2" />
             </g>
           </g>
         }
+        <g fill="#f0e2cf" stroke="#c9b9a3" stroke-width="2.5">
+          @for (dust of [{ x: 262, r: 10 }, { x: 276, r: 7 }, { x: 250, r: 6 }]; track dust.x) {
+            <g [attr.transform]="'translate(' + dust.x + ' 206)'">
+              <circle class="cel-car__dust" [attr.r]="dust.r" />
+            </g>
+          }
+        </g>
+        <g transform="translate(96 58)">
+          <path class="cel-car__ding" d="M0-12 4-4 12 0 4 4 0 12-4 4-12 0-4-4z" fill="#ffc93c" stroke="#3b2db0" stroke-width="2" stroke-linejoin="round" />
+        </g>
       </g>
     }
     @case ('podium') {
@@ -109,30 +154,40 @@
       </g>
     }
     @case ('lab') {
-      <!-- Plic pours one flask into the other: the mix turns gold and sparkles burst out. -->
+      <!-- Plic holds a flask in each hand, raises both over its head and joins them: the mix
+           turns gold and bursts into sparkles above it. -->
+      <path d="M2 206h316" stroke="#f0e2cf" stroke-width="4" />
       <g class="cel-lab__plic">
-        <g transform="translate(100 24) scale(0.6)">
+        <g transform="translate(100 92) scale(0.6)">
+          <g stroke="#3b2db0" stroke-width="3">
+            <ellipse cx="76" cy="180" rx="18" ry="9" fill="#fff1df" />
+            <ellipse cx="124" cy="180" rx="18" ry="9" fill="#fff1df" />
+          </g>
           <ng-container *ngTemplateOutlet="plic" />
+          <!-- Each arm turns at the shoulder; the hand turns the other way so its flask stays
+               upright, then leans in to meet the other one over the head. -->
+          @for (hand of labHands; track hand.side) {
+            <g [attr.transform]="hand.side">
+              <g transform="translate(154 112)">
+                <g class="cel-lab__arm" stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+                  <rect x="-12" y="-10" width="24" height="140" rx="12" fill="#7d63ff" />
+                  <g transform="translate(0 130)">
+                    <g class="cel-lab__hold">
+                      <g class="cel-lab__flask" transform="scale(1.7)">
+                        <path d="M-15-14h30l7 10q2 4-3 4h-38q-5 0-3-4z" [attr.fill]="hand.liquid" stroke="none" />
+                        <path class="cel-lab__gold" d="M-15-14h30l7 10q2 4-3 4h-38q-5 0-3-4z" fill="#ffc93c" stroke="none" />
+                        <path d="M-6-46h12v14l16 26q4 8-4 8h-36q-8 0-4-8l16-26z" fill="#ffffff" fill-opacity="0.25" />
+                      </g>
+                      <circle cy="2" r="13" fill="#7d63ff" />
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          }
         </g>
       </g>
-      <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
-        <g transform="translate(118 172)">
-          <g class="cel-lab__left">
-            <path class="cel-lab__mix" d="M-15 6h30l5 10q3 6-4 6h-32q-7 0-4-6z" fill="#7d63ff" stroke="none" />
-            <path d="M-7-28h14v16l15 28q3 8-5 8h-34q-8 0-5-8l15-28z" fill="#ffffff" fill-opacity="0.35" />
-            <circle cx="-14" cy="-6" r="9" fill="#7d63ff" />
-          </g>
-        </g>
-        <g transform="translate(202 172)">
-          <g class="cel-lab__right">
-            <path d="M-15 6h30l5 10q3 6-4 6h-32q-7 0-4-6z" fill="#9fe8c8" stroke="none" />
-            <path d="M-7-28h14v16l15 28q3 8-5 8h-34q-8 0-5-8l15-28z" fill="#ffffff" fill-opacity="0.35" />
-            <circle cx="14" cy="-6" r="9" fill="#7d63ff" />
-          </g>
-        </g>
-      </g>
-      <path class="cel-lab__stream" d="M160 120q-14 6-36 22" fill="none" stroke="#9fe8c8" stroke-width="6" stroke-linecap="round" />
-      <g transform="translate(118 146)" stroke="#3b2db0" stroke-width="2" stroke-linejoin="round">
+      <g transform="translate(160 48)" stroke="#3b2db0" stroke-width="2" stroke-linejoin="round">
         <!-- The blast: a golden glow and a ring, under the sparkles. -->
         <circle class="cel-lab__glow" r="40" fill="#ffe08a" stroke="none" />
         <circle class="cel-lab__ring" r="40" fill="none" stroke="#ffc93c" stroke-width="5" />
