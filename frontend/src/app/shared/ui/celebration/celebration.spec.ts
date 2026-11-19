@@ -52,10 +52,10 @@ describe('Celebration', () => {
     }
   });
 
-  it('should draw four flashes on the podium, and a few confetti and sparkles', async () => {
+  it('should draw four flashes on the podium, confetti, and an explosion of sparkles', async () => {
     expect((await render('podium')).host.querySelectorAll('.cel-podium__flash')).toHaveLength(4);
     expect((await render('gift')).host.querySelectorAll('.cel-gift__confetti')).toHaveLength(14);
-    expect((await render('lab')).host.querySelectorAll('.cel-lab__sparkle')).toHaveLength(7);
+    expect((await render('lab')).host.querySelectorAll('.cel-lab__sparkle')).toHaveLength(36);
   });
 
   it('should say it is over once, when its time is up', async () => {

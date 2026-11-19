@@ -7,7 +7,7 @@ $duration: 2.6s;
   z-index: 10;
   top: 50%;
   left: 50%;
-  width: min(320px, calc(100vw - 32px));
+  width: min(720px, calc(100vw - 16px), (100dvh - 64px) * 4 / 3);
   aspect-ratio: 4 / 3;
   pointer-events: none;
   filter: drop-shadow(0 12px 24px rgb(23 21 59 / 0.3));
@@ -325,24 +325,64 @@ svg {
   }
 }
 
-.cel-lab__sparkle {
+// The explosion, right after the pour: a flash of glow, a shock ring, then the sparkles.
+.cel-lab__glow {
   opacity: 0;
-  animation: cel-sparkle 1.1s ease-out both;
-  animation-delay: calc(1.5s + var(--delay));
+  animation: cel-glow 0.6s ease-out 1.35s both;
 }
 
-@keyframes cel-sparkle {
+@keyframes cel-glow {
   0% {
-    transform: translate(0, 0) scale(0);
-    opacity: 1;
+    transform: scale(0.2);
+    opacity: 0;
   }
 
-  60% {
+  25% {
+    transform: scale(1.4);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.cel-lab__ring {
+  opacity: 0;
+  animation: cel-shock 0.7s ease-out 1.35s both;
+}
+
+@keyframes cel-shock {
+  0% {
+    transform: scale(0.2);
     opacity: 1;
   }
 
   100% {
-    transform: translate(var(--dx), var(--dy)) scale(1.3) rotate(90deg);
+    transform: scale(4.5);
+    opacity: 0;
+  }
+}
+
+.cel-lab__sparkle {
+  opacity: 0;
+  animation: cel-sparkle 1s cubic-bezier(0.1, 0.8, 0.3, 1) both;
+  animation-delay: calc(1.38s + var(--delay));
+}
+
+@keyframes cel-sparkle {
+  0% {
+    transform: translate(0, 0) scale(0) rotate(0);
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(var(--scale)) rotate(var(--spin));
     opacity: 0;
   }
 }

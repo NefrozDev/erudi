@@ -42,13 +42,22 @@ const CONFETTI = Array.from({ length: 14 }, (_, index) => ({
   delay: `${((index % 4) * 0.12).toFixed(2)}s`,
 }));
 
-// Lab scene: sparkles bursting out of the mixed flask, in every direction.
-const SPARKLES = Array.from({ length: 7 }, (_, index) => {
-  const angle = (-90 + (index - 3) * 30) * (Math.PI / 180);
+// Lab scene: the mixed flask explodes into sparkles, in every direction and to the panel's
+// edges. Three rings at different reaches; each sparkle has its own size, colour and spin,
+// spread by fixed steps (no randomness, so every explosion looks the same and tests hold).
+const SPARKLE_COLORS = ['#ffc93c', '#ffffff', '#ff8a8a', '#9fe8c8', '#ffc93c', '#d9d2ff'];
+const SPARKLE_COUNT = 36;
+const SPARKLES = Array.from({ length: SPARKLE_COUNT }, (_, index) => {
+  const ring = index % 3;
+  const angle = ((index * 360) / SPARKLE_COUNT + ring * 7) * (Math.PI / 180);
+  const reach = 70 + ring * 55 + (index % 5) * 6;
   return {
-    dx: `${Math.round(Math.cos(angle) * 70)}px`,
-    dy: `${Math.round(Math.sin(angle) * 70)}px`,
-    delay: `${((index % 3) * 0.08).toFixed(2)}s`,
+    dx: `${Math.round(Math.cos(angle) * reach)}px`,
+    dy: `${Math.round(Math.sin(angle) * reach)}px`,
+    scale: (0.7 + ((index * 7) % 10) / 9).toFixed(2),
+    spin: `${(index % 2 === 0 ? 1 : -1) * (90 + (index % 4) * 60)}deg`,
+    fill: SPARKLE_COLORS[index % SPARKLE_COLORS.length],
+    delay: `${(ring * 0.06).toFixed(2)}s`,
   };
 });
 
