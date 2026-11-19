@@ -78,13 +78,23 @@
             <ellipse cx="124" cy="180" rx="18" ry="9" fill="#fff1df" />
           </g>
           <ng-container *ngTemplateOutlet="plic" />
-          <!-- Both arms bent up, the left mirroring the right. -->
+          <!-- A double biceps pose, the left arm mirroring the right: the upper arm out from
+               the shoulder, the forearm up from the elbow with a fist. The forearm curls in
+               towards the head and the biceps swells on top of the upper arm. -->
           @for (side of sides; track side) {
             <g [attr.transform]="side">
-              <g class="cel-podium__arm" fill="#7d63ff" stroke="#3b2db0" stroke-width="3">
-                <ellipse cx="174" cy="122" rx="22" ry="12" />
-                <ellipse cx="192" cy="96" rx="11" ry="20" />
-                <circle class="cel-podium__biceps" cx="176" cy="112" r="11" />
+              <g fill="#7d63ff" stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+                <g class="cel-podium__forearm">
+                  <rect x="186" y="66" width="24" height="58" rx="12" />
+                  <!-- The fist, its knuckles towards the head. -->
+                  <rect x="182" y="44" width="32" height="30" rx="12" />
+                  <path d="M186 54h12M186 63h12" fill="none" stroke-linecap="round" />
+                </g>
+                <rect x="144" y="104" width="64" height="24" rx="12" />
+                <path class="cel-podium__biceps" d="M154 106q16-30 36 0z" />
+              </g>
+              <g class="cel-podium__strain" fill="none" stroke="#ffc93c" stroke-width="4" stroke-linecap="round">
+                <path d="M160 76l-6-10M172 72v-12M184 76l6-10" />
               </g>
             </g>
           }
@@ -142,14 +152,21 @@
     }
     @case ('gift') {
       <!-- A gift box opens: Plic springs out, arms up, under a shower of confetti. -->
+      <!-- Plic whole, standing on the box once out: feet, body and both arms waving. -->
       <g class="cel-gift__plic">
-        <g transform="translate(100 30) scale(0.6)">
+        <g transform="translate(94 22) scale(0.66)">
+          <g stroke="#3b2db0" stroke-width="3">
+            <ellipse cx="76" cy="182" rx="20" ry="10" fill="#fff1df" />
+            <ellipse cx="124" cy="182" rx="20" ry="10" fill="#fff1df" />
+          </g>
+          <ng-container *ngTemplateOutlet="plic" />
           @for (side of sides; track side) {
             <g [attr.transform]="side">
-              <ellipse cx="176" cy="102" rx="13" ry="27" fill="#7d63ff" stroke="#3b2db0" stroke-width="3" transform="rotate(42 176 102)" />
+              <g class="cel-gift__arm" fill="#7d63ff" stroke="#3b2db0" stroke-width="3">
+                <ellipse cx="178" cy="96" rx="13" ry="28" transform="rotate(38 178 96)" />
+              </g>
             </g>
           }
-          <ng-container *ngTemplateOutlet="plic" />
         </g>
       </g>
       <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">

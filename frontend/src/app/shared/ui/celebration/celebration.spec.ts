@@ -35,9 +35,9 @@ describe('Celebration', () => {
 
   it.each([
     ['car', ['.cel-car', '.cel-car__thumb', '.cel-car__wheel']],
-    ['podium', ['.cel-podium__arm', '.cel-podium__flash']],
+    ['podium', ['.cel-podium__forearm', '.cel-podium__biceps', '.cel-podium__strain', '.cel-podium__flash']],
     ['lab', ['.cel-lab__left', '.cel-lab__right', '.cel-lab__sparkle']],
-    ['gift', ['.cel-gift__lid', '.cel-gift__confetti']],
+    ['gift', ['.cel-gift__lid', '.cel-gift__arm', '.cel-gift__confetti']],
     ['rocket', ['.cel-rocket', '.cel-rocket__flame', '.cel-rocket__star']],
   ] as const)('should draw Plic and the props of the %s scene, and only those', async (scene, parts) => {
     const { host } = await render(scene);
