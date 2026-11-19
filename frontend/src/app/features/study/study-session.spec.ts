@@ -346,6 +346,24 @@ describe('StudySession', () => {
     });
   });
 
+  describe('card faces', () => {
+    it('should mark the question with a "?" and the answer with a star, hidden from screen readers', async () => {
+      await render('quiz');
+
+      const front = query(host, 'button.flashcard--front .flashcard__badge');
+      expect(front.textContent?.trim()).toBe('?');
+      expect(front.getAttribute('aria-hidden')).toBe('true');
+      expect(host.querySelector('.flashcard--back')).toBeNull();
+
+      await click(buttonNamed(host, 'Retourner la carte'));
+
+      const back = query(host, 'section.flashcard--back .flashcard__badge');
+      expect(back.querySelector('svg')).not.toBeNull();
+      expect(back.getAttribute('aria-hidden')).toBe('true');
+      expect(host.querySelector('.flashcard--front')).toBeNull();
+    });
+  });
+
   describe('correcting a card during the session', () => {
     it('should correct the card in place, keeping the session where it was', async () => {
       await render('quiz');
