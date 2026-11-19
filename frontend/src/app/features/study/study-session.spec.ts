@@ -7,6 +7,7 @@ import { ExploreApi, TestCard, TestResult } from '../../core/explore/explore-api
 import { SoundEffects } from '../../core/sound/sound-effects';
 import { Card, CardContent, DecksApi } from '../../core/decks/decks-api';
 import { AnswerResult, StudyApi, StudyCard, StudyFilter } from '../../core/study/study-api';
+import { PREFERS_REDUCED_MOTION } from '../../shared/ui/celebration/celebration';
 import { SessionMode, StudySession } from './study-session';
 
 describe('StudySession', () => {
@@ -56,10 +57,12 @@ describe('StudySession', () => {
   let fixture: ComponentFixture<StudySession>;
   let host: HTMLElement;
   let random: ReturnType<typeof vi.spyOn>;
+  let reducedMotion: boolean;
 
   beforeEach(() => {
     // Just under 1: shuffling keeps the order and "mixed" asks the front, unless a test says.
     random = vi.spyOn(Math, 'random').mockReturnValue(0.999);
+    reducedMotion = false;
     sounds.play.mockReset();
     api.cards.mockReset().mockReturnValue(of(cards));
     api.answer.mockReset().mockReturnValue(of({ box: 3, dueOn: '2026-11-11' }));
@@ -85,6 +88,7 @@ describe('StudySession', () => {
         { provide: ExploreApi, useValue: exploreApi },
         { provide: SoundEffects, useValue: sounds },
         { provide: DecksApi, useValue: decksApi },
+        { provide: PREFERS_REDUCED_MOTION, useValue: () => reducedMotion },
       ],
     });
   });
@@ -343,6 +347,87 @@ describe('StudySession', () => {
       expect(textOf(host, '.study__shortcuts')).toBe(
         'Au clavier : flèche gauche, je ne savais pas ; flèche droite, je savais.',
       );
+    });
+  });
+
+  describe('celebrations', () => {
+    async function answer(knew: boolean): Promise<void> {
+      await click(buttonNamed(host, 'Retourner la carte'));
+      await click(buttonNamed(host, knew ? 'Je savais' : 'Je ne savais pas'));
+    }
+
+    const scenes = () =>
+      [...host.querySelectorAll<HTMLElement>('app-celebration')].map((scene) => scene.dataset['scene']);
+
+    it('should show none before any answer, nor after an unknown one', async () => {
+      await render('quiz');
+      expect(scenes()).toEqual([]);
+
+      await answer(false);
+
+      expect(scenes()).toEqual([]);
+    });
+
+    it.each(['quiz', 'practice', 'test'] as const)(
+      'should play a scene for each known answer in %s, never the same twice in a row',
+      async (mode) => {
+        await render(mode, mode === 'test' ? 'p1' : undefined);
+
+        await answer(true);
+        const first = scenes();
+        await answer(true);
+        const second = scenes();
+
+        // The draw is mocked just under 1: the last scene, then the last of the others.
+        expect(first).toEqual(['rocket']);
+        expect(second).toEqual(['gift']);
+      },
+    );
+
+    it('should remove the scene once it is over, but not a newer one', async () => {
+      await render('practice');
+      await answer(true);
+      const firstScene = host.querySelector('app-celebration');
+      await answer(true);
+      expect(host.querySelector('app-celebration')).not.toBe(firstScene);
+
+      // The first scene's end comes after it was replaced: the new one stays.
+      fixture.componentInstance['celebrationOver'](1);
+      await settle(fixture);
+      expect(scenes()).toEqual(['gift']);
+
+      fixture.componentInstance['celebrationOver'](2);
+      await settle(fixture);
+      expect(scenes()).toEqual([]);
+    });
+
+    it('should leave the session going while a scene plays', async () => {
+      await render('quiz');
+      await answer(true);
+
+      expect(textOf(host, '.study__count')).toBe('2/3');
+      expect(api.answer).toHaveBeenCalledExactlyOnceWith('c1', true);
+      expect(sounds.play).toHaveBeenCalledExactlyOnceWith('knew');
+      expect(query(host, 'app-celebration').getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('should play nothing when the device asks for reduced motion', async () => {
+      reducedMotion = true;
+      await render('quiz');
+
+      await answer(true);
+
+      expect(scenes()).toEqual([]);
+      expect(sounds.play).toHaveBeenCalledExactlyOnceWith('knew');
+    });
+
+    it('should play nothing when the answer could not be saved', async () => {
+      api.answer.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+      await render('quiz');
+
+      await answer(true);
+
+      expect(scenes()).toEqual([]);
     });
   });
 

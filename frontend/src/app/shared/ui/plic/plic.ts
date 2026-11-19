@@ -2,13 +2,13 @@ import { ChangeDetectionStrategy, Component, ElementRef, inject, input } from '@
 
 export type PlicMood = 'happy' | 'surprised' | 'proud' | 'sleepy' | 'magician';
 
-interface Spike {
+export interface Spike {
   angle: number;
   fill: string;
 }
 
 // The card-spikes fan out behind the head, cycling through the palette.
-const SPIKES: readonly Spike[] = [
+export const SPIKES: readonly Spike[] = [
   { angle: -78, fill: '#ffc93c' },
   { angle: -52, fill: '#ffffff' },
   { angle: -26, fill: '#ff8a8a' },

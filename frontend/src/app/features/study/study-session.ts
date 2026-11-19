@@ -28,6 +28,12 @@ import {
   StudyMode,
 } from '../../core/study/study-api';
 import { countKey } from '../../shared/i18n/count-key';
+import {
+  Celebration,
+  CelebrationScene,
+  PREFERS_REDUCED_MOTION,
+  nextScene,
+} from '../../shared/ui/celebration/celebration';
 import { shuffle } from '../../shared/random/shuffle';
 import { CardContent } from '../../core/decks/decks-api';
 import { BoxMeter } from '../../shared/ui/box-meter/box-meter';
@@ -77,7 +83,7 @@ function isEditable(target: EventTarget | null): boolean {
 @Component({
   selector: 'app-study-session',
   host: { '(document:keydown)': 'onKeydown($event)' },
-  imports: [BoxMeter, CardQuickEdit, NgTemplateOutlet, Plic, RouterLink, TranslocoPipe],
+  imports: [BoxMeter, CardQuickEdit, Celebration, NgTemplateOutlet, Plic, RouterLink, TranslocoPipe],
   templateUrl: './study-session.html',
   styleUrl: './study-session.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,6 +93,7 @@ export class StudySession {
   private readonly exploreApi = inject(ExploreApi);
   private readonly injector = inject(Injector);
   private readonly sounds = inject(SoundEffects);
+  private readonly reducedMotion = inject(PREFERS_REDUCED_MOTION);
 
   /** From the route's data. */
   readonly mode = input.required<SessionMode>();
@@ -148,6 +155,10 @@ export class StudySession {
   protected readonly index = signal(0);
   protected readonly flipped = signal(false);
   protected readonly knew = signal(0);
+  /** The scene Plic plays for the last known answer; each has its own id, so it restarts. */
+  protected readonly celebration = signal<{ id: number; scene: CelebrationScene } | null>(null);
+  private celebrations = 0;
+  private lastScene: CelebrationScene | undefined;
   protected readonly toReview = signal(0);
   protected readonly answering = signal(false);
   protected readonly answerFailed = signal(false);
@@ -264,7 +275,9 @@ export class StudySession {
 
     this.sounds.play(knew ? 'knew' : 'again');
     (knew ? this.knew : this.toReview).update((count) => count + 1);
-    if (!knew) {
+    if (knew) {
+      this.celebrate();
+    } else {
       this.failedCards.update((failed) => [...failed, card]);
     }
     this.index.update((index) => index + 1);
@@ -275,6 +288,22 @@ export class StudySession {
       await this.saveResult();
     }
   }
+
+  protected celebrationOver(id: number): void {
+    if (this.celebration()?.id === id) {
+      this.celebration.set(null);
+    }
+  }
+
+  private celebrate(): void {
+    if (this.reducedMotion()) {
+      return;
+    }
+    const scene = nextScene(this.lastScene);
+    this.lastScene = scene;
+    this.celebration.set({ id: ++this.celebrations, scene });
+  }
+
 
   /** Loads the next due cards; the answered ones have moved and are no longer due. */
   protected continueQuiz(): void {

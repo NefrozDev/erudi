@@ -251,6 +251,13 @@
   }
 }
 
+<!-- Plic celebrates each known answer; a new one replaces the scene still playing. -->
+@if (celebration(); as celebration) {
+  @for (playing of [celebration]; track playing.id) {
+    <app-celebration [scene]="playing.scene" (finished)="celebrationOver(playing.id)" />
+  }
+}
+
 <!--
   The card's deck (when the session mixes decks, or in a test) and box (the learner's own
   cards only), on both faces.

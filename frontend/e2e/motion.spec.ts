@@ -67,3 +67,45 @@ test.describe('Plic keeps still when the device asks for reduced motion', () => 
     });
   }
 });
+
+test.describe('Plic celebrates a known answer', () => {
+  const [question] = screens.filter((screen) => screen.name === 'quiz, question');
+
+  async function answerKnown(page: import('@playwright/test').Page): Promise<void> {
+    await openScreen(page, question);
+    await page.getByRole('button', { name: 'Retourner la carte' }).click();
+    await page.getByRole('button', { name: 'Je savais' }).click();
+  }
+
+  test.describe('with motion', () => {
+    test.use({ reducedMotion: 'no-preference' });
+
+    test('for under five seconds (2.2.2), hidden from assistive tech, then gone', async ({ page }) => {
+      await answerKnown(page);
+      const scene = page.locator('app-celebration');
+      await expect(scene).toHaveAttribute('aria-hidden', 'true');
+
+      const ends = await scene.evaluate((element) =>
+        element.getAnimations({ subtree: true }).map((a) => a.effect?.getComputedTiming().endTime),
+      );
+      expect(ends.length, 'the scene moves').toBeGreaterThan(0);
+      for (const end of ends) {
+        expect(Number(end)).toBeLessThanOrEqual(5000);
+      }
+      // It lets clicks through to the card underneath.
+      await page.getByRole('button', { name: 'Retourner la carte' }).click();
+      await expect(scene).toHaveCount(0, { timeout: 5000 });
+    });
+  });
+
+  test.describe('with reduced motion', () => {
+    test.use({ reducedMotion: 'reduce' });
+
+    test('not at all', async ({ page }) => {
+      await answerKnown(page);
+      await expect(page.getByRole('button', { name: 'Retourner la carte' })).toBeVisible();
+
+      await expect(page.locator('app-celebration')).toHaveCount(0);
+    });
+  });
+});

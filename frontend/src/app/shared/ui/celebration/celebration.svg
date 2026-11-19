@@ -1,0 +1,203 @@
+<svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg" focusable="false">
+  <!-- Plic without arms or feet, in its own 200 × 200 frame: each scene adds what it holds. -->
+  <ng-template #plic>
+    <svg:g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+      @for (spike of spikes; track spike.angle) {
+        <svg:g [attr.transform]="'rotate(' + spike.angle + ' 100 116)'">
+          <svg:rect x="83" y="14" width="34" height="56" rx="7" [attr.fill]="spike.fill" />
+        </svg:g>
+      }
+      <svg:circle cx="100" cy="118" r="62" fill="#6f52ff" />
+    </svg:g>
+    <svg:ellipse cx="76" cy="80" rx="20" ry="10" fill="#ffffff" opacity="0.25" transform="rotate(-22 76 80)" />
+    <svg:ellipse cx="100" cy="132" rx="45" ry="38" fill="#ffe7cc" />
+    <svg:circle cx="68" cy="142" r="8" fill="#ff9aa8" opacity="0.85" />
+    <svg:circle cx="132" cy="142" r="8" fill="#ff9aa8" opacity="0.85" />
+    <svg:g class="cel__eyes">
+      <svg:g stroke="#17153b" stroke-width="3">
+        <svg:circle cx="84" cy="120" r="12" fill="#ffffff" />
+        <svg:circle cx="116" cy="120" r="12" fill="#ffffff" />
+      </svg:g>
+      <svg:circle cx="85" cy="122" r="7.5" fill="#17153b" />
+      <svg:circle cx="117" cy="122" r="7.5" fill="#17153b" />
+      <svg:circle cx="88" cy="118.5" r="2.6" fill="#ffffff" />
+      <svg:circle cx="120" cy="118.5" r="2.6" fill="#ffffff" />
+    </svg:g>
+    <svg:ellipse cx="100" cy="137" rx="6" ry="4.5" fill="#17153b" />
+    <svg:path d="M87 146q13 17 26 0z" fill="#7a1e3a" stroke="#17153b" stroke-width="2.5" stroke-linejoin="round" />
+    <svg:ellipse cx="100" cy="154" rx="6" ry="3.5" fill="#ff8fa3" />
+  </ng-template>
+
+  <rect class="cel__panel" x="2" y="2" width="316" height="236" rx="28" fill="#fff6ea" stroke="#3b2db0" stroke-width="4" />
+
+  @switch (scene()) {
+    @case ('car') {
+      <!-- Plic drives in in a convertible, stops, gives a thumbs up with a blink, and drives off. -->
+      <path d="M14 214h292" stroke="#f0e2cf" stroke-width="4" stroke-linecap="round" />
+      <g class="cel-car">
+        <g class="cel-car__lines" stroke="#c9cad8" stroke-width="5" stroke-linecap="round">
+          <path d="M18 140h34M8 162h40M22 184h26" />
+        </g>
+        <g transform="translate(95 34) scale(0.62)">
+          <ng-container *ngTemplateOutlet="plic" />
+        </g>
+        <g class="cel-car__thumb" stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+          <ellipse cx="204" cy="118" rx="8" ry="15" fill="#7d63ff" transform="rotate(25 204 118)" />
+          <rect x="207" y="84" width="8" height="18" rx="4" fill="#7d63ff" />
+          <circle cx="212" cy="104" r="10" fill="#7d63ff" />
+        </g>
+        <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+          <path d="M124 136 112 108" stroke="#8fd3ff" stroke-width="6" stroke-linecap="round" />
+          <path d="M56 162q0-24 24-26h168q32 2 38 28v14q0 12-12 12H68q-12 0-12-12z" fill="#ff8a8a" />
+          <path d="M150 140v44" fill="none" />
+          <circle cx="276" cy="160" r="6" fill="#ffc93c" />
+        </g>
+        @for (x of [100, 236]; track x) {
+          <g [attr.transform]="'translate(' + x + ' 194)'">
+            <g class="cel-car__wheel" stroke="#3b2db0" stroke-width="3">
+              <circle r="18" fill="#17153b" />
+              <circle r="7" fill="#c9cad8" />
+              <path d="M0-14v6M0 8v6M-14 0h6M8 0h6" stroke="#c9cad8" />
+            </g>
+          </g>
+        }
+      </g>
+    }
+    @case ('podium') {
+      <!-- Plic flexes on the top step while photographers' flashes go off. -->
+      <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+        <rect x="40" y="178" width="80" height="50" rx="6" fill="#d9d2ff" />
+        <rect x="200" y="192" width="80" height="36" rx="6" fill="#bdf2da" />
+        <rect x="120" y="156" width="80" height="72" rx="6" fill="#ffc93c" />
+      </g>
+      <text x="160" y="208" text-anchor="middle" font-family="'Outfit Variable', sans-serif" font-size="34" font-weight="800" fill="#3b2db0">1</text>
+      <g class="cel-podium__plic">
+        <g transform="translate(100 44) scale(0.6)">
+          <g stroke="#3b2db0" stroke-width="3">
+            <ellipse cx="76" cy="180" rx="18" ry="9" fill="#fff1df" />
+            <ellipse cx="124" cy="180" rx="18" ry="9" fill="#fff1df" />
+          </g>
+          <ng-container *ngTemplateOutlet="plic" />
+          <!-- Both arms bent up, the left mirroring the right. -->
+          @for (side of sides; track side) {
+            <g [attr.transform]="side">
+              <g class="cel-podium__arm" fill="#7d63ff" stroke="#3b2db0" stroke-width="3">
+                <ellipse cx="174" cy="122" rx="22" ry="12" />
+                <ellipse cx="192" cy="96" rx="11" ry="20" />
+                <circle class="cel-podium__biceps" cx="176" cy="112" r="11" />
+              </g>
+            </g>
+          }
+        </g>
+      </g>
+      <g fill="#ffffff" stroke="#ffc93c" stroke-width="3" stroke-linejoin="round">
+        @for (flash of [{ x: 44, y: 56 }, { x: 278, y: 70 }, { x: 64, y: 132 }, { x: 262, y: 146 }]; track $index) {
+          <g [attr.transform]="'translate(' + flash.x + ' ' + flash.y + ')'">
+            <path class="cel-podium__flash" d="M0-24 6-6 24 0 6 6 0 24-6 6-24 0-6-6z" />
+          </g>
+        }
+      </g>
+    }
+    @case ('lab') {
+      <!-- Plic pours one flask into the other: the mix turns gold and sparkles burst out. -->
+      <g class="cel-lab__plic">
+        <g transform="translate(100 24) scale(0.6)">
+          <ng-container *ngTemplateOutlet="plic" />
+        </g>
+      </g>
+      <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+        <g transform="translate(118 172)">
+          <g class="cel-lab__left">
+            <path class="cel-lab__mix" d="M-15 6h30l5 10q3 6-4 6h-32q-7 0-4-6z" fill="#7d63ff" stroke="none" />
+            <path d="M-7-28h14v16l15 28q3 8-5 8h-34q-8 0-5-8l15-28z" fill="#ffffff" fill-opacity="0.35" />
+            <circle cx="-14" cy="-6" r="9" fill="#7d63ff" />
+          </g>
+        </g>
+        <g transform="translate(202 172)">
+          <g class="cel-lab__right">
+            <path d="M-15 6h30l5 10q3 6-4 6h-32q-7 0-4-6z" fill="#9fe8c8" stroke="none" />
+            <path d="M-7-28h14v16l15 28q3 8-5 8h-34q-8 0-5-8l15-28z" fill="#ffffff" fill-opacity="0.35" />
+            <circle cx="14" cy="-6" r="9" fill="#7d63ff" />
+          </g>
+        </g>
+      </g>
+      <path class="cel-lab__stream" d="M160 120q-14 6-36 22" fill="none" stroke="#9fe8c8" stroke-width="6" stroke-linecap="round" />
+      <g transform="translate(130 140)" fill="#ffc93c" stroke="#3b2db0" stroke-width="2" stroke-linejoin="round">
+        @for (sparkle of sparkles; track $index) {
+          <path
+            class="cel-lab__sparkle"
+            d="M0-10 3-3 10 0 3 3 0 10-3 3-10 0-3-3z"
+            [style.--dx]="sparkle.dx"
+            [style.--dy]="sparkle.dy"
+            [style.--delay]="sparkle.delay"
+          />
+        }
+      </g>
+    }
+    @case ('gift') {
+      <!-- A gift box opens: Plic springs out, arms up, under a shower of confetti. -->
+      <g class="cel-gift__plic">
+        <g transform="translate(100 30) scale(0.6)">
+          @for (side of sides; track side) {
+            <g [attr.transform]="side">
+              <ellipse cx="176" cy="102" rx="13" ry="27" fill="#7d63ff" stroke="#3b2db0" stroke-width="3" transform="rotate(42 176 102)" />
+            </g>
+          }
+          <ng-container *ngTemplateOutlet="plic" />
+        </g>
+      </g>
+      <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+        <rect x="104" y="150" width="112" height="72" rx="6" fill="#ff8a8a" />
+        <rect x="152" y="150" width="16" height="72" fill="#ffc93c" />
+        <g class="cel-gift__lid">
+          <rect x="96" y="134" width="128" height="20" rx="5" fill="#ff8a8a" />
+          <rect x="152" y="134" width="16" height="20" fill="#ffc93c" />
+          <path d="M160 134q-24-26-30-6t30 6q24-26 30-6t-30 6z" fill="#ffc93c" />
+        </g>
+      </g>
+      @for (piece of confetti; track $index) {
+        <g [attr.transform]="'translate(' + piece.x + ' 0)'">
+          <rect
+            class="cel-gift__confetti"
+            x="-4"
+            y="-7"
+            width="8"
+            height="14"
+            rx="2"
+            [attr.fill]="piece.fill"
+            stroke="#3b2db0"
+            stroke-width="1.5"
+            [style.--drift]="piece.drift"
+            [style.--spin]="piece.spin"
+            [style.--delay]="piece.delay"
+          />
+        </g>
+      }
+    }
+    @case ('rocket') {
+      <!-- Plic rides a rocket across the panel, leaving a trail of stars. -->
+      <g fill="#ffc93c" stroke="#3b2db0" stroke-width="2" stroke-linejoin="round">
+        @for (star of [{ x: 52, y: 196 }, { x: 104, y: 160 }, { x: 156, y: 124 }, { x: 208, y: 88 }]; track $index) {
+          <g [attr.transform]="'translate(' + star.x + ' ' + star.y + ')'">
+            <path class="cel-rocket__star" d="M0-9 3-3 9 0 3 3 0 9-3 3-9 0-3-3z" [style.--delay]="0.25 + $index * 0.3 + 's'" />
+          </g>
+        }
+      </g>
+      <g class="cel-rocket">
+        <g transform="rotate(-35)">
+          <g class="cel-rocket__flame">
+            <path d="M-62 0l-26-12q8 12 0 24z" fill="#ffc93c" stroke="#ff8a8a" stroke-width="3" stroke-linejoin="round" />
+          </g>
+          <g stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
+            <path d="M-54-18l-14-14v20zM-54 18l-14 14v-20z" fill="#ff8a8a" />
+            <path d="M-60-16h70q30 0 44 16-14 16-44 16h-70z" fill="#ffffff" />
+            <circle cx="22" cy="0" r="7" fill="#8fd3ff" />
+          </g>
+          <g transform="translate(-48 -66) scale(0.4)">
+            <ng-container *ngTemplateOutlet="plic" />
+          </g>
+        </g>
+      </g>
+    }
+  }
+</svg>
