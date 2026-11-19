@@ -224,12 +224,12 @@
         "other": "cartes montent"
       },
       "knew": {
-        "one": "bonne réponse",
-        "other": "bonnes réponses"
+        "one": "carte correcte",
+        "other": "cartes correctes"
       },
       "again": {
-        "one": "à revoir",
-        "other": "à revoir"
+        "one": "carte à réviser",
+        "other": "cartes à réviser"
       },
       "movedDown": {
         "one": "carte descend",

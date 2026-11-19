@@ -236,7 +236,7 @@ describe('StudySession', () => {
       expect(texts).toContain("Les cartes n'ont pas changé de boîte.");
       expect(
         [...host.querySelectorAll('.study__stat dt')].map((dt) => dt.textContent?.trim()),
-      ).toEqual(['bonne réponse', 'à revoir']);
+      ).toEqual(['carte correcte', 'carte à réviser']);
       expect(buttonNamed(host, 'Revoir la carte ratée')).toBeTruthy();
     });
 
@@ -835,7 +835,7 @@ describe('StudySession', () => {
         "Les cartes n'ont pas changé de boîte.",
         'Un entraînement : les boîtes ne bougent pas.',
       ]);
-      expect(textOf(host, '.study__stat dt')).toBe('bonne réponse');
+      expect(textOf(host, '.study__stat dt')).toBe('carte correcte');
       expect(textOf(host, '.study__stat dd')).toBe('1');
       expect(linkNamed(host, 'Terminer').getAttribute('href')).toBe('/decks/d1');
     });
@@ -876,8 +876,8 @@ describe('StudySession', () => {
       expect(textOf(host, 'h1').replace(/\s+/g, ' ')).toBe('Score : 67 %');
       expect(textOf(host, '.study__end-text')).toBe('Test terminé');
       expect(stats()).toEqual([
-        ['2', 'bonnes réponses'],
-        ['1', 'à revoir'],
+        ['2', 'cartes correctes'],
+        ['1', 'carte à réviser'],
       ]);
       expect(textOf(host, '.study__best')).toBe("C'est ton meilleur score !");
       expect(linkNamed(host, 'Terminer').getAttribute('href')).toBe('/explore/p1');
