@@ -154,41 +154,10 @@
       </g>
     }
     @case ('lab') {
-      <!-- Plic holds a flask in each hand, raises both over its head and joins them: the mix
-           turns gold and bursts into sparkles above it. -->
+      <!-- Plic throws both arms up and sparkles burst over its head. -->
       <path d="M2 206h316" stroke="#f0e2cf" stroke-width="4" />
-      <g class="cel-lab__plic">
-        <g transform="translate(100 92) scale(0.6)">
-          <g stroke="#3b2db0" stroke-width="3">
-            <ellipse cx="76" cy="180" rx="18" ry="9" fill="#fff1df" />
-            <ellipse cx="124" cy="180" rx="18" ry="9" fill="#fff1df" />
-          </g>
-          <ng-container *ngTemplateOutlet="plic" />
-          <!-- Each arm turns at the shoulder; the hand turns the other way so its flask stays
-               upright, then leans in to meet the other one over the head. -->
-          @for (hand of labHands; track hand.side) {
-            <g [attr.transform]="hand.side">
-              <g transform="translate(154 112)">
-                <g class="cel-lab__arm" stroke="#3b2db0" stroke-width="3" stroke-linejoin="round">
-                  <rect x="-12" y="-10" width="24" height="140" rx="12" fill="#7d63ff" />
-                  <g transform="translate(0 130)">
-                    <g class="cel-lab__hold">
-                      <g class="cel-lab__flask" transform="scale(1.7)">
-                        <path d="M-15-14h30l7 10q2 4-3 4h-38q-5 0-3-4z" [attr.fill]="hand.liquid" stroke="none" />
-                        <path class="cel-lab__gold" d="M-15-14h30l7 10q2 4-3 4h-38q-5 0-3-4z" fill="#ffc93c" stroke="none" />
-                        <path d="M-6-46h12v14l16 26q4 8-4 8h-36q-8 0-4-8l16-26z" fill="#ffffff" fill-opacity="0.25" />
-                      </g>
-                      <circle cy="2" r="13" fill="#7d63ff" />
-                    </g>
-                  </g>
-                </g>
-              </g>
-            </g>
-          }
-        </g>
-      </g>
-      <g transform="translate(160 48)" stroke="#3b2db0" stroke-width="2" stroke-linejoin="round">
-        <!-- The blast: a golden glow and a ring, under the sparkles. -->
+      <g transform="translate(160 62)" stroke="#3b2db0" stroke-width="2" stroke-linejoin="round">
+        <!-- The blast, behind Plic: a golden glow and a ring, under the sparkles. -->
         <circle class="cel-lab__glow" r="40" fill="#ffe08a" stroke="none" />
         <circle class="cel-lab__ring" r="40" fill="none" stroke="#ffc93c" stroke-width="5" />
         @for (sparkle of sparkles; track $index) {
@@ -203,6 +172,26 @@
             [style.--delay]="sparkle.delay"
           />
         }
+      </g>
+      <g class="cel-lab__plic">
+        <g transform="translate(100 92) scale(0.6)">
+          <g stroke="#3b2db0" stroke-width="3">
+            <ellipse cx="76" cy="180" rx="18" ry="9" fill="#fff1df" />
+            <ellipse cx="124" cy="180" rx="18" ry="9" fill="#fff1df" />
+          </g>
+          <ng-container *ngTemplateOutlet="plic" />
+          <!-- Each arm turns at the shoulder, from down at the side to up in a V. -->
+          @for (side of sides; track side) {
+            <g [attr.transform]="side">
+              <g transform="translate(154 118)">
+                <g class="cel-lab__arm" fill="#7d63ff" stroke="#3b2db0" stroke-width="3">
+                  <rect x="-12" y="-10" width="24" height="76" rx="12" />
+                  <circle cy="66" r="14" />
+                </g>
+              </g>
+            </g>
+          }
+        </g>
       </g>
     }
     @case ('gift') {

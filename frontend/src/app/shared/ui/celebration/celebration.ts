@@ -86,10 +86,6 @@ export class Celebration {
   protected readonly confetti = CONFETTI;
   protected readonly sparkles = SPARKLES;
   protected readonly sides = ['', 'translate(200 0) scale(-1 1)'];
-  protected readonly labHands = [
-    { side: '', liquid: '#3ccf91' },
-    { side: 'translate(200 0) scale(-1 1)', liquid: '#ff5c7a' },
-  ];
 
   constructor() {
     const timer = setTimeout(() => this.finished.emit(), CELEBRATION_MS);

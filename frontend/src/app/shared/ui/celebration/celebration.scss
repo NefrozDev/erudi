@@ -397,82 +397,44 @@ svg {
   }
 }
 
-// Lab: both flasks rise over the head, clink, turn gold and burst.
+// Lab: Plic throws its arms up and sparkles burst over its head.
 .cel-lab__plic {
   animation: cel-hop $duration ease-in-out;
 }
 
-// The arm and the hand turn around their own joint (the origin of their group), not
-// around their box.
-.cel-lab__arm,
-.cel-lab__hold {
+// The arm turns around the shoulder (the origin of its group), not around its box.
+.cel-lab__arm {
   transform-box: view-box;
   transform-origin: 0 0;
-}
-
-.cel-lab__arm {
   animation: cel-raise $duration ease-in-out both;
 }
 
 @keyframes cel-raise {
   0%,
-  12% {
-    transform: rotate(-55deg);
+  16% {
+    transform: rotate(-30deg);
   }
 
-  34%,
+  // Up in a V just before the burst, then a cheer.
+  44% {
+    transform: rotate(-150deg);
+  }
+
+  50% {
+    transform: rotate(-138deg);
+  }
+
+  60% {
+    transform: rotate(-156deg);
+  }
+
+  70%,
   100% {
-    transform: rotate(-195deg);
+    transform: rotate(-145deg);
   }
 }
 
-// Upright at the side (arm + hand = 0), leaning in over the head (-15deg), with a clink.
-.cel-lab__hold {
-  animation: cel-hold $duration ease-in-out both;
-}
-
-@keyframes cel-hold {
-  0%,
-  12% {
-    transform: rotate(55deg);
-  }
-
-  34% {
-    transform: rotate(180deg);
-  }
-
-  38% {
-    transform: rotate(188deg);
-  }
-
-  41% {
-    transform: rotate(172deg);
-  }
-
-  44%,
-  100% {
-    transform: rotate(180deg);
-  }
-}
-
-.cel-lab__gold {
-  opacity: 0;
-  animation: cel-gold $duration both;
-}
-
-@keyframes cel-gold {
-  0%,
-  42% {
-    opacity: 0;
-  }
-
-  52%,
-  100% {
-    opacity: 1;
-  }
-}
-
-// The explosion, right once the flasks meet: a flash of glow, a shock ring, then the sparkles.
+// The explosion, as the arms go up: a flash of glow, a shock ring, then the sparkles.
 .cel-lab__glow {
   opacity: 0;
   animation: cel-glow 0.6s ease-out 1.35s both;
